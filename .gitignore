@@ -1,0 +1,8 @@
+# 本地服务运行时数据（用户、同步数据、管理员密钥）
+server/data/
+
+# 依赖与临时文件
+node_modules/
+*.log
+.DS_Store
+Thumbs.db

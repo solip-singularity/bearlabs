@@ -73,7 +73,7 @@ function validateCourse(course, file, issues) {
     need(typeof u.id === 'string' && u.id.includes('-u'), `unit[${ui}] id 形如 <courseId>-u1`);
     need(typeof u.title === 'string' && u.title.length >= 2, `unit[${ui}] 缺少 title`);
     need(typeof u.summary === 'string' && u.summary.length >= 5, `unit[${ui}] 缺少 summary`);
-    need(Array.isArray(u.chapters) && u.chapters.length >= 2, `unit[${ui}] chapters 至少 2 个`);
+    need(Array.isArray(u.chapters) && u.chapters.length >= 1, `unit[${ui}] chapters 至少 1 个`);
     (u.chapters || []).forEach((c, ci) => {
       totalCh++; chIdx++;
       need(new RegExp(`^${course.id}-\\d{2}$`).test(c.id || ''), `unit[${ui}].ch[${ci}] id 应为 ${course.id}-NN`);

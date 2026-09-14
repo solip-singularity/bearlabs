@@ -1,0 +1,51 @@
+{
+  "id": "db",
+  "title": "数据库系统",
+  "subtitle": "管好海量数据的艺术：从一张表到千万级系统",
+  "level": "本科核心",
+  "levelNote": "适合本科生与零基础自学者；不需要编程先修，会使用电脑和表格软件即可开始。",
+  "hours": 14,
+  "keywords": ["数据库", "SQL", "关系模型", "索引", "事务", "并发控制", "数据库设计", "NoSQL"],
+  "description": "从零开始学数据管理：认识关系模型，写一手好 SQL，理解索引与查询优化为什么快，看透事务与并发控制，最后迈入数据库设计与分布式系统的大门。学完能独立设计一个规范的小型数据库，并用 SQL 完成常见查询与基本调优。",
+  "prerequisites": ["会操作电脑；对表格（如成绩单、通讯录）有基本概念即可", "本课 SQL 示例以 SQLite 为主（兼容 MySQL），不要求编程基础"],
+  "units": [
+    {
+      "id": "db-u1",
+      "title": "单元一 关系世界",
+      "summary": "从文件走向数据库：认识表、键与约束，并用 SQL 完成查询的三级跳。",
+      "chapters": [
+        { "id": "db-01", "title": "第1讲 数据库是什么", "objective": "说出数据库相比文件存数据的优势，掌握表、键、约束等核心概念", "minutes": 35, "difficulty": 1, "prereqs": [] },
+        { "id": "db-02", "title": "第2讲 SQL 基础查询", "objective": "掌握 SELECT、WHERE、ORDER BY、LIMIT 的写法，能按条件筛选并排序数据", "minutes": 45, "difficulty": 1, "prereqs": ["第1讲 数据库是什么"] },
+        { "id": "db-03", "title": "第3讲 SQL 进阶", "objective": "会用 JOIN 连接多表、用 GROUP BY 与聚合函数做统计，并读懂简单子查询", "minutes": 55, "difficulty": 2, "prereqs": ["第2讲 SQL 基础查询"] }
+      ]
+    },
+    {
+      "id": "db-u2",
+      "title": "单元二 性能的秘密",
+      "summary": "索引为什么快、优化器在想什么、数据到底存在哪里——性能背后的三块基石。",
+      "chapters": [
+        { "id": "db-04", "title": "第4讲 索引与 B+ 树", "objective": "解释索引加速的原理，理解 B+ 树结构，并会为查询选择合适的索引", "minutes": 55, "difficulty": 3, "prereqs": ["第2讲 SQL 基础查询"] },
+        { "id": "db-05", "title": "第5讲 查询优化器", "objective": "理解执行计划与代价模型，会用 EXPLAIN 诊断常见查询", "minutes": 45, "difficulty": 3, "prereqs": ["第4讲 索引与 B+ 树"] },
+        { "id": "db-06", "title": "第6讲 存储引擎与日志", "objective": "理解页、缓冲池、WAL 与崩溃恢复，讲清一条数据从修改到落盘的旅程", "minutes": 45, "difficulty": 3, "prereqs": ["第4讲 索引与 B+ 树"] }
+      ]
+    },
+    {
+      "id": "db-u3",
+      "title": "单元三 事务与并发",
+      "summary": "多人同时使用数据库怎么办：用事务守住正确性，用锁与 MVCC 兼顾速度。",
+      "chapters": [
+        { "id": "db-07", "title": "第7讲 事务与 ACID", "objective": "用自己的话说清 ACID，区分四种隔离级别与三种典型并发现象", "minutes": 50, "difficulty": 2, "prereqs": ["第3讲 SQL 进阶"] },
+        { "id": "db-08", "title": "第8讲 并发控制", "objective": "理解锁与 MVCC 的协作机制，能分析幻读与死锁产生的原因", "minutes": 55, "difficulty": 3, "prereqs": ["第7讲 事务与 ACID"] }
+      ]
+    },
+    {
+      "id": "db-u4",
+      "title": "单元四 设计与进阶",
+      "summary": "从画 ER 图到规范设计，再到复制、分片与 NoSQL 的分布式新世界。",
+      "chapters": [
+        { "id": "db-09", "title": "第9讲 数据库设计", "objective": "会用 ER 图建模，能用三大范式检查表设计并权衡反范式", "minutes": 50, "difficulty": 2, "prereqs": ["第3讲 SQL 进阶", "第7讲 事务与 ACID"] },
+        { "id": "db-10", "title": "第10讲 分布式与 NoSQL 导读", "objective": "解释 CAP 定理与复制、分片原理，认识 NoSQL 四大类及其适用场景", "minutes": 40, "difficulty": 3, "prereqs": ["第6讲 存储引擎与日志", "第8讲 并发控制"] }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "id": "coa",
+  "title": "计算机组成原理",
+  "subtitle": "从晶体管到 CPU：看硬件如何跑起程序",
+  "level": "本科核心",
+  "levelNote": "面向本科生与零基础爱好者；先修只需基础数学常识，所有概念从零讲起，有编程经验更佳。",
+  "hours": 18,
+  "keywords": ["计算机组成", "二进制", "补码", "浮点数", "CPU", "流水线", "存储层次"],
+  "description": "从 0 和 1 出发，逐层搭起一台计算机：数字的机器表示、逻辑门与加法器、指令系统与数据通路、流水线、存储层次与 IO。学完后你能看懂「程序如何在硬件上一步步跑起来」，并为操作系统、计算机体系结构等后续课程打好地基。",
+  "prerequisites": ["有任意一门编程语言的初步经验更佳（非必需）", "愿意动手做进制转换与简单计算练习"],
+  "units": [
+    {
+      "id": "coa-u1",
+      "title": "单元一 数字基石：信息在机器里长什么样",
+      "summary": "先弄清机器眼中的世界：0 和 1、二进制与编码，负数与小数如何表示，逻辑门如何做加法。",
+      "chapters": [
+        { "id": "coa-01", "title": "第1讲 从 0 和 1 说起", "objective": "理解计算机为什么用二进制，掌握位、字节与进制转换，建立 ASCII/UTF-8 文本编码的直观认识", "minutes": 40, "difficulty": 1, "prereqs": [] },
+        { "id": "coa-02", "title": "第2讲 数字的机器表达", "objective": "掌握原码、反码、补码与整数溢出，读懂 IEEE754 浮点的字段结构与精度问题", "minutes": 50, "difficulty": 2, "prereqs": ["coa-01"] },
+        { "id": "coa-03", "title": "第3讲 从晶体管到逻辑门", "objective": "理解晶体管开关、基本逻辑门与布尔运算，能用门电路拼出半加器与全加器", "minutes": 45, "difficulty": 2, "prereqs": ["coa-01"] }
+      ]
+    },
+    {
+      "id": "coa-u2",
+      "title": "单元二 一颗 CPU 的诞生",
+      "summary": "从指令讲起，认识运算器与数据通路，再看流水线如何让多条指令并行奔跑。",
+      "chapters": [
+        { "id": "coa-04", "title": "第4讲 指令系统：计算机的菜谱", "objective": "理解指令格式与常见寻址方式，建立 ISA 概念，说清 RISC 与 CISC 的差异与取舍", "minutes": 50, "difficulty": 2, "prereqs": ["coa-03"] },
+        { "id": "coa-05", "title": "第5讲 运算器与数据通路", "objective": "认识 ALU、寄存器组与单周期数据通路，理解一条指令如何一步步执行以及控制信号的来源", "minutes": 55, "difficulty": 3, "prereqs": ["coa-04"] },
+        { "id": "coa-06", "title": "第6讲 指令流水线", "objective": "理解五级流水线的工作方式，识别数据、控制、结构冒险及应对手段，会计算流水线性能与加速比", "minutes": 55, "difficulty": 3, "prereqs": ["coa-05"] }
+      ]
+    },
+    {
+      "id": "coa-u3",
+      "title": "单元三 存储的阶梯",
+      "summary": "金字塔式的存储层次：局部性、缓存、虚拟内存，一层层弥合 CPU 与内存之间的速度鸿沟。",
+      "chapters": [
+        { "id": "coa-07", "title": "第7讲 存储层次与局部性", "objective": "理解存储金字塔与时间、空间局部性原理，建立缓存（Cache）的基本思想", "minutes": 45, "difficulty": 2, "prereqs": ["coa-01"] },
+        { "id": "coa-08", "title": "第8讲 高速缓存 Cache 深入", "objective": "掌握直接映射、组相联与全相联组织方式，理解替换与写策略，能做命中率相关计算", "minutes": 55, "difficulty": 3, "prereqs": ["coa-07"] },
+        { "id": "coa-09", "title": "第9讲 虚拟内存与地址翻译", "objective": "理解虚拟内存、页表与 TLB 的协作，说清地址翻译与缺页处理的完整过程", "minutes": 55, "difficulty": 3, "prereqs": ["coa-08"] }
+      ]
+    },
+    {
+      "id": "coa-u4",
+      "title": "单元四 与世界的接口",
+      "summary": "总线、设备与 DMA：计算机如何与外部世界有条不紊地交换数据。",
+      "chapters": [
+        { "id": "coa-10", "title": "第10讲 总线与 IO 接口", "objective": "理解总线结构、IO 编址方式，以及轮询与中断两种 IO 控制方式的差异", "minutes": 45, "difficulty": 2, "prereqs": ["coa-05"] },
+        { "id": "coa-11", "title": "第11讲 存储设备与 DMA", "objective": "了解磁盘与 SSD 的基本原理，理解 DMA 的工作方式与 RAID 的直觉", "minutes": 40, "difficulty": 2, "prereqs": ["coa-10"] }
+      ]
+    },
+    {
+      "id": "coa-u5",
+      "title": "单元五 研究生进阶导读",
+      "summary": "一瞥现代处理器：超标量、乱序、多核与 SIMD，指出继续深入的方向。",
+      "chapters": [
+        { "id": "coa-12", "title": "第12讲 现代处理器面面观", "objective": "了解超标量、乱序执行、多核与 SIMD 等技术，建立继续深入学习的路线图", "minutes": 50, "difficulty": 3, "prereqs": ["coa-06"] }
+      ]
+    }
+  ]
+}

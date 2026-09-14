@@ -1,0 +1,235 @@
+{
+  "id": "db-02",
+  "courseId": "db",
+  "title": "第2讲 SQL 基础查询",
+  "objectives": [
+    "掌握 SELECT 列 FROM 表 WHERE 条件 的基本句型，会用比较与逻辑运算符组合条件",
+    "会用 ORDER BY 升序/降序排序，用 LIMIT 限量取前几名",
+    "认识 NULL 的「未知」语义，会用 IS NULL / IS NOT NULL 判断空值",
+    "能写出 DISTINCT、列别名与计算列等常用查询表达式"
+  ],
+  "keyPoints": [
+    "查询基本句型：SELECT 哪些列 FROM 哪张表 WHERE 满足什么条件 ORDER BY 怎么排 LIMIT 取几行",
+    "条件运算符：比较（=、!=、大于、小于）、AND / OR / NOT、IN、BETWEEN、LIKE 通配匹配",
+    "字符串常量用单引号包裹；ORDER BY 默认升序，DESC 降序；LIMIT 配合 ORDER BY 用于取 Top-N",
+    "NULL 表示未知，不能用等号比较，判断空值要用 IS NULL",
+    "逻辑执行顺序：FROM 取表 → WHERE 过滤 → SELECT 选列 → ORDER BY 排序 → LIMIT 截断"
+  ],
+  "minutes": 45,
+  "difficulty": 1,
+  "prerequisites": ["第1讲 数据库是什么"],
+  "keywords": ["SELECT", "WHERE", "ORDER BY", "LIMIT", "条件查询", "NULL", "LIKE"],
+  "demoRefs": [],
+  "refs": ["《SQL 基础教程》（MICK 著）查询与条件表达式章节（延伸阅读）"],
+  "pro": {
+    "intro": "上一讲我们建好了表、插进了数据，但真正的日常是「把想要的数据问出来」。SQL 里干这件事的动词是 SELECT——它是使用频率最高的一句 SQL，值得用一整讲打磨。本讲把查询拆成五块零件：要哪些列（SELECT）、从哪张表（FROM）、挑什么行（WHERE）、怎么排序（ORDER BY）、要几行（LIMIT）。认清这五块零件的配合方式，你就能读懂、写出绝大多数日常查询。",
+    "sections": [
+      {
+        "heading": "2.1 查询的零件：SELECT 与 FROM",
+        "html": "<p>最简单的查询总是长这样：<code>SELECT name, score FROM student;</code>——「从 student 表里，把 name 和 score 两列拿出来」。<code>SELECT *</code> 表示「所有列」，写起来省事，但工程上不推荐：列的增减会让结果变得不确定，多取的列还会白白消耗传输与内存。</p><p>SELECT 后面也可以放表达式而不仅是列名，例如 <code>SELECT name, score * 0.8 AS discounted FROM student;</code> 会把分数打八折显示，<code>AS</code> 给结果列起别名（Alias）。别名只是「显示名」，不改动表里的数据。</p><p>还有一个常被忽略的开关：<code>SELECT DISTINCT city FROM student;</code> 会把重复的城市只留一份——它作用于整行结果，不是单个列。</p>"
+      },
+      {
+        "heading": "2.2 用 WHERE 挑出想要的行",
+        "html": "<p>WHERE 后面跟条件表达式，只有让条件为「真」的行才会出现在结果里。常用工具：</p><ul><li>比较：<code>=</code>（等于）、<code>!=</code>（不等于）、<code>&gt;</code>、<code>&lt;</code> 及其带等号的形式；</li><li>逻辑组合：<code>AND</code>（同时满足）、<code>OR</code>（满足其一）、<code>NOT</code>（取反），括号可以改变优先级；</li><li>集合与范围：<code>IN ('北京','上海')</code> 表示在这些值里；<code>BETWEEN 20 AND 25</code> 表示闭区间，含两端；</li><li>模糊匹配：<code>LIKE '小%'</code>，<code>%</code> 代表任意多个字符，<code>_</code> 代表恰好一个字符。</li></ul><p>字符串常量要用单引号，如 <code>name = '小明'</code>。一个示例：<code>SELECT name FROM student WHERE (city = '北京' OR city = '上海') AND score &gt;= 90;</code></p>"
+      },
+      {
+        "heading": "2.3 排序与限量：ORDER BY 与 LIMIT",
+        "html": "<p><code>ORDER BY score DESC</code> 按分数从高到低排；不加 DESC 时默认升序 ASC。<code>ORDER BY city, score DESC</code> 表示先按城市升序、同城再按分数降序——多列排序时从左往右依次起作用。</p><p><code>LIMIT 3</code> 只返回结果的前 3 行。把它和排序搭配，就是经典的「取前三名」：<code>SELECT name, score FROM student ORDER BY score DESC LIMIT 3;</code>。注意：单独使用 LIMIT 而不排序，取到的是「任意 3 行」，因为不指定顺序时数据库不保证顺序。MySQL 还支持 <code>LIMIT 3 OFFSET 6</code>（跳过 6 行再取 3 行），SQLite 同样支持这一写法，用于分页十分方便。</p>"
+      },
+      {
+        "heading": "2.4 NULL 与逻辑执行顺序",
+        "html": "<p><strong>NULL</strong> 不是 0、也不是空字符串，它的含义是「未知/没有值」。任何与 NULL 的比较结果都是「未知」，而不是「真」或「假」，所以 <code>WHERE score = NULL</code> 什么都查不到，必须写 <code>WHERE score IS NULL</code>，非空则用 <code>IS NOT NULL</code>。</p><p>另一个高频困惑来自执行顺序。SQL 看起来从左到右书写，实际逻辑上按这个顺序执行：<strong>FROM（取表）→ WHERE（逐行过滤）→ SELECT（挑列与算表达式）→ ORDER BY（排序）→ LIMIT（截断）</strong>。这解释了三个现象：WHERE 阶段还没轮到 SELECT，所以 SELECT 里定义的列别名一般不能用在 WHERE 中；ORDER BY 在 SELECT 之后执行，因此可以用别名排序；LIMIT 最后执行，所以它截断的是排好序的结果。</p><figure><svg viewBox='0 0 660 210' role='img' aria-label='SQL 查询的逻辑执行顺序示意图'><rect x='24' y='70' width='96' height='60' rx='8' fill='#FFFFFF' stroke='#7C9CBF' stroke-width='1.6'/><text x='72' y='96' text-anchor='middle' font-size='13' fill='#2A2E33'>FROM</text><text x='72' y='116' text-anchor='middle' font-size='12' fill='#6C7078'>取整张表</text><path d='M124 100 L152 100' stroke='#C9A96A' stroke-width='1.6'/><path d='M160 100 L150 95 L150 105 Z' fill='#C9A96A'/><rect x='164' y='70' width='96' height='60' rx='8' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.6'/><text x='212' y='96' text-anchor='middle' font-size='13' fill='#2A2E33'>WHERE</text><text x='212' y='116' text-anchor='middle' font-size='12' fill='#6C7078'>逐行过滤</text><path d='M264 100 L292 100' stroke='#C9A96A' stroke-width='1.6'/><path d='M300 100 L290 95 L290 105 Z' fill='#C9A96A'/><rect x='304' y='70' width='96' height='60' rx='8' fill='#FFFFFF' stroke='#7C9CBF' stroke-width='1.6'/><text x='352' y='96' text-anchor='middle' font-size='13' fill='#2A2E33'>SELECT</text><text x='352' y='116' text-anchor='middle' font-size='12' fill='#6C7078'>选列、算表达式</text><path d='M404 100 L432 100' stroke='#C9A96A' stroke-width='1.6'/><path d='M440 100 L430 95 L430 105 Z' fill='#C9A96A'/><rect x='444' y='70' width='96' height='60' rx='8' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.6'/><text x='492' y='96' text-anchor='middle' font-size='13' fill='#2A2E33'>ORDER BY</text><text x='492' y='116' text-anchor='middle' font-size='12' fill='#6C7078'>排序</text><path d='M544 100 L572 100' stroke='#C9A96A' stroke-width='1.6'/><path d='M580 100 L570 95 L570 105 Z' fill='#C9A96A'/><rect x='584' y='70' width='60' height='60' rx='8' fill='#FFFFFF' stroke='#C9A96A' stroke-width='1.6'/><text x='614' y='96' text-anchor='middle' font-size='13' fill='#2A2E33'>LIMIT</text><text x='614' y='116' text-anchor='middle' font-size='12' fill='#6C7078'>截断</text><text x='330' y='176' text-anchor='middle' font-size='12' fill='#6C7078'>数据像流水线一样依次经过五个环节，最后才得到结果</text></svg><figcaption>图 2-1 SELECT 查询的逻辑执行顺序：FROM 出发，LIMIT 收尾。</figcaption></figure>"
+      },
+      {
+        "heading": "2.5 小结与预告",
+        "html": "<p>这一讲你掌握了查询的五块零件：SELECT 选列、FROM 指表、WHERE 过滤行、ORDER BY 排序、LIMIT 截断；也记住了两条易错规则：字符串用单引号、判断空值用 IS NULL。把它们组合起来，日常的单表查询基本都能拿下。</p><p>单表之外还有广阔天地：数据往往分散在多张表里，还要做分组统计。下一讲学习 JOIN 连接、GROUP BY 聚合与子查询，把「单表查询」升级为「多表分析」。</p>"
+      }
+    ]
+  },
+  "kid": {
+    "intro": "你去过快餐店点单吗？「一份蛋炒饭，不要葱，饮料换成果汁」——店员立刻明白你要什么。数据库也有自己的一套点单语言，叫 SQL。这一讲我们就学怎么对数据库「点单」：想要哪些信息、只要满足什么条件的、按什么顺序端上来、先给我几份就好。",
+    "sections": [
+      {
+        "heading": "先说要什么",
+        "html": "<p>点单第一句：要什么。<code>SELECT name, score</code> 的意思是「我要姓名和分数这两列」；写 <code>SELECT *</code> 就是「菜单上有的都来一份」。服务员把它端出来之前，还要先听你说完：从哪张表里端（<code>FROM student</code>）。</p><p>组合起来就是一句完整的点单：「<strong>从学生表里，拿出姓名和分数</strong>」。就这么直白。</p>"
+      },
+      {
+        "heading": "挑挑拣拣：只要符合条件的",
+        "html": "<p>你会说「饮料换成无糖的」——这就是加条件。数据库里加条件的词叫 <code>WHERE</code>：</p><ul><li>「分数 90 以上」→ <code>WHERE score &gt;= 90</code>；</li><li>「北京或者上海的同学」→ <code>WHERE city = '北京' OR city = '上海'</code>；</li><li>「名字里带个小字的」→ <code>WHERE name LIKE '小%'</code>。</li></ul><p>注意：文字要用单引号包起来，比如 <code>'北京'</code>，不然数据库听不懂。</p>"
+      },
+      {
+        "heading": "排队和限量",
+        "html": "<p>体育课排队，老师喊「按身高从高到矮站」，数据库说 <code>ORDER BY height DESC</code>——DESC 就是「从大到小排」；不写 DESC，默认从小到大。</p><p>有时候只要前面几个人：「跑得最快的 3 名同学」→ 先排好队，再 <code>LIMIT 3</code>（只留前三行）。先排队、再截取，这两个动作要配合使用，顺序别忘啦。</p><figure><svg viewBox='0 0 600 170' role='img' aria-label='查询四步流程：取表、过滤、排序、截断'><rect x='20' y='60' width='110' height='56' rx='8' fill='#FFFFFF' stroke='#7C9CBF' stroke-width='1.6'/><text x='75' y='84' text-anchor='middle' font-size='13' fill='#2A2E33'>整张表</text><text x='75' y='104' text-anchor='middle' font-size='12' fill='#6C7078'>全部数据</text><path d='M134 88 L162 88' stroke='#C9A96A' stroke-width='1.6'/><path d='M170 88 L160 83 L160 93 Z' fill='#C9A96A'/><rect x='174' y='60' width='110' height='56' rx='8' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.6'/><text x='229' y='84' text-anchor='middle' font-size='13' fill='#2A2E33'>挑一挑</text><text x='229' y='104' text-anchor='middle' font-size='12' fill='#6C7078'>符合条件留下</text><path d='M288 88 L316 88' stroke='#C9A96A' stroke-width='1.6'/><path d='M324 88 L314 83 L314 93 Z' fill='#C9A96A'/><rect x='328' y='60' width='110' height='56' rx='8' fill='#FFFFFF' stroke='#7C9CBF' stroke-width='1.6'/><text x='383' y='84' text-anchor='middle' font-size='13' fill='#2A2E33'>排排坐</text><text x='383' y='104' text-anchor='middle' font-size='12' fill='#6C7078'>按要求排序</text><path d='M442 88 L470 88' stroke='#C9A96A' stroke-width='1.6'/><path d='M478 88 L468 83 L468 93 Z' fill='#C9A96A'/><rect x='482' y='60' width='100' height='56' rx='8' fill='#FFFFFF' stroke='#C9A96A' stroke-width='1.6'/><text x='532' y='84' text-anchor='middle' font-size='13' fill='#2A2E33'>拿走前几份</text><text x='532' y='104' text-anchor='middle' font-size='12' fill='#6C7078'>LIMIT 截取</text></svg><figcaption>图 2-2 查询流水线：挑一挑、排排坐、拿前几份。</figcaption></figure>"
+      },
+      {
+        "heading": "空着和写着 0 不一样",
+        "html": "<p>考试缺考没有分数，是「空着」，不是「零分」。数据库把「空着」叫做 <strong>NULL</strong>：它是「不知道」，不是 0。</p><p>想找空着的格子，不能写「等于空」——想一想也对：一个「不知道」怎么会等于「不知道」呢？正确的问法是 <code>IS NULL</code>（是空的吗），反过来是 <code>IS NOT NULL</code>（不是空的）。</p>"
+      },
+      {
+        "heading": "小结",
+        "html": "<p>今天学会了数据库的「点单话术」：<strong>要什么列、从哪张表、满足什么条件、怎么排队、来几份</strong>。也记住了两个小机关：文字要用单引号，空值要用 IS NULL。</p><p>下一讲更厉害：有时数据分住在好几张表里（比如同学表、成绩表分开住），我们要学一门「拉手」的本事，把几张表连起来一起看——就像把两本册子摊开在同一张桌子上。</p>"
+      }
+    ]
+  },
+  "glossary": [
+    { "term": "SELECT", "def": "查询语句的主角：说明要取出哪些列或表达式" },
+    { "term": "WHERE", "def": "过滤条件：只有条件为真的行才会出现在结果里" },
+    { "term": "ORDER BY", "def": "排序子句，默认升序（ASC），可用 DESC 改为降序" },
+    { "term": "LIMIT", "def": "限量子句：只返回结果的前若干行，常用于取前几名或分页" },
+    { "term": "NULL", "def": "表示「未知或没有值」，不能用等号比较，要用 IS NULL 判断" },
+    { "term": "LIKE", "def": "模糊匹配：百分号代表任意多个字符，下划线代表一个字符" },
+    { "term": "别名（Alias）", "def": "用 AS 给结果列起的显示名，方便阅读，不影响原数据" }
+  ],
+  "exercises": [
+    {
+      "id": "db-02-e01",
+      "level": "easy",
+      "type": "choice",
+      "stem": "要查出 student 表中年龄大于 18 的所有学生，正确的 SQL 是？",
+      "options": ["A. SELECT * FROM student WHERE age > 18;", "B. SELECT * WHERE age > 18 FROM student;", "C. SELECT FROM student WHERE age > 18;", "D. SELECT * FROM student ORDER BY age > 18;"],
+      "answer": "A",
+      "solution": {
+        "idea": "回忆句型：SELECT 列 FROM 表 WHERE 条件，各子句顺序不能乱。",
+        "steps": ["SELECT * 表示取所有列；", "FROM student 指明从学生表取；", "WHERE age > 18 过滤出年龄大于 18 的行。"],
+        "result": "A。标准写法是 SELECT * FROM student WHERE age > 18;",
+        "pitfalls": ["把 WHERE 写到 FROM 前面：违背 SQL 的书写顺序（B 错）；", "漏掉星号或列名：SELECT 后面必须有东西（C 错）。"],
+        "kid": "点单的语序不能乱：「来一份（SELECT）蛋炒饭（*），从（FROM）厨房的学生窗口，条件是（WHERE）不要葱」。把「不要葱」说到最前面去，店员就糊涂了。SQL 也一样按固定语序说话。"
+      }
+    },
+    {
+      "id": "db-02-e02",
+      "level": "easy",
+      "type": "choice",
+      "stem": "ORDER BY score DESC 的作用是？",
+      "options": ["A. 按分数从低到高排列", "B. 按分数从高到低排列", "C. 只显示分数列", "D. 过滤掉没有分数的行"],
+      "answer": "B",
+      "solution": {
+        "idea": "DESC 是 descending（下降）的缩写，表示降序。",
+        "steps": ["ORDER BY 负责排序；", "默认方向是升序 ASC；", "加 DESC 后改为从大到小，即从高到低。"],
+        "result": "B。从高到低排。",
+        "pitfalls": ["把 DESC 当成筛选条件：它只改变顺序，不删除行；", "混淆 ASC 与 DESC：ASC 是从小到大。"],
+        "kid": "DESC 就好比体育老师说「从高到矮，站！」——队伍还是那些人，一个都没少，只是顺序换过来了。谁站第一谁站最后，全看这一个词。"
+      }
+    },
+    {
+      "id": "db-02-e03",
+      "level": "easy",
+      "type": "judge",
+      "stem": "LIMIT 3 表示只返回结果的前 3 行；和 ORDER BY 搭配使用时，常用来取「前三名」。",
+      "answer": "正确",
+      "solution": {
+        "idea": "LIMIT 控制返回行数，配合排序即可实现 Top-N。",
+        "steps": ["LIMIT 3 把结果截取为前 3 行；", "先 ORDER BY score DESC 排好序，前 3 行就是分数最高的三位；", "所以判断正确。"],
+        "result": "正确。ORDER BY 排序 + LIMIT 截取 = 取前 N 名。",
+        "pitfalls": ["只写 LIMIT 不写 ORDER BY：取到的只是「任意 3 行」，因为无排序时数据库不保证顺序。"],
+        "kid": "领奖台只有三个位置。先让大家按成绩排好队（ORDER BY），再让前三位上台（LIMIT 3）。要是队伍没排就随便拉三个人上台，那领奖的可就是随机选手啦。"
+      }
+    },
+    {
+      "id": "db-02-e04",
+      "level": "easy",
+      "type": "judge",
+      "stem": "要查询分数为空的学生，可以写 WHERE score = NULL。",
+      "answer": "错误",
+      "solution": {
+        "idea": "NULL 表示未知，比较结果也未知，不能用等号判断。",
+        "steps": ["任何值与 NULL 做比较，结果都不是「真」；", "因此 WHERE score = NULL 查不到任何行；", "正确写法是 WHERE score IS NULL。"],
+        "result": "错误。判断空值要用 IS NULL。",
+        "pitfalls": ["把 NULL 当作 0 或空字符串来比较：它们语义完全不同。"],
+        "kid": "老师问：「谁还没交作业？」——是问「空着的格子」。如果你说「交了的同学等于『不知道』」，这话本身就没法回答。所以数据库专门造了个问法：IS NULL，「是空着的吗」。"
+      }
+    },
+    {
+      "id": "db-02-e05",
+      "level": "medium",
+      "type": "choice",
+      "stem": "要查询「分数不低于 90 且姓名以『小』开头的学生」，正确的 WHERE 子句是？",
+      "options": ["A. WHERE score >= 90 OR name LIKE '小%'", "B. WHERE score >= 90 AND name LIKE '小%'", "C. WHERE score >= 90 AND name = '小%'", "D. WHERE score >= 90 OR name = '小'"],
+      "answer": "B",
+      "solution": {
+        "idea": "两个条件都要满足用 AND；「以某字开头」是模糊匹配，用 LIKE 加百分号。",
+        "steps": ["「不低于 90」写作 score >= 90；", "「以小开头」写作 name LIKE '小%'，百分号表示后面还有任意多个字；", "两个条件同时满足，用 AND 连接。"],
+        "result": "B。WHERE score >= 90 AND name LIKE '小%'",
+        "pitfalls": ["用 = 配 %：等号是全字匹配，小% 被当成三个字的姓名，查不到；", "用 OR 连接：会混进分数高但与「小」无关、以及名字符合但分数低的行。"],
+        "kid": "招领处找东西要同时说清两件事：「是红颜色的」并且「带拉链的」。两个都要「同时满足」，中间就得用 AND。只说其中一件，或者用「或者」把两件事拆开，都会拉来一大堆不相干的东西。"
+      }
+    },
+    {
+      "id": "db-02-e06",
+      "level": "medium",
+      "type": "derive",
+      "stem": "已知查询：SELECT name FROM student WHERE age >= 18 ORDER BY name LIMIT 5; 请按逻辑执行顺序写出它依次执行的五个阶段（有几步写几步，并说明每步做完了什么数据）；再解释：为什么 WHERE 里通常不能使用 SELECT 中定义的列别名？",
+      "answer": "执行顺序：① FROM 读取 student 全表；② WHERE 过滤出 age >= 18 的行；③ SELECT 从剩余行中挑出 name 一列；④ ORDER BY 按 name 排序；⑤ LIMIT 5 截取前 5 行。别名不能用在 WHERE：因为 WHERE 在 SELECT 之前执行，那时别名还没被定义。",
+      "solution": {
+        "idea": "记住流水线顺序 FROM → WHERE → SELECT → ORDER BY → LIMIT，逐步看数据被如何加工。",
+        "steps": ["先定位数据来源：FROM student；", "再压缩行数：WHERE age >= 18；", "接着挑列：SELECT name；然后排序：ORDER BY name；最后截断：LIMIT 5。"],
+        "result": "五阶段见答案；WHERE 早于 SELECT 执行，所以用不了 SELECT 里的别名。",
+        "pitfalls": ["以为 SQL 按书写顺序执行：书写顺序是 SELECT→FROM→WHERE，与实际执行顺序不同；", "以为排序发生在选列之前：实际是先选列再排序（这也是 ORDER BY 能用别名的原因）。"],
+        "kid": "这像做手抓饼：先拿面饼（FROM），再挑出要的配料（WHERE），然后装盘加酱（SELECT），接着按大小摆好（ORDER BY），最后只端走前 5 份（LIMIT）。你没法在「挑配料」时就用上「装盘后的名字」——因为盘子还没装呢！"
+      }
+    },
+    {
+      "id": "db-02-e07",
+      "level": "medium",
+      "type": "choice",
+      "stem": "WHERE age BETWEEN 20 AND 25 会选出哪些年龄？",
+      "options": ["A. 只选 20 和 25 两个年龄", "B. 选大于 20 且小于 25 的年龄（不含 20、25）", "C. 选 20 到 25 之间（含 20 和 25）的年龄", "D. 选出所有年龄，只是把 20 到 25 排前面"],
+      "answer": "C",
+      "solution": {
+        "idea": "BETWEEN a AND b 是闭区间，等价于 a <= x AND x <= b。",
+        "steps": ["BETWEEN 20 AND 25 表示在 20 与 25 之间；", "两端都包含在内；", "它等价于 age >= 20 AND age <= 25，是筛选不是排序。"],
+        "result": "C。含两端的闭区间筛选。",
+        "pitfalls": ["以为不包含端点：BETWEEN 的两端都包含；", "把它当排序用：BETWEEN 只过滤行、不改变顺序。"],
+        "kid": "电梯的「2 到 5 层」包括 2 层和 5 层——你按 2 和 5 都能停。BETWEEN 20 AND 25 就像说「从 20 到 25 站的同学都上来」，两头的人一个都不落。"
+      }
+    },
+    {
+      "id": "db-02-e08",
+      "level": "medium",
+      "type": "judge",
+      "stem": "SQL 标准中，字符串常量建议用单引号包裹，例如 name = '小明'。",
+      "answer": "正确",
+      "solution": {
+        "idea": "标准 SQL 用单引号表示字符串常量。",
+        "steps": ["标准写法：WHERE name = '小明'；", "双引号在标准里用于标识符（如表名、列名），部分数据库允许双引号兼作字符串但不通用；", "为保证兼容性，优先使用单引号。"],
+        "result": "正确。字符串常量用单引号最稳妥。",
+        "pitfalls": ["用中文引号或全角引号：数据库无法识别，会直接报语法错误。"],
+        "kid": "写作业时老师说过：重要的话要打引号。SQL 里的「引号」有个固定习惯——文字用单引号 ' 包起来。你要是用了弯弯的中文引号「」，数据库会像看见外星文字一样，一脸茫然。"
+      }
+    },
+    {
+      "id": "db-02-e09",
+      "level": "hard",
+      "type": "code",
+      "stem": "现有学生表 student(id, name, age, city, score)。请写一条 SQL：找出城市为「上海」且分数不低于 90 的学生，按分数从高到低排序，只返回分数最高的那一位，显示姓名与分数。建表、造数据、查询一并给出。",
+      "answer": "见 code 字段，最终输出：小美|95.0",
+      "solution": {
+        "idea": "组合使用 WHERE（两个条件）、ORDER BY DESC 与 LIMIT 1。",
+        "steps": ["建表并插入 5 条测试数据；", "WHERE city = '上海' AND score >= 90 过滤出符合条件的行；", "ORDER BY score DESC 从高到低排，LIMIT 1 只取第一名。"],
+        "result": "输出 小美|95.0（上海的两名高分学生中，95.0 排第一）。",
+        "pitfalls": ["把两个条件用 OR 连接：会把其他城市的低分学生也拉进来；", "LIMIT 写在 ORDER BY 前面：语句顺序错误将无法执行（LIMIT 必须放在最后）。"],
+        "kid": "这是一场「上海赛区 90 分以上」的擂台赛：先用条件选出参赛者（两个人入围），再按分数从高到低排队，最后只把冠军的名字挂在墙上。一连串动作，一句 SQL 全搞定。"
+      },
+      "code": {
+        "lang": "sql",
+        "code": "CREATE TABLE student (\n  id INTEGER PRIMARY KEY, name TEXT, age INTEGER, city TEXT, score REAL\n);\nINSERT INTO student VALUES (1, '小明', 19, '北京', 86.0);\nINSERT INTO student VALUES (2, '小红', 20, '上海', 92.5);\nINSERT INTO student VALUES (3, '小刚', 18, '北京', 78.0);\nINSERT INTO student VALUES (4, '小美', 21, '上海', 95.0);\nINSERT INTO student VALUES (5, '小李', 19, '广州', 88.5);\nSELECT name, score FROM student\nWHERE city = '上海' AND score >= 90\nORDER BY score DESC\nLIMIT 1;",
+        "output": "小美|95.0",
+        "explain": "以上为 SQLite 与 MySQL 兼容写法。WHERE 同时要求城市为上海、分数不低于 90（只有小红 92.5 与小美 95.0 入围）；ORDER BY score DESC 把 95.0 排在最前；LIMIT 1 截取第一行。SQLite 命令行默认以竖线分隔各列。"
+      }
+    },
+    {
+      "id": "db-02-e10",
+      "level": "hard",
+      "type": "derive",
+      "stem": "某列表页每页显示 3 条，数据按 id 升序排列。请推导：第 3 页应该跳过多少条、取多少条？写出对应的 SQL（用 LIMIT 与 OFFSET），并把公式「跳过的行数 = （页码 - 1）× 每页条数」验证一遍；最后说明为什么分页查询必须配合 ORDER BY。",
+      "answer": "第 3 页：跳过 (3-1)×3 = 6 条，取 3 条。SQL：SELECT * FROM student ORDER BY id LIMIT 3 OFFSET 6; 必须配合 ORDER BY，因为数据库不保证无序查询的返回顺序，否则同一页可能重复或遗漏数据。",
+      "solution": {
+        "idea": "分页 = 先确定排序规则，再按「跳过 (页码-1)×每页条数、取每页条数」截取。",
+        "steps": ["跳过的行数 = (3 - 1) × 3 = 6，取 3 条；", "写 SQL：ORDER BY id LIMIT 3 OFFSET 6；", "验证：前 6 条被跳过（属第 1、2 页），从第 7 条起取 3 条，正好是第 3 页。"],
+        "result": "LIMIT 3 OFFSET 6；分页必须带稳定排序，否则页与页之间可能错乱。",
+        "pitfalls": ["把 OFFSET 当页码用（写成 OFFSET 3）：那是跳过 3 条，是第 2 页；", "忘记 ORDER BY：无序结果下分页数据可能重复或漏掉。"],
+        "kid": "翻小人书：第 1 页看完翻 3 张，第 2 页再翻 3 张。要直接翻到第 3 页，就先跳过前两页的 6 张（3+3），然后看 3 张新的。书页有固定顺序（ORDER BY），所以每页看的不重不漏；要是书页顺序乱动，翻着翻着就乱套了。"
+      }
+    }
+  ]
+}

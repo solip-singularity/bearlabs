@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>计算机知识学习站 · 从二进制到人工智能</title>
+  <meta name="description" content="交互式计算机知识学习站：9 门课程、100 讲，专业版与小孩版双讲解，三级难度习题与完整解答，重点知识配可动手交互动画。" />
+  <meta name="theme-color" content="#FAF7F2" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2346796B'/%3E%3Crect x='9' y='9' width='14' height='14' rx='3' fill='none' stroke='white' stroke-width='2'/%3E%3Crect x='13.5' y='13.5' width='5' height='5' rx='1.2' fill='white'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body data-route="loading">
+  <a class="skip-link" href="#app">跳到主要内容</a>
+  <div class="readbar" id="readbar" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="#/">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8"><rect x="6" y="6" width="12" height="12" rx="3"/><rect x="10" y="10" width="4" height="4" rx="1" fill="#FFFFFF" stroke="none"/></svg>
+        </span>
+        <span>计算机知识学习站</span>
+      </a>
+      <nav class="topnav" id="topnav" aria-label="主导航"></nav>
+      <div class="topbar-tools">
+        <div class="searchbox" role="search">
+          <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg>
+          <input id="search-input" type="search" placeholder="搜索课程 / 章节…" aria-label="搜索课程或章节" autocomplete="off" />
+          <div class="search-results hidden" id="search-results" role="listbox" aria-label="搜索结果"></div>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="sync-btn" type="button" style="display:none">同步</button>
+        <button class="btn btn-ghost btn-icon menu-btn" id="menu-btn" type="button" aria-label="打开菜单" aria-expanded="false">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </div>
+    <nav class="mobilenav container" id="mobilenav" aria-label="移动端导航"></nav>
+  </header>
+
+  <main id="app" tabindex="-1">
+    <div class="container" style="padding-block: 64px;">
+      <div class="skeleton skeleton-card" style="max-width: 640px;"></div>
+      <div class="skeleton skeleton-line" style="max-width: 420px;"></div>
+      <div class="skeleton skeleton-line" style="max-width: 520px;"></div>
+      <p class="muted small mt-6">正在加载课程数据…如果长时间停留在此页面，请确认通过本地服务器访问（见 README）。</p>
+    </div>
+  </main>
+
+  <footer class="sitefoot">
+    <div class="container">
+      <div class="foot-grid">
+        <div>
+          <div class="foot-title">计算机知识学习站</div>
+          <p style="margin:0; max-width: 46ch;">从二进制到人工智能：9 门课程、双讲解、三级习题、可动手交互演示。为大学生、研究生与零基础学习者共同准备。</p>
+        </div>
+        <div>
+          <div class="foot-title">快速链接</div>
+          <ul>
+            <li><a href="#/courses">课程目录</a></li>
+            <li><a href="#/paths">学习路径</a></li>
+            <li><a href="#/demos">演示实验室</a></li>
+            <li><a href="#/practice">练习中心</a></li>
+            <li><a href="#/dashboard">我的进度</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="foot-title">文档与说明</div>
+          <ul>
+            <li><a href="docs/handoff.html">使用与交接说明</a></li>
+            <li><a href="docs/AUTHORING-GUIDE.md">内容维护指南</a></li>
+            <li><a href="#/about">关于本站</a></li>
+          </ul>
+        </div>
+      </div>
+      <hr class="divider" />
+      <div class="row-between">
+        <span class="meta">© 2026 计算机知识学习站 · 内容为原创讲解，欢迎学习使用</span>
+        <span class="meta">数据默认保存在本机浏览器 · 可导出备份</span>
+      </div>
+    </div>
+  </footer>
+
+  <div class="toast-root" id="toast-root" aria-live="polite"></div>
+  <div id="modal-root"></div>
+  <button class="btn btn-secondary btn-icon scroll-top" id="scroll-top" type="button" aria-label="回到顶部">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+
+  <noscript>
+    <div class="container" style="padding-block:32px;">
+      <div class="callout alert"><div class="co-title">需要启用 JavaScript</div>本站的课程浏览、习题判分与交互演示需要浏览器启用 JavaScript 才能使用。</div>
+    </div>
+  </noscript>
+
+  <script src="js/util.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/demokit.js"></script>
+  <script src="js/views.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

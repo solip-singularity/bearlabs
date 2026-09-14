@@ -10,6 +10,12 @@
 5. 每写完一个 JSON 文件，**立即**运行校验脚本（见 §11），必须 PASS 才继续下一个文件。
 6. 文件编码 UTF-8；JSON 里字符串内的换行用 \n 转义；**HTML 标签的属性一律用单引号**（如 `<pre class='code' data-lang='c'>`），避免 JSON 转义错误。中文标点直接写（全角符号没问题）。
 
+### 0.5 时间预算与执行节奏（重要）
+- 你的单次运行时间上限约 20 分钟：读完材料后**立即动笔**，平均每章写作 ≤5 分钟。
+- 不要探索目录、不要读校验脚本源码、不要读 plan.md 等其他文件，这些对写作没有帮助。
+- 宁可每章写到规范下限（pro ≥1100 字、kid ≥750 字、习题 10 题齐备），不要超长或反复打磨。
+- 时间不够时：优先把完整的章节文件落盘；未完成部分写进报告，由后续任务接力。
+
 ## 1. 文件与路径
 - 课程元数据：`content/courses/<courseId>/course.json`
 - 章节：`content/courses/<courseId>/<chapterId>.json`（如 `coa-01.json`）
@@ -136,10 +142,7 @@
 ```
 node "C:\Users\光的波粒二象性\.openclaw-autoclaw\workspace\.cluster\cs-learn-site\DELIVERY\cs-learn-site\tools\validate-content.js" "<刚写的文件绝对路径>"
 ```
-输出 `PASS` 才能继续；`FAIL` 列表要逐条修复后重跑。课程全部完成后跑一次整课检查：
-```
-node "...\tools\validate-content.js" --course <courseId>
-```
+输出 `PASS` 才能继续；`FAIL` 列表要逐条修复后重跑。若某次命令超过 30 秒无响应，跳过校验、继续写下一章（缺口写进报告）。课程级整课校验由主线统一执行，你不需要跑 `--course` / `--all`。
 
 ## 12. 回传报告（写到自己编号的 reports 文件）
 `C:\Users\光的波粒二象性\.openclaw-autoclaw\workspace\.cluster\cs-learn-site\reports\subagent_NN.md`

@@ -1,0 +1,51 @@
+{
+  "id": "ai",
+  "title": "人工智能与机器学习入门",
+  "subtitle": "让机器学会思考的第一步：从搜索、学习到神经网络",
+  "level": "研究生入门",
+  "levelNote": "面向大学高年级与研究生初学者，也适合零基础自学者挑战；只需一点函数直觉与阅读简单 Python 代码的能力，无需机器学习基础。",
+  "hours": 14,
+  "keywords": ["人工智能", "机器学习", "神经网络", "深度学习", "搜索算法", "模型评估"],
+  "description": "本课程从人工智能的历史与地图讲起，沿搜索、机器学习、神经网络三条主线，带你理解机器如何「想」、如何「学」、如何从数据中抽出规律。学完你能读懂常见的 AI 概念与新闻，理解训练与评估背后的大图景，并用简短 Python 代码动手体验一个迷你学习系统。",
+  "prerequisites": ["高中程度的函数与直线方程直觉", "能读懂最简单的 Python 代码（课程内示例都短小易读）"],
+  "units": [
+    {
+      "id": "ai-u1",
+      "title": "单元一 智能的起点",
+      "summary": "先建立全景认知：AI 从哪里来、机器如何靠「搜索」想办法",
+      "chapters": [
+        { "id": "ai-01", "title": "第1讲 AI 是什么：历史与地图", "objective": "讲清 AI、机器学习、深度学习三层关系与 AI 发展简史，知道今天 AI 能做什么、不能做什么", "minutes": 35, "difficulty": 1, "prereqs": [] },
+        { "id": "ai-02", "title": "第2讲 搜索：让计算机想办法", "objective": "用状态空间描述问题，理解 BFS、DFS 与 A* 的搜索思想与取舍", "minutes": 50, "difficulty": 2, "prereqs": ["ai-01"] }
+      ]
+    },
+    {
+      "id": "ai-u2",
+      "title": "单元二 机器学习",
+      "summary": "让机器从数据里自己找规律：回归、分类与评估",
+      "chapters": [
+        { "id": "ai-03", "title": "第3讲 机器学习基础", "objective": "区分监督、无监督与强化学习，理解训练与测试划分、泛化的意义", "minutes": 50, "difficulty": 2, "prereqs": ["ai-01"] },
+        { "id": "ai-04", "title": "第4讲 线性回归与梯度下降", "objective": "理解线性回归模型、损失函数与梯度下降的更新过程，警惕学习率过大过小的影响", "minutes": 55, "difficulty": 3, "prereqs": ["ai-03"] },
+        { "id": "ai-05", "title": "第5讲 分类与评估", "objective": "理解逻辑回归与决策边界，会算混淆矩阵、精确率与召回率", "minutes": 50, "difficulty": 3, "prereqs": ["ai-03", "ai-04"] }
+      ]
+    },
+    {
+      "id": "ai-u3",
+      "title": "单元三 神经网络",
+      "summary": "从单个神经元到深度网络与大语言模型",
+      "chapters": [
+        { "id": "ai-06", "title": "第6讲 从感知机到神经网络", "objective": "从感知机理解神经元模型与激活函数，明白多层网络为什么更加强大", "minutes": 50, "difficulty": 3, "prereqs": ["ai-04", "ai-05"] },
+        { "id": "ai-07", "title": "第7讲 反向传播", "objective": "用链式法则直觉理解反向传播，能写出训练循环的基本步骤", "minutes": 55, "difficulty": 3, "prereqs": ["ai-06"] },
+        { "id": "ai-08", "title": "第8讲 深度学习与现代应用", "objective": "认识 CNN、RNN、Transformer 三条路线，理性看待大语言模型的能力与边界", "minutes": 50, "difficulty": 2, "prereqs": ["ai-06", "ai-07"] }
+      ]
+    },
+    {
+      "id": "ai-u4",
+      "title": "单元四 用好 AI",
+      "summary": "防过拟合、会调参，也学会负责任地使用 AI",
+      "chapters": [
+        { "id": "ai-09", "title": "第9讲 过拟合与调参", "objective": "识别过拟合与欠拟合，掌握正则化、交叉验证与调参的基本策略", "minutes": 45, "difficulty": 3, "prereqs": ["ai-04"] },
+        { "id": "ai-10", "title": "第10讲 AI 伦理与安全", "objective": "认识偏见、隐私与对齐等 AI 伦理问题，形成负责任使用 AI 的意识", "minutes": 40, "difficulty": 2, "prereqs": ["ai-08"] }
+      ]
+    }
+  ]
+}

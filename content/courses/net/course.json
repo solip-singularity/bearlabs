@@ -1,0 +1,60 @@
+{
+  "id": "net",
+  "title": "计算机网络",
+  "subtitle": "数据如何跨越山海：从一根网线到整个互联网",
+  "level": "本科核心",
+  "levelNote": "适合本科二年级及以上读者，建议先修计算机组成原理、了解基本的二进制与进制换算；零基础读者可先读每讲的通俗版建立直觉。",
+  "hours": 17,
+  "keywords": ["计算机网络", "TCP/IP", "OSI 模型", "IP 地址", "TCP", "UDP", "HTTP"],
+  "description": "从分层思想出发，带你走完数据「从网线到应用」的全程：以太网与 IP 地址、子网划分与路由、TCP/UDP 传输机制、DNS 与 HTTP 应用协议、网络安全基础。学完能读懂网络配置、独立完成子网计算、排查常见连通性问题，并理解互联网运转的底层逻辑。",
+  "prerequisites": ["计算机组成原理基础（二进制、字节、基本硬件概念）", "一门编程语言的基础语法（用于理解端口与套接字）"],
+  "units": [
+    {
+      "id": "net-u1",
+      "title": "单元一 网络世界的地图",
+      "summary": "先建立整体地图：通信规则（协议）与分层思想，再走进离我们最近的局域网。",
+      "chapters": [
+        { "id": "net-01", "title": "第1讲 分层与协议", "objective": "说出协议的作用，对照理解 OSI 与 TCP/IP 分层模型，描述数据封装与解封装的完整过程", "minutes": 40, "difficulty": 1, "prereqs": [] },
+        { "id": "net-02", "title": "第2讲 数据链路层：局域网里的快递", "objective": "解释以太网帧与 MAC 地址的作用，说明交换机如何转发数据帧，复述 ARP 把 IP 解析为 MAC 的流程", "minutes": 45, "difficulty": 2, "prereqs": ["net-01"] }
+      ]
+    },
+    {
+      "id": "net-u2",
+      "title": "单元二 网络层：让数据认路",
+      "summary": "从 IP 地址与子网计算开始，学会路由选择，理解分片、NAT 与 IPv6 等进阶主题。",
+      "chapters": [
+        { "id": "net-03", "title": "第3讲 IP 地址与子网划分", "objective": "掌握 IPv4 地址结构、CIDR 与子网掩码，能独立完成子网划分与网络/广播地址的计算并验算", "minutes": 50, "difficulty": 2, "prereqs": ["net-01", "net-02"] },
+        { "id": "net-04", "title": "第4讲 路由的艺术", "objective": "读懂路由表，会按最长前缀匹配为数据包选路，说出 RIP/OSPF/BGP 三类路由协议的分工", "minutes": 45, "difficulty": 2, "prereqs": ["net-03"] },
+        { "id": "net-05", "title": "第5讲 IP 进阶：分片、NAT 与 IPv6", "objective": "解释 IP 分片与重组机制，说清 NAT 的工作原理与 IPv6 的动机和过渡方案", "minutes": 45, "difficulty": 3, "prereqs": ["net-03", "net-04"] }
+      ]
+    },
+    {
+      "id": "net-u3",
+      "title": "单元三 传输层：可靠与效率的平衡",
+      "summary": "对比 UDP 与 TCP 的设计取舍，深入理解握手挥手、可靠传输与拥塞控制。",
+      "chapters": [
+        { "id": "net-06", "title": "第6讲 UDP：简单直接", "objective": "说出 UDP 的特点与首部结构，区分端口寻址与 IP 寻址，列举适用场景并解释 UDP 打洞的基本直觉", "minutes": 35, "difficulty": 1, "prereqs": ["net-03"] },
+        { "id": "net-07", "title": "第7讲 TCP 三次握手与四次挥手", "objective": "复述三次握手与四次挥手流程，解释为什么建立要三次、释放要四次，说明 TIME_WAIT 状态的意义", "minutes": 50, "difficulty": 2, "prereqs": ["net-06"] },
+        { "id": "net-08", "title": "第8讲 TCP 的可靠传输", "objective": "用序号、确认与滑动窗口解释 TCP 可靠传输，描述超时重传与快速重传的触发条件", "minutes": 55, "difficulty": 3, "prereqs": ["net-07"] },
+        { "id": "net-09", "title": "第9讲 TCP 拥塞控制", "objective": "解释慢启动、拥塞避免、快恢复的切换逻辑，说出 Reno 与 CUBIC 的差异直觉", "minutes": 55, "difficulty": 3, "prereqs": ["net-08"] }
+      ]
+    },
+    {
+      "id": "net-u4",
+      "title": "单元四 应用层：你每天在用的一切",
+      "summary": "拆解 DNS、HTTP 与一次完整访问旅程，把全课知识串成一条线。",
+      "chapters": [
+        { "id": "net-10", "title": "第10讲 DNS 与 HTTP", "objective": "复述 DNS 的解析过程，说明 HTTP 请求响应格式与缓存机制，概述 HTTPS 的作用", "minutes": 50, "difficulty": 2, "prereqs": ["net-06"] },
+        { "id": "net-11", "title": "第11讲 一次访问的旅程", "objective": "综合运用本课知识，完整描述从输入网址到页面显示的数据流历程", "minutes": 50, "difficulty": 2, "prereqs": ["net-10"] }
+      ]
+    },
+    {
+      "id": "net-u5",
+      "title": "单元五 安全与进阶",
+      "summary": "认识加密、证书与常见攻击，为继续深入学习网络安全打基础。",
+      "chapters": [
+        { "id": "net-12", "title": "第12讲 网络安全基础", "objective": "区分对称与非对称加密的用途，说明证书体系与 TLS 握手流程，列举常见网络攻击与防御手段", "minutes": 50, "difficulty": 3, "prereqs": ["net-10"] }
+      ]
+    }
+  ]
+}

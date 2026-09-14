@@ -1,0 +1,236 @@
+{
+  "id": "db-03",
+  "courseId": "db",
+  "title": "第3讲 SQL 进阶",
+  "objectives": [
+    "说出内连接与左连接的区别，会用 JOIN ... ON 把两张表按条件配对",
+    "会用 COUNT / SUM / AVG / MAX / MIN 与 GROUP BY 做分组统计",
+    "分清 WHERE 与 HAVING 的适用场景，能写「先分组、后过滤」的统计查询",
+    "认识 IN / EXISTS / 标量三种常见子查询，能读懂「查询里的查询」"
+  ],
+  "keyPoints": [
+    "JOIN 用连接条件把两张表按行配对；ON 指明配对规则，漏写会得到成倍膨胀的笛卡尔积",
+    "INNER JOIN 只保留配对成功的行；LEFT JOIN 保留左表全部行，右表配不上的地方补 NULL",
+    "GROUP BY 把行按列值分组，聚合函数把每组汇总成一行；COUNT(*) 数行数，COUNT(列) 忽略 NULL",
+    "WHERE 在分组前过滤行；HAVING 在分组后过滤组，条件里可用聚合结果",
+    "子查询是嵌在查询里的查询：可作集合条件（IN）、存在性判断（EXISTS）或一个标量参与比较"
+  ],
+  "minutes": 55,
+  "difficulty": 2,
+  "prerequisites": ["第2讲 SQL 基础查询"],
+  "keywords": ["JOIN", "连接", "GROUP BY", "聚合函数", "HAVING", "子查询", "LEFT JOIN"],
+  "demoRefs": [],
+  "refs": ["《SQL 基础教程》（MICK 著）连接与汇总章节（延伸阅读）", "《数据库系统概念》SQL 进阶部分（延伸阅读）"],
+  "pro": {
+    "intro": "现实中的数据几乎从不挤在一张表里：学生信息在学生表，成绩在成绩表，课程信息又在另一张表。想把「小明数据库课考了多少分」问出来，就得把两张表连起来看。本讲补齐 SQL 的三块进阶拼图：JOIN 连接、GROUP BY 分组统计、子查询——学完它们，你的查询能力就从「翻一张表」升级为「同时调度多张表」。",
+    "sections": [
+      {
+        "heading": "3.1 数据分居两处，怎么一起看",
+        "html": "<p>假设学生表 student 保存 id、name、city，成绩表 score 保存 sid、course、score（sid 外键指向 student.id）。「每门课的平均分」在成绩表里就能算，但「每个城市的平均分」必须把两张表拼起来：城市信息只在学生表，分数只在成绩表。</p><p>把两张表「拼起来」的动作叫<strong>连接</strong>（JOIN，按某种配对规则把两张表的行组合成新行）。配对的依据写在 <code>ON</code> 条件里，最常见的形式是外键等于主键：<code>ON student.id = score.sid</code>。这里有个重要提醒：如果忘了写 ON 条件，数据库会把两张表的每一行和每一行都两两组合——这叫<strong>笛卡尔积</strong>（Cartesian Product），1000 行乘 1000 行就是一百万行，通常不是你要的结果，还非常浪费资源。</p>"
+      },
+      {
+        "heading": "3.2 INNER JOIN 与 LEFT JOIN",
+        "html": "<p>最常用的连接有两种。<strong>内连接</strong>（INNER JOIN，只保留两边能配上对的行）：</p><pre class='code' data-lang='sql'>SELECT student.name, score.course, score.score\nFROM student\nINNER JOIN score ON student.id = score.sid;</pre><p>只有「学生表里存在、成绩表里也有记录」的学生才会出现。<strong>左连接</strong>（LEFT JOIN，保留左表全部行，右表配不上的地方用 NULL 补齐）恰恰解决「没有成绩的学生也想列出来」的需求：</p><pre class='code' data-lang='sql'>SELECT student.name, score.course, score.score\nFROM student\nLEFT JOIN score ON student.id = score.sid;</pre><p>没考过试的学生也会出现在结果里，course 与 score 显示为 NULL。习惯上表名太长时用别名简化：<code>FROM student s JOIN score c ON s.id = c.sid</code>。另外还有 RIGHT JOIN（保留右表全部行），但它总能用 LEFT JOIN 交换两边的写法代替，本课统一用 LEFT JOIN 表述。</p>"
+      },
+      {
+        "heading": "3.3 分组统计：GROUP BY 与 HAVING",
+        "html": "<p><strong>聚合函数</strong>把多行汇总成一个值：<code>COUNT</code> 计数、<code>SUM</code> 求和、<code>AVG</code> 平均、<code>MAX</code> 最大、<code>MIN</code> 最小。<code>GROUP BY</code> 把行按某列的值分成若干组，每组内部做聚合，每组输出一行：</p><pre class='code' data-lang='sql'>SELECT course, AVG(score) AS avg_score, COUNT(*) AS n\nFROM score\nGROUP BY course;</pre><p>两点易错：<code>COUNT(*)</code> 数的是行数，而 <code>COUNT(score)</code> 会忽略 NULL 值——数「有分数的记录」要用后者；SELECT 里出现的非聚合列，通常必须出现在 GROUP BY 中。</p><p>想过滤分组结果，用 <code>HAVING</code>：<code>SELECT course, AVG(score) FROM score GROUP BY course HAVING AVG(score) &gt;= 90;</code>。对比记住这句口诀：<strong>WHERE 管「分组前的行」，HAVING 管「分组后的组」，且 HAVING 里可以使用聚合结果</strong>。</p>"
+      },
+      {
+        "heading": "3.4 子查询：查询里的查询",
+        "html": "<p><strong>子查询</strong>（Subquery，嵌套在另一条语句里的查询）让「先算一个小结果、再拿它当条件」变得自然。常见三种形态：</p><ul><li><strong>集合条件</strong>：<code>SELECT name FROM student WHERE id IN (SELECT sid FROM score WHERE score &gt; 90);</code>——先查出「考过 90 分以上的学号集合」，再看谁在里面；</li><li><strong>存在性判断</strong>：<code>WHERE EXISTS (SELECT 1 FROM score WHERE score.sid = student.id)</code>——对每个学生检查「有没有成绩记录」，常与关联条件配合；</li><li><strong>标量比较</strong>：<code>SELECT name, score FROM score WHERE score &gt; (SELECT AVG(score) FROM score);</code>——子查询返回单个数值，直接参与比较，含义是「高于全体平均分」。</li></ul><p>子查询和连接常常可以互相改写，读得懂两种写法、写得出其中一种，就已经足够应付日常查询。</p>"
+      },
+      {
+        "heading": "3.5 小结与预告",
+        "html": "<p>本讲三块拼图：JOIN 负责横向「拼表」——INNER 只留配对成功的，LEFT 保留左表全部；GROUP BY 加聚合函数负责纵向「汇总」——每组一行；WHERE 与 HAVING 一个管行、一个管组；子查询则把一个小查询的答案嵌进大查询。配合上一讲的基础查询，常用的分析型 SQL 已经能对付了。</p><figure><svg viewBox='0 0 640 260' role='img' aria-label='内连接与左连接集合示意图'><circle cx='220' cy='120' r='86' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.8'/><circle cx='340' cy='120' r='86' fill='#FFFFFF' stroke='#7C9CBF' stroke-width='1.8'/><text x='160' y='60' text-anchor='middle' font-size='13' fill='#2A2E33'>学生表</text><text x='400' y='60' text-anchor='middle' font-size='13' fill='#2A2E33'>成绩表</text><text x='280' y='112' text-anchor='middle' font-size='12' fill='#C9A96A'>INNER JOIN</text><text x='280' y='132' text-anchor='middle' font-size='12' fill='#6C7078'>配对成功的行</text><text x='152' y='180' text-anchor='middle' font-size='12' fill='#6C7078'>配不上的学生</text><text x='152' y='198' text-anchor='middle' font-size='12' fill='#6C7078'>（LEFT JOIN 保留并补 NULL）</text><text x='470' y='180' font-size='12' fill='#6C7078'>没有学生的孤儿成绩</text><text x='470' y='198' font-size='12' fill='#6C7078'>（受外键约束，通常不存在）</text></svg><figcaption>图 3-1 内连接只取中间的重叠部分；左连接把左边圆圈里的全部学生都保住。</figcaption></figure><p>下一讲进入「性能」的世界：一样的查询结果，为什么有人 0.01 秒出答案，有人要等十几秒？秘密藏在索引与 B+ 树里。</p>"
+      }
+    ]
+  },
+  "kid": {
+    "intro": "学校的档案室里有好几本册子：一本记同学（姓名、班级），一本记成绩，一本记课程。老师想回答「哪个班平均分最高」，就得把册子们摊在同一张桌子上，一行一行对起来看。这一讲，我们学数据库最拿手的本事——把几张表格拉着手一起干活。",
+    "sections": [
+      {
+        "heading": "把两本册子摊开",
+        "html": "<p>为什么不能只用一个本子？因为如果所有信息都挤在一本册子里，就要疯狂重复：每个分数旁边都要重抄一遍同学的姓名、班级……抄得多，错得也多。</p><p>所以数据库把信息分开住：同学的本子只管同学，成绩的本子只管成绩，中间靠「学号」对上。想一起看时，说一句「按学号把两本册子对起来」，数据库就动手了——这个动作叫<strong>连接（JOIN）</strong>。</p>"
+      },
+      {
+        "heading": "拉手配对",
+        "html": "<p>「按学号配对」是这么干的：拿成绩册上的每个学号，去同学册里找到同一个学号，把两边的信息拼成一行。</p><p>有两种配对方式：<strong>配不上的就不要</strong>（两个册子里都有的同学才出现）；或者——<strong>同学册说了算</strong>：每个同学都要出现，还没考试的，成绩栏先空着。第二种叫左连接，最贴心：谁也不会因为没考试就被漏掉。</p><figure><svg viewBox='0 0 560 210' role='img' aria-label='两本册子按学号配对示意'><rect x='40' y='44' width='180' height='110' rx='10' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.6'/><text x='130' y='70' text-anchor='middle' font-size='13' fill='#2A2E33'>同学册</text><text x='130' y='96' text-anchor='middle' font-size='12' fill='#6C7078'>1 号 小明</text><text x='130' y='118' text-anchor='middle' font-size='12' fill='#6C7078'>2 号 小红</text><text x='130' y='140' text-anchor='middle' font-size='12' fill='#6C7078'>3 号 小刚</text><rect x='340' y='44' width='180' height='110' rx='10' fill='#FFFFFF' stroke='#7C9CBF' stroke-width='1.6'/><text x='430' y='70' text-anchor='middle' font-size='13' fill='#2A2E33'>成绩册</text><text x='430' y='96' text-anchor='middle' font-size='12' fill='#6C7078'>1 号 88 分</text><text x='430' y='118' text-anchor='middle' font-size='12' fill='#6C7078'>3 号 70 分</text><text x='430' y='140' text-anchor='middle' font-size='12' fill='#6C7078'>（2 号还没考）</text><path d='M226 96 L334 96' stroke='#C9A96A' stroke-width='1.6'/><path d='M342 96 L332 91 L332 101 Z' fill='#C9A96A'/><path d='M226 134 L334 134' stroke='#C9A96A' stroke-width='1.6'/><path d='M342 134 L332 129 L332 139 Z' fill='#C9A96A'/><text x='280' y='186' text-anchor='middle' font-size='12' fill='#6C7078'>同号拉手：2 号配不上，但左连接下也会保留，成绩先空着</text></svg><figcaption>图 3-2 按学号配对：配得上的拉手，配不上的照样站在队伍里。</figcaption></figure>"
+      },
+      {
+        "heading": "小队长数一数",
+        "html": "<p>体育课分组后，老师常让「按小组站好，报数」。数据库里也有这个动作：把同学<strong>按城市分组</strong>（GROUP BY），然后每组「数一数、算一算」——这一组几个人？平均分多少？这类「数数、加总、求平均」的小工具叫聚合函数。</p><p>数的时候有个陷阱：空着没考试的不算「有分数」的人——数人数用「共有多少人」，数成绩只能数「有成绩的人」。空位子不参与数数哦。</p>"
+      },
+      {
+        "heading": "先挑人，还是先挑组",
+        "html": "<p>如果老师说「只要分数和挑人有关的事」——比如「挑出 90 分以上的同学，再看他们分几组」——那是先挑人（WHERE，在分组之前）。</p><p>如果老师说「挑出平均分超过 90 的小组」——那要先把组算好，再挑整组，这是 HAVING，在分组之后。一个是进门前挑，一个是分好组了再挑，别弄反。</p><p>最后一个新朋友：子查询。它像「先问一个小问题，再拿答案去问大问题」——比如先问「全年级平均分是多少」，再问「谁超过这个分数」。问题套问题，答案照样清清楚楚。</p>"
+      },
+      {
+        "heading": "小结",
+        "html": "<p>今天三件法宝：<strong>JOIN 拉手配对</strong>（左连接不丢人，配不上就先空着）；<strong>GROUP BY 分小组</strong>（数一数、算一算）；<strong>WHERE 挑人、HAVING 挑组</strong>，子查询则是「小问题套大问题」。</p><p>下一讲改变节奏：我们不学新命令，而是回答一个「为什么」——为什么有的查询快如闪电，有的慢如蜗牛？答案是一本神秘的「目录」：索引。</p>"
+      }
+    ]
+  },
+  "glossary": [
+    { "term": "连接（JOIN）", "def": "按配对条件把两张表的行组合起来，一起显示" },
+    { "term": "内连接（INNER JOIN）", "def": "只保留两张表都能配对成功的行" },
+    { "term": "左连接（LEFT JOIN）", "def": "保留左表的全部行；右表配不上的地方用 NULL 补上" },
+    { "term": "笛卡尔积", "def": "两表行数两两相乘的结果；连接漏写 ON 条件时就会出现" },
+    { "term": "分组（GROUP BY）", "def": "按某列的值把行分成若干组，每组汇总输出一行" },
+    { "term": "聚合函数", "def": "把多行算成一个值的函数：COUNT 计数、SUM 求和、AVG 平均、MAX / MIN 最值" },
+    { "term": "HAVING", "def": "对「分组之后」的结果做过滤的子句，条件里可以出现聚合结果" },
+    { "term": "子查询（Subquery）", "def": "嵌套在另一条查询里的查询，可作集合条件、存在性判断或一个数值使用" }
+  ],
+  "exercises": [
+    {
+      "id": "db-03-e01",
+      "level": "easy",
+      "type": "choice",
+      "stem": "INNER JOIN 的结果集包含哪些行？",
+      "options": ["A. 左表的全部行", "B. 两张表能配对成功的行", "C. 两张表的所有行两两组合", "D. 任意一部分行，由数据库随机决定"],
+      "answer": "B",
+      "solution": {
+        "idea": "INNER JOIN 的语义是「两边都有、配得上」才保留。",
+        "steps": ["连接按 ON 条件把行配对；", "配对成功的才进入结果；", "配不上的行被丢弃，所以选 B。"],
+        "result": "B。只保留配对成功的行。",
+        "pitfalls": ["把 INNER JOIN 与 LEFT JOIN 混淆：后者保留左表全部行；", "以为 INNER JOIN 会做两两组合：那是漏写 ON 条件时的笛卡尔积。"],
+        "kid": "合唱团要「两人一组手拉手」。只算手拉手成功的组合（INNER JOIN）；没找到伙伴的人先站在一边——这种「配不上就不要」的做法，能让统计更干净。"
+      }
+    },
+    {
+      "id": "db-03-e02",
+      "level": "easy",
+      "type": "choice",
+      "stem": "SELECT COUNT(*) FROM student; 的作用是？",
+      "options": ["A. 返回 student 表的列数", "B. 返回 student 表的行数（记录条数）", "C. 返回 score 列的平均值", "D. 删除 student 表的所有行"],
+      "answer": "B",
+      "solution": {
+        "idea": "COUNT(*) 是数行数的聚合函数。",
+        "steps": ["COUNT 是聚合函数，负责计数；", "星号代表「所有行」，含含有 NULL 的行；", "所以它统计的是表的记录条数。"],
+        "result": "B。返回行数。",
+        "pitfalls": ["把 COUNT(*) 当成「取所有列」：它不是 SELECT *，而是数数；", "以为星号会排除 NULL 行：含 NULL 的行也会被 COUNT(*) 计入。"],
+        "kid": "点名！「全体注意，报数！」——COUNT(*) 就是数一数一共有多少人。它不管你叫什么、考了几分，只管把队伍从头到尾数一遍。"
+      }
+    },
+    {
+      "id": "db-03-e03",
+      "level": "easy",
+      "type": "judge",
+      "stem": "LEFT JOIN 会丢弃左表中没有配对成功的行。",
+      "answer": "错误",
+      "solution": {
+        "idea": "LEFT JOIN 的「左」字保证：左表的行一个都不能少。",
+        "steps": ["左表的每一行都会出现在结果中；", "右表配不上的部分用 NULL 补齐；", "所以「丢弃左表未配对行」的说法错误。"],
+        "result": "错误。左表全部保留，配不上补 NULL。",
+        "pitfalls": ["把 LEFT JOIN 与 INNER JOIN 的效果弄反：丢弃配不上的是 INNER JOIN。"],
+        "kid": "全班合影时，老师说「所有同学都要在照片里」。还没穿校服的同学怎么办？先站进去，位置空着回头补——这就是左连接：左表（全班名单）一个都不许少。"
+      }
+    },
+    {
+      "id": "db-03-e04",
+      "level": "easy",
+      "type": "judge",
+      "stem": "使用 GROUP BY city 后，每个城市在结果中恰好占一行（一组一行）。",
+      "answer": "正确",
+      "solution": {
+        "idea": "GROUP BY 的粒度是「一组一行」。",
+        "steps": ["GROUP BY 把行按城市的值分堆；", "同一堆（同一城市）的行被聚合到一行；", "所以每个城市输出一行，判断正确。"],
+        "result": "正确。分组后每组输出一行。",
+        "pitfalls": ["以为分组后会保留每一行原始数据：原始的行被「折叠」成组了。"],
+        "kid": "课间分水果：老师说「按小组站好」。站完以后，每个小组变成「一个圈」——全组一起数。数据库分组也是先把人归堆，每一堆只报一个总数。"
+      }
+    },
+    {
+      "id": "db-03-e05",
+      "level": "medium",
+      "type": "choice",
+      "stem": "要统计「每门课的平均分」并只保留平均分不低于 90 的课程，过滤条件应该写在哪里？",
+      "options": ["A. WHERE AVG(score) >= 90（分组前过滤）", "B. HAVING AVG(score) >= 90（分组后过滤）", "C. ORDER BY AVG(score) >= 90", "D. LIMIT AVG(score) >= 90"],
+      "answer": "B",
+      "solution": {
+        "idea": "条件里出现聚合结果时，用 HAVING 而非 WHERE。",
+        "steps": ["WHERE 在分组之前执行，此时还没有「每门课的平均分」可判断；", "HAVING 在 GROUP BY 之后执行，可以直接过滤组；", "所以选 B。"],
+        "result": "B。HAVING AVG(score) >= 90。",
+        "pitfalls": ["条件里用 AVG 却写在 WHERE：多数数据库会直接报错；", "把 HAVING 当成 WHERE 的别名：两者执行时机不同。"],
+        "kid": "先分小组、算出每组的平均分（这发生在分组之后），再决定「平均分不到 90 的组淘汰」。既然要先有组、后有平均分，筛选就得放在「分完组」那一步——这正是 HAVING。"
+      }
+    },
+    {
+      "id": "db-03-e06",
+      "level": "medium",
+      "type": "derive",
+      "stem": "已知：student 表有 3 行——(1, 小明)、(2, 小红)、(3, 小刚)；score 表有 3 行——(sid=1, 88 分)、(sid=1, 92 分)、(sid=3, 70 分)。请推导：SELECT s.name, c.score FROM student s LEFT JOIN score c ON s.id = c.sid; 的结果一共几行？分别是哪些（写出行与 NULL）？",
+      "answer": "共 4 行：(小明, 88)、(小明, 92)、(小刚, 70)、(小红, NULL)。因为 LEFT JOIN 保留左表全部学生，小红在成绩表里没有记录，分数补 NULL；小明有两条成绩，所以出现两行。",
+      "solution": {
+        "idea": "逐行把左表学生拿去右表找，配得上就拼行，配不上补 NULL。",
+        "steps": ["小明（id=1）：成绩表里两条记录都配对 → 2 行；", "小刚（id=3）：配对 1 条 → 1 行；", "小红（id=2）：无记录，LEFT JOIN 保留并补 NULL → 1 行；合计 4 行。"],
+        "result": "4 行：小明两条、小刚一条、小红一条（分数为 NULL）。",
+        "pitfalls": ["算成 3 行：漏掉「小红补 NULL」这一行是常见错误；", "算成 4 行 = 3 条成绩加 1：顺序无关，但要点是小红那条必须是 NULL。"],
+        "kid": "拿着名单挨个去成绩册查：小明查到两条分数（那就写两行）；小刚查到一条；小红翻遍成绩册——没有空白页吗？左连接说「别走，先站着，画一横线（空）」。所以名单上人人有份，一共 4 行。"
+      }
+    },
+    {
+      "id": "db-03-e07",
+      "level": "medium",
+      "type": "choice",
+      "stem": "要查询分数高于「全体平均分」的所有记录，正确的写法是？",
+      "options": ["A. SELECT * FROM score WHERE score > AVG(score);", "B. SELECT * FROM score WHERE score > (SELECT AVG(score) FROM score);", "C. SELECT * FROM score HAVING score > AVG(score);", "D. SELECT AVG(score) FROM score WHERE score > AVG;"],
+      "answer": "B",
+      "solution": {
+        "idea": "先「算出平均分」再拿它去比较——这需要子查询把平均值算成一个数。",
+        "steps": ["AVG 不能在 WHERE 里直接混用；", "子查询 (SELECT AVG(score) FROM score) 先算出一个数值；", "外层 WHERE score > 该数值即可过滤。"],
+        "result": "B。用标量子查询把平均分算出来再比较。",
+        "pitfalls": ["把聚合函数直接塞进 WHERE（A 错）：聚合作用于一组行，而 WHERE 面对的是单行；", "误用 HAVING（C 错）：没有 GROUP BY 时用它过滤单行是混乱写法。"],
+        "kid": "老师问「谁比全班平均分高」，得先拿计算器算出平均分，再挨个对比。数据库里没有「先算一下」的按钮？有——把「算平均分」这个小问题写成子查询，放进大问题里当条件就行。"
+      }
+    },
+    {
+      "id": "db-03-e08",
+      "level": "medium",
+      "type": "judge",
+      "stem": "COUNT(score) 会把 score 为 NULL 的行也统计进去。",
+      "answer": "错误",
+      "solution": {
+        "idea": "COUNT(列名) 只统计该列非 NULL 的值的个数。",
+        "steps": ["COUNT(*) 数所有行，包括含 NULL 的行；", "COUNT(score) 只看 score 列本身，NULL 会被跳过；", "所以该说法错误。"],
+        "result": "错误。COUNT(score) 忽略 NULL，只数有分数的记录。",
+        "pitfalls": ["把 COUNT(*) 与 COUNT(列) 混为一谈：一个数行、一个数「有值的格」。"],
+        "kid": "交作业时老师两种问法：①「交没交？全班多少人」——每个人都算（COUNT(*)）；②「交了的作业平均分算一下，没交的先别算」——只数交了的（COUNT(score) 忽略空白）。问法不同，数法就不同。"
+      }
+    },
+    {
+      "id": "db-03-e09",
+      "level": "hard",
+      "type": "code",
+      "stem": "现有 students(id, name) 与 scores(sid, course, score) 两张表。请写一条 SQL：列出每个学生的姓名与总分（没有成绩的学生也要出现，总分为空），按总分从高到低排序。给出建表、造数据、查询与结果。",
+      "answer": "见 code 字段；输出按总分降序：小红 187、小明 88、小刚 70、小美为空。",
+      "solution": {
+        "idea": "用 LEFT JOIN 保住全部学生，再 GROUP BY 学生做 SUM 汇总，最后降序排序。",
+        "steps": ["LEFT JOIN 把每个学生与自己的成绩记录配对，没成绩的补 NULL；", "GROUP BY 学生后 SUM(score) 得总分；", "ORDER BY 总分 DESC 排列，NULL 视为空显示在末尾。"],
+        "result": "4 行：小红 187、小明 88、小刚 70、小美（空）。",
+        "pitfalls": ["用 INNER JOIN：没成绩的小美会整行消失；", "按 id 之外的列分组时漏列：SELECT 中的非聚合列（name）必须进 GROUP BY。"],
+        "kid": "算总账时，名单上每个人都得有一行：考过的把分加起来，没考的照样上榜——只是分数栏空着。要是只列「考过的」，没考的同学就「人间蒸发」了，这可不行。"
+      },
+      "code": {
+        "lang": "sql",
+        "code": "CREATE TABLE students (id INTEGER PRIMARY KEY, name TEXT);\nCREATE TABLE scores (sid INTEGER, course TEXT, score INTEGER);\nINSERT INTO students VALUES (1, '小明'), (2, '小红'), (3, '小刚'), (4, '小美');\nINSERT INTO scores VALUES (1, '数据库', 88), (2, '数据库', 92), (2, '操作系统', 95), (3, '数据库', 70);\nSELECT s.name, SUM(c.score) AS total\nFROM students s\nLEFT JOIN scores c ON s.id = c.sid\nGROUP BY s.id, s.name\nORDER BY total DESC;",
+        "output": "小红|187\n小明|88\n小刚|70\n小美|",
+        "explain": "以上为 SQLite 与 MySQL 兼容写法。LEFT JOIN 保住了没有成绩的小美；GROUP BY 把每个学生的多门成绩汇总为一行，SUM 计算总分（小红 = 92 + 95 = 187）；ORDER BY total DESC 降序排列；没有成绩的小美总分为 NULL，SQLite 命令行显示为空（最后一行的「小美|」）。"
+      }
+    },
+    {
+      "id": "db-03-e10",
+      "level": "hard",
+      "type": "derive",
+      "stem": "请写出「统计每个城市学生的平均分，只显示平均分不低于 85 的城市，按平均分降序排列」的完整 SQL（表：students(id, name, city)；scores(sid, course, score)）。要求解释：① 为什么求平均分之前要先 JOIN；② WHERE 与 HAVING 在你这条 SQL 里各自负责什么。",
+      "answer": "SQL：SELECT st.city, AVG(sc.score) AS avg_score FROM students st JOIN scores sc ON st.id = sc.sid GROUP BY st.city HAVING AVG(sc.score) >= 85 ORDER BY avg_score DESC; ① 城市只在 students、分数只在 scores，必须 JOIN 合到一起才能按城市统计；② 本查询没有 WHERE（无需预先剔除行）；HAVING 在分组后过滤掉平均分低于 85 的城市。",
+      "solution": {
+        "idea": "三段式：JOIN 拼数据 → GROUP BY + AVG 统计 → HAVING 过滤组、ORDER BY 排序。",
+        "steps": ["JOIN 按 st.id = sc.sid 把学生与成绩合并；", "GROUP BY st.city 按城市分组，AVG(sc.score) 求平均；", "HAVING 过滤平均分不合格的城市，ORDER BY 降序输出。"],
+        "result": "见答案 SQL。JOIN 解决「信息分居」，HAVING 负责「组级过滤」。",
+        "pitfalls": ["把 HAVING 写成 WHERE：WHERE 阶段还没有城市平均分，会报错或误筛；", "GROUP BY 用 st.name 而不是城市：粒度错了，变成每人一组。"],
+        "kid": "想给各城市「算平均分」，得先把「同学小册子」和「成绩小册子」对上学号摊在一起（JOIN）；然后按城市围成一圈一圈（GROUP BY）算平均；最后把没到 85 分的圈整体请出去（HAVING）。三步各就各位，一个都不能少。"
+      }
+    }
+  ]
+}
