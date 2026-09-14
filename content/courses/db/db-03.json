@@ -26,15 +26,15 @@
     "sections": [
       {
         "heading": "3.1 数据分居两处，怎么一起看",
-        "html": "<p>假设学生表 student 保存 id、name、city，成绩表 score 保存 sid、course、score（sid 外键指向 student.id）。「每门课的平均分」在成绩表里就能算，但「每个城市的平均分」必须把两张表拼起来：城市信息只在学生表，分数只在成绩表。</p><p>把两张表「拼起来」的动作叫<strong>连接</strong>（JOIN，按某种配对规则把两张表的行组合成新行）。配对的依据写在 <code>ON</code> 条件里，最常见的形式是外键等于主键：<code>ON student.id = score.sid</code>。这里有个重要提醒：如果忘了写 ON 条件，数据库会把两张表的每一行和每一行都两两组合——这叫<strong>笛卡尔积</strong>（Cartesian Product），1000 行乘 1000 行就是一百万行，通常不是你要的结果，还非常浪费资源。</p>"
+        "html": "<p>假设学生表 student 保存 id、name、city，成绩表 score 保存 sid、course、score（sid 外键指向 student.id）。「每门课的平均分」在成绩表里就能算，但「每个城市的平均分」必须把两张表拼起来：城市信息只在学生表，分数只在成绩表。</p><p>把两张表「拼起来」的动作叫<strong>连接</strong>（JOIN，按某种配对规则把两张表的行组合成新行）。配对的依据写在 <code>ON</code> 条件里，最常见的形式是外键等于主键：<code>ON student.id = score.sid</code>。这里有个重要提醒：如果忘了写 ON 条件，数据库会把两张表的每一行和每一行都两两组合——这叫<strong>笛卡尔积</strong>（Cartesian Product），1000 行乘 1000 行就是一百万行，通常不是你要的结果，还非常浪费资源。做连接先当会计：估一估两边的行数与配对比例，再看结果行数是否合理——「先估行数、再看结果」是写好连接的第一课。</p>"
       },
       {
         "heading": "3.2 INNER JOIN 与 LEFT JOIN",
-        "html": "<p>最常用的连接有两种。<strong>内连接</strong>（INNER JOIN，只保留两边能配上对的行）：</p><pre class='code' data-lang='sql'>SELECT student.name, score.course, score.score\nFROM student\nINNER JOIN score ON student.id = score.sid;</pre><p>只有「学生表里存在、成绩表里也有记录」的学生才会出现。<strong>左连接</strong>（LEFT JOIN，保留左表全部行，右表配不上的地方用 NULL 补齐）恰恰解决「没有成绩的学生也想列出来」的需求：</p><pre class='code' data-lang='sql'>SELECT student.name, score.course, score.score\nFROM student\nLEFT JOIN score ON student.id = score.sid;</pre><p>还没考试的学生也会出现在结果里，course 与 score 显示为 NULL。习惯上表名太长时用别名简化：<code>FROM student s JOIN score c ON s.id = c.sid</code>。另外还有 RIGHT JOIN（保留右表全部行），但它总能用 LEFT JOIN 交换两边的写法代替，本课统一用 LEFT JOIN 表述。</p>"
+        "html": "<p>最常用的连接有两种。<strong>内连接</strong>（INNER JOIN，只保留两边能配上对的行）：</p><pre class='code' data-lang='sql'>SELECT student.name, score.course, score.score\nFROM student\nINNER JOIN score ON student.id = score.sid;</pre><p>只有「学生表里存在、成绩表里也有记录」的学生才会出现。<strong>左连接</strong>（LEFT JOIN，保留左表全部行，右表配不上的地方用 NULL 补齐）恰恰解决「没有成绩的学生也想列出来」的需求：</p><pre class='code' data-lang='sql'>SELECT student.name, score.course, score.score\nFROM student\nLEFT JOIN score ON student.id = score.sid;</pre><p>还没考试的学生也会出现在结果里，course 与 score 显示为 NULL。习惯上表名太长时用别名简化：<code>FROM student s JOIN score c ON s.id = c.sid</code>。另外还有 RIGHT JOIN（保留右表全部行），但它总能用 LEFT JOIN 交换两边的写法代替，本课统一用 LEFT JOIN 表述。读法小技巧：把两张表想象成两只手，ON 是「握手规则」，而 LEFT 决定「谁的手永远不松开」。</p>"
       },
       {
         "heading": "3.3 分组统计：GROUP BY 与 HAVING",
-        "html": "<p><strong>聚合函数</strong>把多行汇总成一个值：<code>COUNT</code> 计数、<code>SUM</code> 求和、<code>AVG</code> 平均、<code>MAX</code> 最大、<code>MIN</code> 最小。<code>GROUP BY</code> 把行按某列的值分成若干组，每组内部做聚合，每组输出一行：</p><pre class='code' data-lang='sql'>SELECT course, AVG(score) AS avg_score, COUNT(*) AS n\nFROM score\nGROUP BY course;</pre><p>两点易错：<code>COUNT(*)</code> 数的是行数，而 <code>COUNT(score)</code> 会忽略 NULL 值——数「有分数的记录」要用后者；SELECT 里出现的非聚合列，通常必须出现在 GROUP BY 中。</p><p>想过滤分组结果，用 <code>HAVING</code>：<code>SELECT course, AVG(score) FROM score GROUP BY course HAVING AVG(score) &gt;= 90;</code>。对比记住这句口诀：<strong>WHERE 管「分组前的行」，HAVING 管「分组后的组」，且 HAVING 里可以使用聚合结果</strong>。</p>"
+        "html": "<p><strong>聚合函数</strong>把多行汇总成一个值：<code>COUNT</code> 计数、<code>SUM</code> 求和、<code>AVG</code> 平均、<code>MAX</code> 最大、<code>MIN</code> 最小。<code>GROUP BY</code> 把行按某列的值分成若干组，每组内部做聚合，每组输出一行：</p><pre class='code' data-lang='sql'>SELECT course, AVG(score) AS avg_score, COUNT(*) AS n\nFROM score\nGROUP BY course;</pre><p>两点易错：<code>COUNT(*)</code> 数的是行数，而 <code>COUNT(score)</code> 会忽略 NULL 值——数「有分数的记录」要用后者；SELECT 里出现的非聚合列，通常必须出现在 GROUP BY 中。</p><p>想过滤分组结果，用 <code>HAVING</code>：<code>SELECT course, AVG(score) FROM score GROUP BY course HAVING AVG(score) &gt;= 90;</code>。对比记住这句口诀：<strong>WHERE 管「分组前的行」，HAVING 管「分组后的组」，且 HAVING 里可以使用聚合结果</strong>。小练习：先写「统计每门课的及格人数」，再写「只保留平均分低于 60 的课程」——习惯「先想分组维度、再挑聚合、最后过滤」的出题顺序。</p>"
       },
       {
         "heading": "3.4 子查询：查询里的查询",
@@ -42,7 +42,7 @@
       },
       {
         "heading": "3.5 小结与预告",
-        "html": "<p>本讲三块拼图：JOIN 负责横向「拼表」——INNER 只留配对成功的，LEFT 保留左表全部；GROUP BY 加聚合函数负责纵向「汇总」——每组一行；WHERE 与 HAVING 一个管行、一个管组；子查询则把一个小查询的答案嵌进大查询。配合上一讲的基础查询，常用的分析型 SQL 已经能对付了。</p><figure><svg viewBox='0 0 640 260' role='img' aria-label='内连接与左连接集合示意图'><circle cx='220' cy='120' r='86' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.8'/><circle cx='340' cy='120' r='86' fill='#FFFFFF' stroke='#7C9CBF' stroke-width='1.8'/><text x='160' y='60' text-anchor='middle' font-size='13' fill='#2A2E33'>学生表</text><text x='400' y='60' text-anchor='middle' font-size='13' fill='#2A2E33'>成绩表</text><text x='280' y='112' text-anchor='middle' font-size='12' fill='#C9A96A'>INNER JOIN</text><text x='280' y='132' text-anchor='middle' font-size='12' fill='#6C7078'>配对成功的行</text><text x='152' y='180' text-anchor='middle' font-size='12' fill='#6C7078'>配不上的学生</text><text x='152' y='198' text-anchor='middle' font-size='12' fill='#6C7078'>（LEFT JOIN 保留并补 NULL）</text><text x='470' y='180' font-size='12' fill='#6C7078'>没有学生的孤儿成绩</text><text x='470' y='198' font-size='12' fill='#6C7078'>（受外键约束，通常不存在）</text></svg><figcaption>图 3-1 内连接只取中间的重叠部分；左连接把左边圆圈里的全部学生都保住。</figcaption></figure><p>下一讲进入「性能」的世界：一样的查询结果，为什么有人 0.01 秒出答案，有人要等十几秒？秘密藏在索引与 B+ 树里。</p>"
+        "html": "<p>本讲三块拼图：JOIN 负责横向「拼表」——INNER 只留配对成功的，LEFT 保留左表全部；GROUP BY 加聚合函数负责纵向「汇总」——每组一行；WHERE 与 HAVING 一个管行、一个管组；子查询则把一个小查询的答案嵌进大查询。配合上一讲的基础查询，常用的分析型 SQL 已经能对付了。练习建议：把本讲的例子先用 JOIN 写一遍，再挑两个改写成子查询——两种视角都走过一遍，才算真正掌握。</p><figure><svg viewBox='0 0 640 260' role='img' aria-label='内连接与左连接集合示意图'><circle cx='220' cy='120' r='86' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.8'/><circle cx='340' cy='120' r='86' fill='#FFFFFF' stroke='#7C9CBF' stroke-width='1.8'/><text x='160' y='60' text-anchor='middle' font-size='13' fill='#2A2E33'>学生表</text><text x='400' y='60' text-anchor='middle' font-size='13' fill='#2A2E33'>成绩表</text><text x='280' y='112' text-anchor='middle' font-size='12' fill='#C9A96A'>INNER JOIN</text><text x='280' y='132' text-anchor='middle' font-size='12' fill='#6C7078'>配对成功的行</text><text x='152' y='180' text-anchor='middle' font-size='12' fill='#6C7078'>配不上的学生</text><text x='152' y='198' text-anchor='middle' font-size='12' fill='#6C7078'>（LEFT JOIN 保留并补 NULL）</text><text x='470' y='180' font-size='12' fill='#6C7078'>没有学生的孤儿成绩</text><text x='470' y='198' font-size='12' fill='#6C7078'>（受外键约束，通常不存在）</text></svg><figcaption>图 3-1 内连接只取中间的重叠部分；左连接把左边圆圈里的全部学生都保住。</figcaption></figure><p>下一讲进入「性能」的世界：一样的查询结果，为什么有人 0.01 秒出答案，有人要等十几秒？秘密藏在索引与 B+ 树里。</p>"
       }
     ]
   },
@@ -67,7 +67,7 @@
       },
       {
         "heading": "小结",
-        "html": "<p>今天三件法宝：<strong>JOIN 拉手配对</strong>（左连接不丢人，配不上就先空着）；<strong>GROUP BY 分小组</strong>（数一数、算一算）；<strong>WHERE 挑人、HAVING 挑组</strong>，子查询则是「小问题套大问题」。</p><p>下一讲改变节奏：我们不学新命令，而是回答一个「为什么」——为什么有的查询快如闪电，有的慢如蜗牛？答案是一本神秘的「目录」：索引。</p>"
+        "html": "<p>今天三件法宝：<strong>JOIN 拉手配对</strong>（左连接不丢人，配不上就先空着）；<strong>GROUP BY 分小组</strong>（数一数、算一算）；<strong>WHERE 挑人、HAVING 挑组</strong>，子查询则是「小问题套大问题」。</p><p>下一讲改变节奏：我们不学新命令，而是回答一个「为什么」——为什么有的查询快如闪电，有的慢如蜗牛？答案是一本神秘的「目录」：索引。顺便说个小秘密：这些统计本领是数据库最值钱的技能之一，将来的报表、榜单、总结，全靠它。</p>"
       }
     ]
   },

@@ -1,114 +1,114 @@
 {
   "base": "http://127.0.0.1:8642",
-  "at": 1789406628554,
+  "at": 1789407088525,
   "list": [
     {
       "page": "home",
       "vp": "desktop",
       "file": "C:\\Users\\光的波粒二象性\\.openclaw-autoclaw\\workspace\\.cluster\\cs-learn-site\\DELIVERY\\cs-learn-site\\docs\\screenshots\\home-desktop.png",
-      "size": 0
+      "size": 86863
     },
     {
       "page": "home",
       "vp": "tablet",
       "file": "C:\\Users\\光的波粒二象性\\.openclaw-autoclaw\\workspace\\.cluster\\cs-learn-site\\DELIVERY\\cs-learn-site\\docs\\screenshots\\home-tablet.png",
-      "size": 0
+      "size": 72193
     },
     {
       "page": "home",
       "vp": "mobile",
       "file": "C:\\Users\\光的波粒二象性\\.openclaw-autoclaw\\workspace\\.cluster\\cs-learn-site\\DELIVERY\\cs-learn-site\\docs\\screenshots\\home-mobile.png",
-      "size": 0
+      "size": 47609
     },
     {
       "page": "courses",
       "vp": "desktop",
       "file": "C:\\Users\\光的波粒二象性\\.openclaw-autoclaw\\workspace\\.cluster\\cs-learn-site\\DELIVERY\\cs-learn-site\\docs\\screenshots\\courses-desktop.png",
-      "size": 0
+      "size": 120620
     },
     {
       "page": "courses",
       "vp": "tablet",
       "file": "C:\\Users\\光的波粒二象性\\.openclaw-autoclaw\\workspace\\.cluster\\cs-learn-site\\DELIVERY\\cs-learn-site\\docs\\screenshots\\courses-tablet.png",
-      "size": 0
+      "size": 101943
     },
     {
       "page": "courses",
       "vp": "mobile",
       "file": "C:\\Users\\光的波粒二象性\\.openclaw-autoclaw\\workspace\\.cluster\\cs-learn-site\\DELIVERY\\cs-learn-site\\docs\\screenshots\\courses-mobile.png",
-      "size": 0
+      "size": 45855
     },
     {
       "page": "chapter",
       "vp": "desktop",
       "file": "C:\\Users\\光的波粒二象性\\.openclaw-autoclaw\\workspace\\.cluster\\cs-learn-site\\DELIVERY\\cs-learn-site\\docs\\screenshots\\chapter-desktop.png",
-      "size": 0
+      "size": 46009
     },
     {
       "page": "chapter",
       "vp": "tablet",
       "file": "C:\\Users\\光的波粒二象性\\.openclaw-autoclaw\\workspace\\.cluster\\cs-learn-site\\DELIVERY\\cs-learn-site\\docs\\screenshots\\chapter-tablet.png",
-      "size": 0
+      "size": 40443
     },
     {
       "page": "chapter",
       "vp": "mobile",
       "file": "C:\\Users\\光的波粒二象性\\.openclaw-autoclaw\\workspace\\.cluster\\cs-learn-site\\DELIVERY\\cs-learn-site\\docs\\screenshots\\chapter-mobile.png",
-      "size": 0
+      "size": 34264
     },
     {
       "page": "demo-sorting",
       "vp": "desktop",
       "file": "C:\\Users\\光的波粒二象性\\.openclaw-autoclaw\\workspace\\.cluster\\cs-learn-site\\DELIVERY\\cs-learn-site\\docs\\screenshots\\demo-sorting-desktop.png",
-      "size": 0
+      "size": 70415
     },
     {
       "page": "demo-sorting",
       "vp": "tablet",
       "file": "C:\\Users\\光的波粒二象性\\.openclaw-autoclaw\\workspace\\.cluster\\cs-learn-site\\DELIVERY\\cs-learn-site\\docs\\screenshots\\demo-sorting-tablet.png",
-      "size": 0
+      "size": 79713
     },
     {
       "page": "demo-sorting",
       "vp": "mobile",
       "file": "C:\\Users\\光的波粒二象性\\.openclaw-autoclaw\\workspace\\.cluster\\cs-learn-site\\DELIVERY\\cs-learn-site\\docs\\screenshots\\demo-sorting-mobile.png",
-      "size": 0
+      "size": 50278
     },
     {
       "page": "practice",
       "vp": "desktop",
       "file": "C:\\Users\\光的波粒二象性\\.openclaw-autoclaw\\workspace\\.cluster\\cs-learn-site\\DELIVERY\\cs-learn-site\\docs\\screenshots\\practice-desktop.png",
-      "size": 0
+      "size": 38835
     },
     {
       "page": "practice",
       "vp": "tablet",
       "file": "C:\\Users\\光的波粒二象性\\.openclaw-autoclaw\\workspace\\.cluster\\cs-learn-site\\DELIVERY\\cs-learn-site\\docs\\screenshots\\practice-tablet.png",
-      "size": 0
+      "size": 34090
     },
     {
       "page": "practice",
       "vp": "mobile",
       "file": "C:\\Users\\光的波粒二象性\\.openclaw-autoclaw\\workspace\\.cluster\\cs-learn-site\\DELIVERY\\cs-learn-site\\docs\\screenshots\\practice-mobile.png",
-      "size": 0
+      "size": 28913
     },
     {
       "page": "dashboard",
       "vp": "desktop",
       "file": "C:\\Users\\光的波粒二象性\\.openclaw-autoclaw\\workspace\\.cluster\\cs-learn-site\\DELIVERY\\cs-learn-site\\docs\\screenshots\\dashboard-desktop.png",
-      "size": 0
+      "size": 38746
     },
     {
       "page": "dashboard",
       "vp": "tablet",
       "file": "C:\\Users\\光的波粒二象性\\.openclaw-autoclaw\\workspace\\.cluster\\cs-learn-site\\DELIVERY\\cs-learn-site\\docs\\screenshots\\dashboard-tablet.png",
-      "size": 0
+      "size": 34090
     },
     {
       "page": "dashboard",
       "vp": "mobile",
       "file": "C:\\Users\\光的波粒二象性\\.openclaw-autoclaw\\workspace\\.cluster\\cs-learn-site\\DELIVERY\\cs-learn-site\\docs\\screenshots\\dashboard-mobile.png",
-      "size": 0
+      "size": 28913
     }
   ]
 }
