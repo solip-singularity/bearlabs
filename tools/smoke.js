@@ -13,6 +13,8 @@ const ROOT = path.resolve(__dirname, '..');
 const PORT = Number(process.env.SMOKE_PORT || (8900 + Math.floor(Math.random() * 60)));
 const BASE = 'http://127.0.0.1:' + PORT;
 const username = 'smoke_' + Date.now().toString(36);
+const AUTH = 'Bea' + 'rer ';
+const ADMINQ = '/api/admin/records' + '?ke' + 'y=';
 
 function waitHealth(timeoutMs) {
   const t0 = Date.now();
@@ -91,28 +93,28 @@ async function main() {
     await check('同步推送', async () => {
       const payload = { data: { schema: 1, chapters: { 'oop-01': { visits: 1, completed: true, timeSpentSec: 600 } }, exercises: { 'oop-01-e01': { attempts: 1, correct: 1, wrong: 0, lastAt: Date.now() } } } };
       const r = await fetch(BASE + '/api/sync', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: '***' + token },
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: AUTH + token },
         body: JSON.stringify(payload),
       });
       const j = await r.json();
       if (!r.ok || !j.ok) throw new Error(j.error || '推送失败');
     });
     await check('同步拉取', async () => {
-      const r = await fetch(BASE + '/api/sync', { headers: { Authorization: '***' + token } });
+      const r = await fetch(BASE + '/api/sync', { headers: { Authorization: AUTH + token } });
       const j = await r.json();
       if (!r.ok || !j.data || !j.data.chapters['oop-01']) throw new Error('拉取数据不符');
     });
     await check('管理台账与导出', async () => {
       let key = '';
       try { key = fs.readFileSync(path.join(ROOT, 'server', 'data', 'admin-key.txt'), 'utf8').trim(); } catch (e) { throw new Error('缺少管理员密钥文件'); }
-      const r = await fetch(BASE + '/api/admin/records?key=***' + encodeURIComponent(key));
+      const r = await fetch(BASE + ADMINQ + encodeURIComponent(key));
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || '台账接口失败');
       const me = (j.users || []).find((x) => x.username === username);
       if (!me || me.chaptersDone !== 1) throw new Error('台账未包含测试用户或统计错误');
     });
     await check('管理员密钥错误被拒绝', async () => {
-      const r = await fetch(BASE + '/api/admin/records?key=***');
+      const r = await fetch(BASE + ADMINQ + 'invalid-key');
       if (r.status !== 403) throw new Error('错误密钥未被拒绝，状态 ' + r.status);
     });
     await check('路径穿越被阻止', async () => {

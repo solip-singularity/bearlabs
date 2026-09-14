@@ -1,0 +1,235 @@
+{
+  "id": "db-05",
+  "courseId": "db",
+  "title": "第5讲 查询优化器",
+  "objectives": [
+    "说明「声明式 SQL + 优化器」的分工：用户描述要什么，优化器决定怎么取",
+    "描述优化器的工作流程：解析检查、逻辑改写、物理方案枚举与代价比较",
+    "理解代价模型与统计信息的关系，知道估算为什么会出错",
+    "会用 EXPLAIN / EXPLAIN QUERY PLAN 阅读常见执行计划输出"
+  ],
+  "keyPoints": [
+    "同一条 SQL 往往有多种执行方式；优化器负责选出代价最低的一条，即「执行计划」",
+    "优化流程：解析与语义检查 → 逻辑改写（谓词下推等）→ 物理计划枚举（选索引与连接算法）→ 比代价",
+    "代价模型基于统计信息（行数、不同值个数、直方图）估算 I/O 与 CPU 开销；估算可能不准",
+    "EXPLAIN 输出看三件事：访问方式（全表扫描还是索引查找）、使用的索引、估算行数",
+    "常见「索引失效」场景：函数包裹列、隐式类型转换；SELECT * 会破坏覆盖索引优势"
+  ],
+  "minutes": 45,
+  "difficulty": 3,
+  "prerequisites": ["第4讲 索引与 B+ 树"],
+  "keywords": ["查询优化器", "执行计划", "代价模型", "统计信息", "EXPLAIN", "谓词下推"],
+  "demoRefs": [],
+  "refs": ["《数据库系统概念》查询处理与优化部分（延伸阅读）", "《高性能 MySQL》查询优化章节（延伸阅读）"],
+  "pro": {
+    "intro": "写 SQL 的人只描述「要什么」，至于「怎么取」——用哪个索引、按什么顺序连接、用哪种算法——数据库里有位「军师」替你拍板，它就是查询优化器。理解它在想什么，你就能写出对优化器友好的 SQL，也能在慢查询出现时看懂它给出的理由。本讲揭开这位军师的三件工具：执行计划、代价模型、EXPLAIN 命令。",
+    "sections": [
+      {
+        "heading": "5.1 同一条 SQL，多种走法",
+        "html": "<p>先感受一下「选择」的数量：查「北京用户 2024 年的订单」，可以走用户索引再过滤日期，也可以走日期索引再过滤城市，也可以两者都不走直接全表扫描；如果是多表连接，连接的先后顺序、每步用的算法（嵌套循环还是哈希连接）又各有讲究。选项一多，人工挑选根本不现实。</p><p>这正是关系数据库的经典智慧：让用户只声明<em>目标</em>（声明式 SQL），把<em>路径</em>问题交给系统——<strong>查询优化器</strong>（Query Optimizer，为一条 SQL 选择执行方式的组件）。你写的是「我全都要」的意图，它交出的是一份可执行的<strong>执行计划</strong>（Execution Plan，描述从哪张表开始、用什么访问方式、如何连接的步骤清单）。</p>"
+      },
+      {
+        "heading": "5.2 优化器的流水线",
+        "html": "<p>优化器拿到 SQL 后，大致经过四道工序：</p><ol><li><strong>解析与语义检查</strong>：把文本变成语法树，确认表和列都存在、类型对得上；</li><li><strong>逻辑改写</strong>：在不改变结果的前提下重写，比如<strong>谓词下推</strong>（把过滤条件尽量推到靠近数据源的地方，早点缩减数据量）、常量折叠（1 + 2 直接算成 3）、子查询展开；</li><li><strong>物理计划枚举</strong>：为每步列出候选实现（走哪条索引、用哪种连接算法），组合出若干可行计划；</li><li><strong>代价比较</strong>：估算每个计划的资源开销，选最小者交给执行引擎。</li></ol><p>注意第 2 步的哲学：<em>改写必须保持等价</em>。优化器不会为了快而改变你的查询结果——它只是换一条到达同一答案的路。</p>"
+      },
+      {
+        "heading": "5.3 代价模型与统计信息",
+        "html": "<p>怎么比较两位数的备选计划？靠<strong>代价模型</strong>（Cost Model，把计划折算成一个估计的开销数字，通常按磁盘 I/O 为主、CPU 为辅加权）。例如「全表扫描」要读 N 个页；「走索引」要读索引的几层页 + 回表若干行，两者谁便宜，一算便知。</p><p>估算的原料是<strong>统计信息</strong>（Statistics）：表有多少行、每列有多少个不同的值、数值如何分布（直方图）。这里有三个坑：① 统计信息需要手动或自动更新，过期数据会误导军师（SQLite 用 <code>ANALYZE</code>；MySQL 用 <code>ANALYZE TABLE</code>）；② 优化器通常假设各列「相互独立」，可现实里城市和邮编高度相关，估算会偏；③ 数据分布倾斜时，平均数掩盖真相。所以：<strong>执行计划的好坏，取决于估算的质量——它可能出错</strong>，这是理解所有「莫名其妙不走索引」现象的总钥匙。</p><p>顺带记住两个常见「索引失效」的场景：对列做<strong>函数运算</strong>（<code>WHERE YEAR(created_at) = 2024</code>）或在列上做<strong>隐式类型转换</strong>（字符串列用数字查），都会让索引无法直接匹配；把条件改写成对列本身的比较（如范围条件）即可。</p>"
+      },
+      {
+        "heading": "5.4 用 EXPLAIN 偷看军师的笔记",
+        "html": "<p>主流数据库都允许你「出题前先看答案」——让优化器把计划打印出来。SQLite 用 <code>EXPLAIN QUERY PLAN</code>：</p><pre class='code' data-lang='sql'>EXPLAIN QUERY PLAN SELECT b FROM t WHERE a = 2;\n-- 输出（示意）：SEARCH t USING INDEX idx_t_a (a=?)</pre><p><code>SEARCH ... USING INDEX</code> 表示走了索引定位；<code>SCAN</code> 表示全表扫描；出现 <code>USE TEMP B-TREE FOR ORDER BY</code> 说明排序列没有现成的索引支持，额外建了临时结构排序。MySQL 则用 <code>EXPLAIN</code>，重点看四列：</p><table><thead><tr><th>列</th><th>看什么</th></tr></thead><tbody><tr><td>type</td><td>访问方式：ALL 是全表扫描；ref / range 等表示走索引；目标尽量避开 ALL</td></tr><tr><td>key</td><td>实际使用的索引名；NULL 表示没走索引</td></tr><tr><td>rows</td><td>估算要检查的行数，越小越省</td></tr><tr><td>Extra</td><td>补充信息：Using index 表示覆盖索引；Using filesort 表示额外排序</td></tr></tbody></table><p>读计划的正确姿势是「对比实验」：同一个查询，建索引前后各看一次 EXPLAIN，观察 type 与 rows 的变化，比死记输出字段快得多。</p>"
+      },
+      {
+        "heading": "5.5 小结与预告",
+        "html": "<p>记住三句话：优化器把「怎么取」的决策自动化，产出的是执行计划；它靠代价模型比较方案，靠统计信息做估算，而<strong>估算可能出错</strong>；EXPLAIN 是观察它决策的窗口——看访问方式、看索引、看估算行数。以后遇到「为什么没走索引」，先想这三件事，而不是玄学。</p><figure><svg viewBox='0 0 700 250' role='img' aria-label='查询优化器流水线示意图'><rect x='16' y='84' width='112' height='64' rx='8' fill='#FFFFFF' stroke='#7C9CBF' stroke-width='1.6'/><text x='72' y='110' text-anchor='middle' font-size='13' fill='#2A2E33'>SQL 文本</text><text x='72' y='130' text-anchor='middle' font-size='11' fill='#6C7078'>声明「要什么」</text><path d='M132 116 L156 116' stroke='#C9A96A' stroke-width='1.6'/><path d='M164 116 L154 111 L154 121 Z' fill='#C9A96A'/><rect x='168' y='84' width='112' height='64' rx='8' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.6'/><text x='224' y='110' text-anchor='middle' font-size='13' fill='#2A2E33'>解析检查</text><text x='224' y='130' text-anchor='middle' font-size='11' fill='#6C7078'>表、列、类型核对</text><path d='M284 116 L308 116' stroke='#C9A96A' stroke-width='1.6'/><path d='M316 116 L306 111 L306 121 Z' fill='#C9A96A'/><rect x='320' y='84' width='128' height='64' rx='8' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.6'/><text x='384' y='110' text-anchor='middle' font-size='13' fill='#2A2E33'>逻辑改写</text><text x='384' y='130' text-anchor='middle' font-size='11' fill='#6C7078'>谓词下推、常量折叠</text><path d='M452 116 L476 116' stroke='#C9A96A' stroke-width='1.6'/><path d='M484 116 L474 111 L474 121 Z' fill='#C9A96A'/><rect x='488' y='84' width='128' height='64' rx='8' fill='#FFFFFF' stroke='#2A2E33' stroke-width='1.6'/><text x='552' y='110' text-anchor='middle' font-size='13' fill='#2A2E33'>比代价选方案</text><text x='552' y='130' text-anchor='middle' font-size='11' fill='#6C7078'>统计信息 → 执行计划</text><text x='350' y='188' text-anchor='middle' font-size='12' fill='#6C7078'>第 3 步会枚举「走哪条索引、用哪种连接算法」等候选，再按估算代价挑最低者</text><text x='350' y='212' text-anchor='middle' font-size='12' fill='#C9A96A'>EXPLAIN 命令 = 在执行前偷看这份计划的窗口</text></svg><figcaption>图 5-1 优化器流水线：从声明目标到生成执行计划。</figcaption></figure><p>下一讲潜入更底层：数据究竟存在什么样的「页」里？崩溃前的一瞬间发生了什么？日志（WAL）怎样把一切救回来？</p>"
+      }
+    ]
+  },
+  "kid": {
+    "intro": "爸爸开车去动物园，你只说「去动物园」，剩下的事全交给导航：哪条路近、哪里堵车、什么时候拐弯，它通通算好。数据库里也住着一位这样的小军师——你告诉它「要查什么」，它自己决定「怎么查最快」。这一讲，我们认识这位军师：查询优化器。",
+    "sections": [
+      {
+        "heading": "只报目的地，不报路线",
+        "html": "<p>你会对导航说「走人民路，第三个红绿灯右转」吗？不会。你只说「去动物园」，导航自己想办法。数据库也喜欢这样：你只说「把北京的订单找出来」，选哪条路是高手的自由。</p><p>为什么不让用户自己选路？因为路实在太多了：可以先从「城市目录」找，也可以先从「日期目录」找，还能干脆一页页翻。人来挑会挑花眼，所以数据库请了一位专门的「小军师」——它会把各种走法都估一估，挑出最快的那条。</p>"
+      },
+      {
+        "heading": "军师怎么估时间",
+        "html": "<p>军师手里有一张「路况表」：这张表大概有多少行、哪条路上大概挤了多少人。它靠着这些数字，逐条估算「跑一趟要花多少力气」，然后选力气最小的路线。</p><p>但有句话要说在前头：路况表可能是<strong>过期的</strong>。地图没更新，它就会挑错路——数据库也会这样，估错了还会心疼好久。所以数据库留了个提醒功能：让它「重新看一眼路况」（更新统计信息），军师就能算得更准。</p>"
+      },
+      {
+        "heading": "出发前偷看路线",
+        "html": "<p>想看看军师到底选了哪条路？有一个「偷看」功能，叫 <strong>EXPLAIN</strong>：在真正出发之前，把它规划好的路线打印给你看。你可能会看到两种字眼：</p><ul><li><strong>翻书找法</strong>（SCAN）：一页页翻，慢；</li><li><strong>查目录找法</strong>（SEARCH USING INDEX）：用上了上一讲学的「目录」，快。</li></ul><p>看到「还在翻书」就该警觉：是不是忘建目录了？或者目录建错了地方？</p><figure><svg viewBox='0 0 560 220' role='img' aria-label='导航在两条路线中选择的示意'><rect x='36' y='88' width='104' height='48' rx='8' fill='#FFFFFF' stroke='#2A2E33' stroke-width='1.6'/><text x='88' y='117' text-anchor='middle' font-size='13' fill='#2A2E33'>出发地</text><rect x='420' y='88' width='104' height='48' rx='8' fill='#FFFFFF' stroke='#2A2E33' stroke-width='1.6'/><text x='472' y='117' text-anchor='middle' font-size='13' fill='#2A2E33'>动物园</text><path d='M144 100 L412 100' stroke='#C96A6A' stroke-width='1.6'/><path d='M420 100 L410 95 L410 105 Z' fill='#C96A6A'/><text x='278' y='88' text-anchor='middle' font-size='12' fill='#C96A6A'>大路：导航估它堵车</text><path d='M144 124 L412 124' stroke='#6FA57E' stroke-width='1.6'/><path d='M420 124 L410 119 L410 129 Z' fill='#6FA57E'/><text x='278' y='144' text-anchor='middle' font-size='12' fill='#6FA57E'>小路：估它更省时间，选它！</text><text x='278' y='186' text-anchor='middle' font-size='12' fill='#6C7078'>军师按估算选路；估算不准时，也可能选错——所以要常更新「路况表」</text></svg><figcaption>图 5-2 军师按估算选路：哪条估起来省时间，就走哪条。</figcaption></figure>"
+      },
+      {
+        "heading": "少让军师犯迷糊",
+        "html": "<p>有几个小习惯，能让军师少犯错：</p><ul><li>写条件时别把列「打扮」起来——给列包一件函数外衣，目录就不认得它了；</li><li>定期更新「路况表」，让估算贴近现实；</li><li>别贪心地要「全部都要」（SELECT *），只拿需要的几列，军师更容易用「轻装小路」交付。</li></ul>"
+      },
+      {
+        "heading": "小结",
+        "html": "<p>三句话记住这位军师：<strong>你报目的地，它选路线</strong>；它靠一张可能过期的「路况表」估时间，<strong>估算不准就会绕路</strong>；想偷看它的路线，用 EXPLAIN。</p><p>下一讲，我们钻进数据库的「储物间」，看看数据到底放在什么抽屉里、记事本上又写了些什么——那可是「断电也不丢数据」的秘密所在。</p>"
+      }
+    ]
+  },
+  "glossary": [
+    { "term": "查询优化器（Query Optimizer）", "def": "为一条 SQL 选择执行方式的组件，目标是代价最低的执行计划" },
+    { "term": "执行计划（Execution Plan）", "def": "描述查询如何被执行的步骤清单：访问方式、索引、连接顺序与算法" },
+    { "term": "代价模型（Cost Model）", "def": "把候选计划折算为估计开销的算法，I/O 为主、CPU 为辅" },
+    { "term": "统计信息（Statistics）", "def": "优化器估算所用的数据画像：行数、取值个数、分布直方图等" },
+    { "term": "谓词下推", "def": "把过滤条件尽早推到数据源近旁的等价改写，提前缩减数据量" },
+    { "term": "EXPLAIN", "def": "展示执行计划的命令；SQLite 用 EXPLAIN QUERY PLAN，MySQL 用 EXPLAIN" },
+    { "term": "ANALYZE", "def": "重新收集统计信息的命令，让优化器估算更贴近现实" }
+  ],
+  "exercises": [
+    {
+      "id": "db-05-e01",
+      "level": "easy",
+      "type": "choice",
+      "stem": "查询优化器的主要职责是？",
+      "options": ["A. 决定「怎么执行」查询：选索引、定顺序、比代价", "B. 决定用户「要查询什么数据」", "C. 直接修改表里的数据", "D. 创建和管理数据库的用户账号"],
+      "answer": "A",
+      "solution": {
+        "idea": "分工：用户声明目标，优化器选择路径。",
+        "steps": ["SQL 由用户书写，描述「要什么」；", "执行路径有很多种可能，由优化器选择；", "它枚举候选、估算代价，输出执行计划。"],
+        "result": "A。优化器负责「怎么执行」。",
+        "pitfalls": ["以为优化器会改写查询结果：别名等改写必须保持结果等价。"],
+        "kid": "你说「去动物园」（目标），导航负责选路（怎么走）。数据库里的导航就是优化器：它不改变你要去的地方，只让你更快到达。"
+      }
+    },
+    {
+      "id": "db-05-e02",
+      "level": "easy",
+      "type": "judge",
+      "stem": "同一条 SQL 通常只有唯一一种执行方式，优化器没有选择余地。",
+      "answer": "错误",
+      "solution": {
+        "idea": "同一查询可以有多种等价执行路径。",
+        "steps": ["访问方式可选：全表扫描、不同索引；", "连接方式可选：顺序、算法；", "所以执行方式多样，优化器的任务正是从中择优。"],
+        "result": "错误。正因有多种走法，才需要优化器。",
+        "pitfalls": ["想象数据库「只能照着 SQL 字面顺序执行」：这与实际情况相去甚远。"],
+        "kid": "从家到学校，可以走大路、穿小巷、坐公交——路不止一条。SQL 也一样，同样的查询有好多条「走法」。如果只有一条路，就不用请军师啦。"
+      }
+    },
+    {
+      "id": "db-05-e03",
+      "level": "easy",
+      "type": "choice",
+      "stem": "MySQL EXPLAIN 输出中，type 列显示为 ALL 通常意味着？",
+      "options": ["A. 使用了最优唯一索引", "B. 全表扫描（未走索引）", "C. 只扫描了一行", "D. 权限不足"],
+      "answer": "B",
+      "solution": {
+        "idea": "记住关键值：ALL 对应全表扫描。",
+        "steps": ["MySQL 的 type 列表示访问方式；", "ALL 表示逐行检查整表；", "ref、range 等值才代表某种索引访问。"],
+        "result": "B。ALL = 全表扫描，通常应警惕。",
+        "pitfalls": ["把 ALL 当成「最好」：ALL 恰恰是最奢侈的访问方式；", "以为出现 ALL 一定是灾难：小表全扫无所谓，关键看数据量。"],
+        "kid": "看导航路线写着「全程步行」——说明它不打算抄近路。type 列里的 ALL 就是「全程步行」：一页页翻过去。看到它就要问一句：是不是该建条捷径（索引）了？"
+      }
+    },
+    {
+      "id": "db-05-e04",
+      "level": "easy",
+      "type": "judge",
+      "stem": "EXPLAIN 命令会实际执行查询并把结果行返回给用户。",
+      "answer": "错误",
+      "solution": {
+        "idea": "EXPLAIN 只看计划，不返回查询结果。",
+        "steps": ["EXPLAIN 让优化器打印执行计划；", "它给出的是「打算怎么查」，不是查询结果本身；", "所以该说法错误（MySQL 8 的 EXPLAIN ANALYZE 才实际执行并统计耗时）。"],
+        "result": "错误。EXPLAIN 展示计划而不返回结果；EXPLAIN ANALYZE 才实际执行。",
+        "pitfalls": ["以为看到 EXPLAIN 输出就等于验证了结果正确性：它只描述执行方式。"],
+        "kid": "出发前看一眼导航规划（EXPLAIN），车还没发动呢——它只是把「打算怎么走」摊开给你看。真正开车跑一趟，那是另一回事（EXPLAIN ANALYZE）。"
+      }
+    },
+    {
+      "id": "db-05-e05",
+      "level": "medium",
+      "type": "choice",
+      "stem": "优化器估算代价时，主要依赖下面哪类信息？",
+      "options": ["A. 统计信息：行数、取值分布等数据画像", "B. 用户的姓名和权限", "C. 硬盘的品牌与接口", "D. 当天服务器的天气状况"],
+      "answer": "A",
+      "solution": {
+        "idea": "代价估算的原料是统计信息。",
+        "steps": ["估算「扫描多少行、读多少个页」需要知道表的大小与分布；", "这些数据画像就是统计信息；", "它可能过期，所以需要 ANALYZE 更新。"],
+        "result": "A。统计信息是估算的原料。",
+        "pitfalls": ["以为优化器会「先试跑」：真正执行一遍代价太高，不能作为日常估算手段。"],
+        "kid": "军师估时间靠的是「路况表」：这条路大概多长、现在大概多挤。数据库的「路况表」叫统计信息——行数、分布。路况表过期，军师就会估错。"
+      }
+    },
+    {
+      "id": "db-05-e06",
+      "level": "medium",
+      "type": "derive",
+      "stem": "同一个查询在两个版本的数据库中分别得到以下 EXPLAIN QUERY PLAN 输出：① SCAN orders；② SEARCH orders USING INDEX idx_user (user_id=?)。请推导：这两条输出分别代表什么访问方式？通常哪一条更快、为什么？如果要让 ① 变成 ②，最直接的措施是什么？",
+      "answer": "① 表示全表扫描：逐行检查整张表；② 表示通过 idx_user 索引定位到 user_id 匹配的行。通常 ② 更快：数据量大时全表扫描的代价随行数线性增长，而索引查找接近对数级、只访问少量页。（是否更快仍取决于选择性等条件。）让 ① 变 ② 的最直接措施是在 user_id 列上建立索引。",
+      "solution": {
+        "idea": "认识两个关键词：SCAN = 全表扫描；SEARCH ... USING INDEX = 走索引查找。",
+        "steps": ["SCAN orders：没有可用索引，逐行扫描；", "SEARCH orders USING INDEX idx_user：用索引直接定位；", "比较代价：大表上索引查找通常显著更快；根因是没有索引时先建索引。"],
+        "result": "SCAN = 全表扫描，SEARCH USING INDEX = 索引查找；后者通常更快，先为 user_id 建索引。",
+        "pitfalls": ["把 SCAN 误读为「扫描索引」：它是扫描整表；", "认为建了索引就一定变快：选择性差时优化器可能仍选择全表扫描。"],
+        "kid": "两行神秘代码翻译过来就是：「一页页翻整本册子」和「先查小目录再跳到那一行」。想让翻书变成查目录？给相关列加上「目录」——建索引，就这么直接。"
+      }
+    },
+    {
+      "id": "db-05-e07",
+      "level": "medium",
+      "type": "choice",
+      "stem": "查询 WHERE YEAR(created_at) = 2024 往往无法有效利用 created_at 上的索引，原因是？",
+      "options": ["A. YEAR 是非法函数", "B. 条件对列做了函数运算，索引存的是原始值，无法直接匹配", "C. 2024 不是合法年份", "D. 索引只能用于整数列"],
+      "answer": "B",
+      "solution": {
+        "idea": "索引按「列的原始值」排序；列被函数包裹后，条件不再是针对原始值的比较。",
+        "steps": ["索引登记的是 created_at 的原值；", "YEAR(created_at) = 2024 要求先对每行算函数，索引无法直接定位；", "改写为范围条件（created_at >= 2024-01-01 且小于 2025-01-01）即可走索引。"],
+        "result": "B。函数包裹列会导致索引无法直接匹配。",
+        "pitfalls": ["以为数据库会自动「聪明地」反推函数：多数场景不会；", "改写时把边界写错：上界要用「小于下一年 1 月 1 日」。"],
+        "kid": "小目录是按「生日」的原始日期登记的。你问「谁在 7 月份过生日」，管理员得先给每个人算一遍月份，目录就用不上了。换个问法：「生日在 7 月 1 日到 7 月 31 日之间」——目录立刻派上用场。"
+      }
+    },
+    {
+      "id": "db-05-e08",
+      "level": "medium",
+      "type": "judge",
+      "stem": "优化器对行数的估算总是精确的，因此执行计划一定选择最快的那条路径。",
+      "answer": "错误",
+      "solution": {
+        "idea": "估算基于可能过期的统计信息与简化假设，必然存在误差。",
+        "steps": ["统计信息可能过期，列相关性常被忽略；", "估算偏差可能导致选错计划；", "所以「总是精确」「一定最快」两个断言都不成立。"],
+        "result": "错误。估算可能出错，计划也可能不最优。",
+        "pitfalls": ["把执行计划当成数学上的最优解：它只是「按估算的最佳」，不是「事实上必然最快」。"],
+        "kid": "军师看的是半小时前的路况：说好走的大路现在堵死了，它也不知道。估算不准，路线就会选歪。所以路况表要勤更新，也别把「军师的判断」当绝对真理。"
+      }
+    },
+    {
+      "id": "db-05-e09",
+      "level": "hard",
+      "type": "code",
+      "stem": "请用 SQLite 完成：① 建表 t(id, a, b) 并插入三行数据；② 在 a 列上建立索引 idx_t_a；③ 对该表执行 EXPLAIN QUERY PLAN，查看 WHERE a = 2 的查询计划。写出命令并解释输出中 SEARCH 与 USING INDEX 的含义。",
+      "answer": "见 code 字段。输出核心信息：SEARCH t USING INDEX idx_t_a (a=?)——表示借助 idx_t_a 索引定位 a = 2 的行。",
+      "solution": {
+        "idea": "EXPLAIN QUERY PLAN 不执行查询、只打印计划；SEARCH ... USING INDEX 代表索引查找。",
+        "steps": ["建表、插入数据；", "CREATE INDEX 后，优化器多了一个可用「武器」；", "EXPLAIN QUERY PLAN 打印计划，观察它选择了索引 idx_t_a。"],
+        "result": "计划显示 SEARCH t USING INDEX idx_t_a (a=?)：走上索引，而非 SCAN 全表。",
+        "pitfalls": ["把 EXPLAIN QUERY PLAN 写成 EXPLAIN：后者输出的是字节码级别的低层细节，不适合初学者阅读；", "建索引前查看计划对照：没有对照，就体会不到索引带来的变化。"],
+        "kid": "先给册子配一本「a 列小目录」（CREATE INDEX），再打开「预览模式」（EXPLAIN QUERY PLAN）看一眼。屏幕上跳出 SEARCH … USING INDEX——翻译：这次用了目录，不用从头翻。有对照才看得出门道！"
+      },
+      "code": {
+        "lang": "sql",
+        "code": "CREATE TABLE t (id INTEGER PRIMARY KEY, a INTEGER, b INTEGER);\nINSERT INTO t VALUES (1, 1, 10), (2, 2, 20), (3, 3, 30);\nCREATE INDEX idx_t_a ON t(a);\nEXPLAIN QUERY PLAN SELECT b FROM t WHERE a = 2;",
+        "output": "QUERY PLAN\nSEARCH t USING INDEX idx_t_a (a=?)",
+        "explain": "以上为 SQLite 语法（MySQL 的对应命令是 EXPLAIN）。EXPLAIN QUERY PLAN 只输出计划、不返回查询结果。核心输出「SEARCH t USING INDEX idx_t_a (a=?)」的含义：查询将利用 idx_t_a 索引定位 a = 2 的行（SEARCH 表示定位查找；对比之下 SCAN 表示全表扫描）。不同 SQLite 版本与客户端对计划输出的显示格式略有差异（可能带 id 编号或树形前缀），抓住 SEARCH / SCAN 与 USING INDEX 这些关键词即可。"
+      }
+    },
+    {
+      "id": "db-05-e10",
+      "level": "hard",
+      "type": "design",
+      "stem": "有一条慢查询：SELECT * FROM orders WHERE strftime('%Y', created_at) = '2024' AND user_id = 3;（SQLite 方言；MySQL 对应 YEAR(created_at) = 2024）已知 orders(user_id, created_at, status, total) 上目前只有一个列索引 (user_id)。请分析：① 为什么这条 SQL 很难利用索引；② 给出改写后的等价条件；③ 设计一个更合适的索引并说明理由。",
+      "answer": "① created_at 被 strftime / YEAR 函数包裹，条件不再针对原始列值，优化器无法用索引直接匹配（同时 SELECT * 也可能破坏覆盖索引机会）；② 改写为 created_at >= '2024-01-01' AND created_at < '2025-01-01' AND user_id = 3；③ 建议联合索引 (user_id, created_at)：最左列 user_id 匹配等值条件，第二列 created_at 支持时间范围扫描，还能顺带服务排序。",
+      "solution": {
+        "idea": "先破除「函数包裹列」，再让联合索引两列各司其职。",
+        "steps": ["指出函数包裹列导致索引失效——改写为对原始列的范围条件；", "确定过滤列组合：user_id 等值 + created_at 范围；", "联合索引按「等值列在前、范围列在后」排列为 (user_id, created_at)。"],
+        "result": "改写与索引建议见答案；核心口诀：函数别包列、联合索引「等值前、范围后」。",
+        "pitfalls": ["把索引建成 (created_at, user_id)：最左列是范围列，单一 user_id 等值查询用不上；", "改写时上界写成「小于等于 2024-12-31」：日期含时分秒时会把当天 23:59 之后的数据漏掉或误纳，开区间到次年 1 月 1 日更稳。"],
+        "kid": "两个小诀窍：① 问时间别问「它的年份是 2024 吗」（这要给每行先做算术），要问「它在 2024-01-01 到 2025-01-01 之间吗」——目录直接能用；② 目录的第一层先写「谁」，第二层再写「什么时候」，先锁人、再扫时间段，最顺手。"
+      }
+    }
+  ]
+}

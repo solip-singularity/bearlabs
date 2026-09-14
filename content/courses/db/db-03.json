@@ -30,7 +30,7 @@
       },
       {
         "heading": "3.2 INNER JOIN 与 LEFT JOIN",
-        "html": "<p>最常用的连接有两种。<strong>内连接</strong>（INNER JOIN，只保留两边能配上对的行）：</p><pre class='code' data-lang='sql'>SELECT student.name, score.course, score.score\nFROM student\nINNER JOIN score ON student.id = score.sid;</pre><p>只有「学生表里存在、成绩表里也有记录」的学生才会出现。<strong>左连接</strong>（LEFT JOIN，保留左表全部行，右表配不上的地方用 NULL 补齐）恰恰解决「没有成绩的学生也想列出来」的需求：</p><pre class='code' data-lang='sql'>SELECT student.name, score.course, score.score\nFROM student\nLEFT JOIN score ON student.id = score.sid;</pre><p>没考过试的学生也会出现在结果里，course 与 score 显示为 NULL。习惯上表名太长时用别名简化：<code>FROM student s JOIN score c ON s.id = c.sid</code>。另外还有 RIGHT JOIN（保留右表全部行），但它总能用 LEFT JOIN 交换两边的写法代替，本课统一用 LEFT JOIN 表述。</p>"
+        "html": "<p>最常用的连接有两种。<strong>内连接</strong>（INNER JOIN，只保留两边能配上对的行）：</p><pre class='code' data-lang='sql'>SELECT student.name, score.course, score.score\nFROM student\nINNER JOIN score ON student.id = score.sid;</pre><p>只有「学生表里存在、成绩表里也有记录」的学生才会出现。<strong>左连接</strong>（LEFT JOIN，保留左表全部行，右表配不上的地方用 NULL 补齐）恰恰解决「没有成绩的学生也想列出来」的需求：</p><pre class='code' data-lang='sql'>SELECT student.name, score.course, score.score\nFROM student\nLEFT JOIN score ON student.id = score.sid;</pre><p>还没考试的学生也会出现在结果里，course 与 score 显示为 NULL。习惯上表名太长时用别名简化：<code>FROM student s JOIN score c ON s.id = c.sid</code>。另外还有 RIGHT JOIN（保留右表全部行），但它总能用 LEFT JOIN 交换两边的写法代替，本课统一用 LEFT JOIN 表述。</p>"
       },
       {
         "heading": "3.3 分组统计：GROUP BY 与 HAVING",
