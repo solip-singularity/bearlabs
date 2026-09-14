@@ -1,0 +1,60 @@
+{
+  "id": "os",
+  "title": "操作系统",
+  "subtitle": "计算机资源的大管家",
+  "level": "本科核心",
+  "levelNote": "适合大一至大二学生；学过一门编程语言、能基本使用计算机即可跟学，配合计算机组成原理效果更佳。",
+  "hours": 17,
+  "keywords": ["操作系统", "进程", "线程", "调度", "内存管理", "虚拟内存", "文件系统", "虚拟化"],
+  "description": "本课程以「操作系统是计算机资源的大管家」为主线，系统讲解进程与线程、CPU 调度、同步互斥、死锁、虚拟内存、页面置换、文件系统与 IO 等核心机制。学完你能看懂一个程序从启动到运行背后发生了什么，理解卡顿、崩溃等常见问题的系统层根源，并为系统编程、后端开发与考研专业课打下扎实基础。",
+  "prerequisites": ["计算机基本使用经验（会用任务管理器、见过命令行更好）", "任意一门编程语言入门：能读懂简单的 if/while 代码"],
+  "units": [
+    {
+      "id": "os-u1",
+      "title": "单元一 操作系统是什么",
+      "summary": "从管家视角认识操作系统的职责与内核结构。",
+      "chapters": [
+        { "id": "os-01", "title": "第1讲 操作系统的角色", "objective": "用「管家」视角说出操作系统的四大管理职能，并区分宏内核与微内核两种体系结构", "minutes": 35, "difficulty": 1, "prereqs": [] },
+        { "id": "os-02", "title": "第2讲 内核与系统调用", "objective": "解释用户态与内核态的分工，描述一次系统调用的完整过程，说出从加电到桌面的启动链条", "minutes": 45, "difficulty": 2, "prereqs": ["os-01"] }
+      ]
+    },
+    {
+      "id": "os-u2",
+      "title": "单元二 进程与并发",
+      "summary": "理解进程、线程与 CPU 调度，掌握同步互斥与死锁处理。",
+      "chapters": [
+        { "id": "os-03", "title": "第3讲 进程与线程", "objective": "用 PCB 与状态机描述进程的一生，说清线程与进程的区别以及上下文切换的代价", "minutes": 50, "difficulty": 2, "prereqs": ["os-02"] },
+        { "id": "os-04", "title": "第4讲 进程调度", "objective": "掌握周转时间与等待时间的计算，能用 FCFS、SJF、时间片轮转与优先级算法完成调度推演", "minutes": 55, "difficulty": 2, "prereqs": ["os-03"] },
+        { "id": "os-05", "title": "第5讲 同步与互斥", "objective": "识别临界区问题，用锁与信号量写出生产者-消费者等经典并发场景的正确解法", "minutes": 55, "difficulty": 3, "prereqs": ["os-03"] },
+        { "id": "os-06", "title": "第6讲 死锁", "objective": "说出死锁的四个必要条件，会用银行家算法判断系统状态是否安全", "minutes": 50, "difficulty": 3, "prereqs": ["os-05"] }
+      ]
+    },
+    {
+      "id": "os-u3",
+      "title": "单元三 内存管理",
+      "summary": "从物理内存走到虚拟内存：地址翻译、页面置换与程序视角的内存布局。",
+      "chapters": [
+        { "id": "os-07", "title": "第7讲 从物理到虚拟：地址空间与分页", "objective": "说清虚拟地址到物理地址的翻译过程，理解页表、多级页表与分页分段的取舍", "minutes": 50, "difficulty": 2, "prereqs": ["os-03"] },
+        { "id": "os-08", "title": "第8讲 虚拟内存与页面置换", "objective": "比较 FIFO、LRU、OPT 三种页面置换算法，解释 Belady 异常与抖动、工作集的含义", "minutes": 55, "difficulty": 3, "prereqs": ["os-07"] },
+        { "id": "os-09", "title": "第9讲 程序在内存里如何安家", "objective": "从程序视角理解栈与堆的分工，解释 malloc/free 的行为以及内存泄漏与野指针的成因", "minutes": 50, "difficulty": 2, "prereqs": ["os-07"] }
+      ]
+    },
+    {
+      "id": "os-u4",
+      "title": "单元四 文件与 IO",
+      "summary": "数据如何被持久保存：文件系统组织与设备管理。",
+      "chapters": [
+        { "id": "os-10", "title": "第10讲 文件系统", "objective": "描述文件与目录的组织方式，用 inode 解释文件读取过程，理解日志与崩溃一致性", "minutes": 50, "difficulty": 2, "prereqs": ["os-02"] },
+        { "id": "os-11", "title": "第11讲 IO 与设备管理", "objective": "说明缓冲与缓存的作用，比较常见磁盘调度算法，说出驱动程序与中断处理的配合方式", "minutes": 45, "difficulty": 2, "prereqs": ["os-10"] }
+      ]
+    },
+    {
+      "id": "os-u5",
+      "title": "单元五 进阶导读",
+      "summary": "云时代操作系统的新形态：虚拟化与容器。",
+      "chapters": [
+        { "id": "os-12", "title": "第12讲 虚拟化与容器", "objective": "区分虚拟机与容器两种隔离路线，说出 namespaces 与 cgroups 的作用及其在云时代的价值", "minutes": 40, "difficulty": 3, "prereqs": ["os-03", "os-07"] }
+      ]
+    }
+  ]
+}

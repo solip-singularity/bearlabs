@@ -239,11 +239,12 @@ function listen() {
       process.exit(1);
     }
   });
-  server.listen(port, '127.0.0.1', () => {
+  server.listen(port, process.env.HOST || '127.0.0.1', () => {
     const key = fs.readFileSync(ADMIN_KEY_FILE, 'utf8').trim();
+    const host = process.env.HOST || '127.0.0.1';
     console.log('==============================================');
     console.log('  计算机知识学习站 · 本地服务已启动');
-    console.log('  访问地址:  http://127.0.0.1:' + port + '/');
+    console.log('  访问地址:  http://' + (host === '0.0.0.0' ? '<本机IP>' : host) + ':' + port + '/');
     console.log('  管理员密钥: ' + key);
     console.log('  （密钥文件: server/data/admin-key.txt）');
     console.log('  按 Ctrl+C 停止服务');

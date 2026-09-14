@@ -1,0 +1,18 @@
+# 静态托管配置（Netlify）：整个项目目录即站点，无构建
+[build]
+  publish = "."
+  command = "echo 'static site — no build step'"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# 内容文件轻度缓存
+[[headers]]
+  for = "/content/*"
+  [headers.values]
+    Cache-Control = "public, max-age=300"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"

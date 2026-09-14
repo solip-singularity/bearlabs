@@ -1,0 +1,245 @@
+{
+  "id": "net-10",
+  "courseId": "net",
+  "title": "第10讲 DNS 与 HTTP",
+  "objectives": [
+    "说明 DNS 的作用：把域名翻译成 IP 地址，以及它的层次结构",
+    "按顺序描述一次 DNS 查询经过的节点，区分递归查询与迭代查询",
+    "读懂 HTTP 请求与响应报文的基本结构，说出常见状态码的含义",
+    "区分强缓存与协商缓存，说明 304 状态码在缓存验证中的作用",
+    "概述 HTTPS 解决的三个问题：加密、认证、完整性"
+  ],
+  "keyPoints": [
+    "DNS 是分布式层次数据库：根域名服务器、顶级域（TLD）服务器、权威域名服务器逐级负责",
+    "查询方式：主机到本地域名服务器通常是递归查询，本地服务器向外通常是迭代查询",
+    "DNS 响应带 TTL，缓存有有效期；DNS 常用 UDP 53 端口",
+    "HTTP 报文 = 起始行 + 头部 + 实体；请求方法常见 GET/POST，状态码 200/301/302/404/500",
+    "强缓存（Cache-Control/Expires）直接不发包；协商缓存（ETag/Last-Modified）发条件请求，未变返回 304",
+    "HTTPS 是运行在 TLS 之上的 HTTP，默认端口 443"
+  ],
+  "minutes": 50,
+  "difficulty": 2,
+  "prerequisites": ["第6讲 UDP：简单直接"],
+  "keywords": ["DNS", "域名", "HTTP", "状态码", "缓存", "HTTPS", "TTL", "ETag"],
+  "demoRefs": [],
+  "refs": ["《计算机网络：自顶向下方法》第2章 2.2-2.4 节（延伸阅读）", "《HTTP 权威指南》第1、7章（延伸阅读）"],
+  "pro": {
+    "intro": "前面几讲解决了「数据怎么可靠地送到 IP 地址」，但普通人记住的从来不是 142.250.71.14 这样的数字，而是 www.example.com 这样的域名。这一讲讲两件每天发生亿万次的事：DNS 如何把域名翻译成 IP，HTTP 如何在翻译完成后完成请求与响应。缓存是贯穿两者的主线——DNS 有 TTL 缓存，浏览器有强缓存与协商缓存，理解它们才算真正理解 Web 的速度。",
+    "sections": [
+      {
+        "heading": "10.1 域名与 IP：互联网的电话簿",
+        "html": "<p>IP 地址定位主机，但它难记且可能变化。<strong>DNS</strong>（Domain Name System，域名系统）用分布式数据库把人类友好的域名映射到机器友好的 IP。域名的层次结构从右向左越来越具体：<code>www.example.com</code> 中，<code>com</code> 是顶级域，<code>example.com</code> 是注册到某机构的域名，<code>www</code> 是该机构内的一台主机名。</p><p>与这个层次对应的是三级服务器分工：<strong>根域名服务器</strong>（全球逻辑上只有 13 个根，用镜像扩展成数百个节点）只告诉你「.com 由哪些服务器负责」；<strong>顶级域服务器</strong>（TLD，管理 com、cn、org 等每个顶级域）告诉你「example.com 由哪些服务器负责」；<strong>权威域名服务器</strong>（由域名所有者配置）才保存最终的域名到 IP 映射。逐级放行、各管一段，正是分布式系统「分而治之」的教科书案例。</p>"
+      },
+      {
+        "heading": "10.2 一次 DNS 查询的完整旅程",
+        "html": "<p>你在浏览器输入 <code>www.example.com</code> 后，查询按下面的顺序展开：先查本机缓存与 hosts 文件；没有则询问<strong>本地域名服务器</strong>（通常是运营商或单位自动分配的解析器）；本地服务器也没有缓存时，代为向外查询——先问某个根服务器，得到 TLD 服务器地址；再问 TLD，得到权威服务器地址；最后问权威服务器，拿到 IP。</p><p>其中主机到本地服务器通常是<strong>递归查询</strong>（Recursive Query，你必须替我问到最终答案），本地服务器向外则通常是<strong>迭代查询</strong>（Iterative Query，每次只得到「下一站找谁」的指引）。承担绝大部分体力活的是本地域名服务器，它还负责缓存：每条记录带 <strong>TTL</strong>（Time To Live，生存期，秒），有效期内直接返回缓存结果，于是绝大多数查询根本不会走到根服务器。DNS 查询报文本身很小，默认走 <strong>UDP 53 端口</strong>，仅在响应过大或区域传送时改用 TCP。</p><figure><svg viewBox='0 0 640 250' role='img' aria-label='DNS 迭代查询流程'><rect x='20' y='100' width='120' height='50' rx='8' fill='#7C9CBF' stroke='#2A2E33'/><text x='80' y='130' text-anchor='middle' font-size='12' fill='#FAF7F2'>主机</text><rect x='190' y='100' width='130' height='50' rx='8' fill='#5E9E8F' stroke='#2A2E33'/><text x='255' y='130' text-anchor='middle' font-size='12' fill='#FAF7F2'>本地域名服务器</text><rect x='370' y='20' width='130' height='44' rx='8' fill='#FAF7F2' stroke='#E4DCCF'/><text x='435' y='47' text-anchor='middle' font-size='12' fill='#2A2E33'>根域名服务器</text><rect x='370' y='103' width='130' height='44' rx='8' fill='#FAF7F2' stroke='#E4DCCF'/><text x='435' y='130' text-anchor='middle' font-size='12' fill='#2A2E33'>TLD 服务器</text><rect x='370' y='186' width='130' height='44' rx='8' fill='#C9A96A' stroke='#2A2E33'/><text x='435' y='213' text-anchor='middle' font-size='12' fill='#2A2E33'>权威域名服务器</text><path d='M140 118 L 188 118' stroke='#2A2E33' stroke-width='1.5' marker-end='url(#a)'/><path d='M322 112 L 368 48' stroke='#C9A96A' stroke-width='1.5' stroke-dasharray='5 3'/><path d='M368 55 L 324 118' stroke='#7C9CBF' stroke-width='1.5' stroke-dasharray='5 3'/><path d='M322 125 L 368 125' stroke='#C9A96A' stroke-width='1.5' stroke-dasharray='5 3'/><path d='M368 132 L 324 138' stroke='#7C9CBF' stroke-width='1.5' stroke-dasharray='5 3'/><path d='M322 140 L 368 200' stroke='#C9A96A' stroke-width='1.5' stroke-dasharray='5 3'/><path d='M368 210 L 324 148' stroke='#7C9CBF' stroke-width='1.5' stroke-dasharray='5 3'/><text x='330' y='245' font-size='12' fill='#C9A96A'>金线：查询方向</text><text x='140' y='245' font-size='12' fill='#7C9CBF'>蓝线：逐级返回「下一站」或最终答案</text></svg><figcaption>图 10-1 迭代查询：本地域名服务器替主机逐级问路，最终拿到 IP 并缓存。</figcaption></figure>"
+      },
+      {
+        "heading": "10.3 HTTP：请求与响应的对答",
+        "html": "<p>拿到 IP 后，浏览器向服务器的 80 端口发起 <strong>HTTP</strong>（HyperText Transfer Protocol，超文本传送协议）请求。报文结构是「文本起始行 + 头部 + 可选实体」。请求以<strong>请求行</strong>开头，例如 <code>GET /index.html HTTP/1.1</code>，包含方法、路径与版本；常见方法中，<strong>GET</strong> 请求读取资源、<strong>POST</strong> 提交数据。响应以<strong>状态行</strong>开头，如 <code>HTTP/1.1 200 OK</code>，状态码按百位分类：1xx 信息、2xx 成功（200）、3xx 重定向（301 永久移动、302 临时移动）、4xx 客户端错误（404 资源不存在）、5xx 服务器错误（500）。</p><p>两个重要性质：<strong>无状态</strong>（Stateless，每个请求互相独立，服务器不记得上一请求是谁发的，靠 Cookie 等机制在应用层补上身份）；以及 HTTP/1.1 默认<strong>持久连接</strong>（一次 TCP 握手服务多个请求响应，避免每取一个对象都重建连接）。头部字段承载了大量控制信息，下一节的缓存策略就藏在 <code>Cache-Control</code>、<code>ETag</code> 这些头里。</p>"
+      },
+      {
+        "heading": "10.4 缓存：Web 速度的另一半",
+        "html": "<p>同一个网页的图片、脚本在一段时间内往往不会变化，反复下载是浪费。浏览器缓存分两层：<strong>强缓存</strong>由 <code>Cache-Control: max-age=3600</code>（或旧的 <code>Expires</code>）控制——有效期一小时内，浏览器直接用本地副本，<strong>连服务器都不问</strong>；过期后进入<strong>协商缓存</strong>：浏览器带上 <code>If-None-Match: &quot;abc123&quot;</code>（对应服务器曾返回的 <code>ETag</code>，资源的指纹）发起条件请求，服务器比对指纹：未变则只回一个 <code>304 Not Modified</code>（不含实体，几十字节），变了才回 200 和新内容。</p><p>算一笔账：一张 500KB 的图片，强缓存命中成本为零；协商缓存命中成本是几百字节的往返；完全不缓存则是每次 500KB。HTTP 代理服务器、CDN 节点也遵循同样的头部语义，在离用户更近的位置缓存内容。可以说，没有 HTTP 缓存，就没有今天可用的万维网。</p>"
+      },
+      {
+        "heading": "10.5 HTTPS 概述：套上安全层的 HTTP",
+        "html": "<p>明文 HTTP 有三个致命问题：被<strong>窃听</strong>（路上所有人都能读）、被<strong>篡改</strong>（内容可被中途修改）、被<strong>冒充</strong>（你无法确认对面真是目标服务器）。<strong>HTTPS</strong>（安全的 HTTP）在 TCP 与 HTTP 之间插入一层 <strong>TLS</strong>（Transport Layer Security，传输层安全协议），分别用加密对抗窃听、用完整性校验对抗篡改、用证书体系对抗冒充，默认端口从 80 变为 <strong>443</strong>。</p><p>本讲只建立轮廓：HTTPS = HTTP over TLS，握手阶段协商加密算法并验证服务器证书，之后 HTTP 报文全部在加密通道内传输。加密如何做到、证书如何证明身份、握手的具体回合，留到第 12 讲网络安全基础展开。目前只需记住：浏览器地址栏的锁形标志，对应的就是这一层。</p>"
+      },
+      {
+        "heading": "10.6 小结",
+        "html": "<p>本讲的两条主线都围绕「翻译与传递」：DNS 把域名翻译成 IP，靠层次结构与缓存做到既准确又高效；HTTP 用纯文本协议完成请求响应，靠强缓存与协商缓存把不必要的传输降到最低，HTTPS 则在两者之下垫上安全层。把「递归与迭代」「强缓存与协商缓存」这两组对比讲清楚，本讲的核心就到手了。</p><p>动手建议：用 <code>nslookup www.example.com</code> 看一次真实的域名解析结果，用浏览器的开发者工具（Network 面板）观察一次带 304 的页面刷新——课堂里的概念在五分钟内都能亲眼验证。</p>"
+      }
+    ]
+  },
+  "kid": {
+    "intro": "你给同学打电话，不用背他的手机号，翻一下通讯录就行。互联网也有自己的通讯录，名字叫 DNS。查到号码后怎么「对话」？靠一套像点菜的规矩，叫 HTTP。这一讲我们学两件事：怎么查号码，怎么点菜。顺便还学一招省钱的秘诀——缓存。",
+    "sections": [
+      {
+        "heading": "互联网的查号台",
+        "html": "<p>网站的「电话号码」是一串数字，叫 IP 地址，比如 142.250.71.14——背起来太痛苦了！所以我们只记名字，比如 www.example.com。<strong>DNS</strong> 就是互联网的查号台：你把名字告诉它，它把号码（IP 地址）查给你。</p><p>查号台不是一个人，而是一层层分工：先问「管 .com 的大总管」，再问「管 example.com 的经理」，最后问到真正知道答案的那位。每个人只管一小段，这就是「分而治之」。</p>"
+      },
+      {
+        "heading": "查号码要问几个人",
+        "html": "<p>查号有顺序，像闯关：第一关查<strong>自己的小本本</strong>（电脑的缓存，记着最近问过的号码）；第二关问<strong>小区前台</strong>（本地域名服务器，你家的宽带公司）；前台也不知道时，替你去问大总管、经理，一层层问下去，最后把号码带回来。</p><p>而且每次问到的号码都会记在小本本上，还标着「这个答案只能用一小时」（这就是 TTL）。下次再查同一个网站，直接翻本子，一步都不用跑——这就是<strong>缓存</strong>，省时又省力。</p><figure><svg viewBox='0 0 560 210' role='img' aria-label='查号码闯关图'><rect x='20' y='80' width='100' height='46' rx='8' fill='#7C9CBF' stroke='#2A2E33'/><text x='70' y='108' text-anchor='middle' font-size='12' fill='#FAF7F2'>你</text><rect x='160' y='80' width='110' height='46' rx='8' fill='#5E9E8F' stroke='#2A2E33'/><text x='215' y='108' text-anchor='middle' font-size='12' fill='#FAF7F2'>小区前台</text><rect x='310' y='80' width='100' height='46' rx='8' fill='#FAF7F2' stroke='#E4DCCF'/><text x='360' y='108' text-anchor='middle' font-size='12' fill='#2A2E33'>大总管</text><rect x='440' y='20' width='100' height='42' rx='8' fill='#FAF7F2' stroke='#E4DCCF'/><text x='490' y='46' text-anchor='middle' font-size='12' fill='#2A2E33'>经理</text><rect x='440' y='140' width='100' height='42' rx='8' fill='#C9A96A' stroke='#2A2E33'/><text x='490' y='166' text-anchor='middle' font-size='12' fill='#2A2E33'>知道号码的人</text><path d='M120 103 L 158 103' stroke='#C9A96A' stroke-width='2'/><path d='M270 96 L 308 60' stroke='#C9A96A' stroke-width='2' stroke-dasharray='6 4'/><path d='M408 58 L 438 44' stroke='#C9A96A' stroke-width='2' stroke-dasharray='6 4'/><path d='M408 100 L 438 158' stroke='#C9A96A' stroke-width='2' stroke-dasharray='6 4'/><text x='280' y='200' font-size='12' fill='#C9A96A'>问一圈，号码带回家，记进小本本</text></svg><figcaption>图 10-1 一次查号要闯四关，答案最后写进缓存小本本。</figcaption></figure>"
+      },
+      {
+        "heading": "点菜式的对话：HTTP",
+        "html": "<p>查到号码，就该「点菜」了。HTTP 的对话超简单：你（浏览器）递上一张菜单需求单，写着「我要红烧肉」（<code>GET /index.html</code>，请求读取某个页面）；厨房（服务器）回一张单子：「有货」（200），并把菜端上来；要是菜单上根本没有这道菜，厨房回「没这道菜」（<strong>404</strong>，你上网一定见过它）；「换新址了，去隔壁买」（301）；「厨房着火了」（500）。</p><p>这个对话还有个特点：每次点菜都是<strong>独立的</strong>，厨房不记得你上顿点过什么，这叫「无状态」。想让厨房记住你是谁？要靠随身带的会员卡（Cookie）。</p>"
+      },
+      {
+        "heading": "冰箱里的菜：缓存",
+        "html": "<p>每次点菜都跑一趟餐厅太累了，聪明的办法是把菜<strong>放冰箱</strong>（浏览器缓存）。冰箱上贴着保质期：「一小时之内不用再买」（强缓存）。保质期内你想吃，直接从冰箱拿，连餐厅电话都不打。</p><p>保质期过了呢？也别急着扔：先问一句「这菜还能吃吗？」（带着标签 ETag 去问）。餐厅说「还能吃」（304），你可以继续吃冰箱里的，不用重新做一份；说「不能了」，才给你做新的（200 带新菜）。一句话记住：<strong>先看保质期，过期了先问一句，问完还能吃就继续吃</strong>。</p>"
+      },
+      {
+        "heading": "给对话套上保险袋",
+        "html": "<p>点菜的对话如果被隔壁桌偷听，你点的「红烧肉」可能被人改成「黑暗料理」，甚至有人冒充餐厅骗你转账。所以有了 <strong>HTTPS</strong>：在对话外面套一层看不见的保险袋（TLS），袋里的内容别人偷看不到、改不了，而且开门前先验明「这家店是真店」（看证书）。</p><p>HTTPS 网站的网址以 https 开头，浏览器地址栏会挂一把小锁。保险袋具体怎么锁上，第 12 讲再拆开细看，现在记住它的三大本事：偷看不到（加密）、改不了（完整性）、不冒充（认证）。</p>"
+      },
+      {
+        "heading": "小结",
+        "html": "<p>今天学了两件大事：<strong>DNS</strong> 查号台按「小本本—前台—大总管—经理—正主」的顺序查号码，查完记在小本本上；<strong>HTTP</strong> 用点菜式的请求和响应把网页搬回家，冰箱（缓存）让第二次点菜几乎不花钱；<strong>HTTPS</strong> 套上保险袋，对话才安全。</p><p>课后小实验：在电脑上输入 nslookup 加上任意网址，看看查号台给你的真实号码；再打开浏览器的开发者工具刷新网页，找找有没有那条写着 304 的「还能吃」。看见它们，你就把今天的内容见过了。</p>"
+      }
+    ]
+  },
+  "glossary": [
+    { "term": "DNS", "def": "域名系统，把 www.example.com 这样的域名翻译成 IP 地址的分布式数据库" },
+    { "term": "递归查询", "def": "你必须替我问出最终答案的查询方式，主机发给本地域名服务器时常用" },
+    { "term": "迭代查询", "def": "每次只告诉你下一站找谁的查询方式，本地域名服务器向外询问时常用" },
+    { "term": "TTL", "def": "Time To Live，DNS 记录或缓存的生存期（秒），期内可直接使用缓存" },
+    { "term": "无状态", "def": "HTTP 每个请求互相独立，服务器默认不记得之前的请求" },
+    { "term": "ETag", "def": "服务器给资源打的指纹，配合 If-None-Match 做协商缓存验证" },
+    { "term": "304 Not Modified", "def": "协商缓存命中时的响应：资源没变，请继续用本地副本" },
+    { "term": "HTTPS", "def": "运行在 TLS 加密层之上的 HTTP，默认端口 443，能防窃听、防篡改、防冒充" }
+  ],
+  "exercises": [
+    {
+      "id": "net-10-e01",
+      "level": "easy",
+      "type": "choice",
+      "stem": "DNS 系统的主要作用是？",
+      "options": ["A. 加密网页内容", "B. 把域名翻译成 IP 地址", "C. 给邮件排序", "D. 压缩 HTTP 响应"],
+      "answer": "B",
+      "solution": {
+        "idea": "DNS 是域名与 IP 之间的翻译服务。",
+        "steps": ["人记域名，机器认 IP；", "DNS 维护两者之间的映射；", "加密是 HTTPS/TLS 的职责，与 DNS 无关。"],
+        "result": "B。DNS 负责域名到 IP 地址的解析。",
+        "pitfalls": ["以为 DNS 参与加密：加密在 TLS 层。", "以为 DNS 传输网页：它只提供地址查询。"],
+        "kid": "DNS 就是互联网的查号台：你说出名字 www.example.com，它帮你查出电话号码（IP 地址）。查号台不管送菜也不管加密，只负责「名字对号码」。"
+      }
+    },
+    {
+      "id": "net-10-e02",
+      "level": "easy",
+      "type": "judge",
+      "stem": "HTTP 是无状态协议：服务器默认不会记住上一个请求来自谁、请求过什么。",
+      "answer": "正确",
+      "solution": {
+        "idea": "无状态是 HTTP 的核心设计之一。",
+        "steps": ["每个 HTTP 请求都独立处理；", "服务器不为请求保存会话上下文；", "身份记忆靠 Cookie、Session 等应用层机制补足。"],
+        "result": "正确。HTTP 默认无状态。",
+        "pitfalls": ["以为登录后服务器「记得你」：那是 Cookie/Session 在工作。", "把无状态与持久连接混淆：持久连接复用的是 TCP 通道，不是记忆。"],
+        "kid": "HTTP 像一个每次都失忆的服务员：你点完这单，他就不记得你了。想让他记住你是会员，得每次都出示会员卡（Cookie）。失忆反而让服务员处理海量客人时不容易出错。"
+      }
+    },
+    {
+      "id": "net-10-e03",
+      "level": "easy",
+      "type": "choice",
+      "stem": "浏览器请求一个网页时收到 <code>404</code> 状态码，含义是？",
+      "options": ["A. 服务器内部出错", "B. 请求的资源不存在", "C. 网页被永久移动到新地址", "D. 缓存仍然有效"],
+      "answer": "B",
+      "solution": {
+        "idea": "状态码按百位分类，4xx 是客户端错误，404 特指资源不存在。",
+        "steps": ["2xx 成功，3xx 重定向，4xx 客户端错误，5xx 服务器错误；", "404 = Not Found，路径对应的资源不存在；", "对照选项排除 500（服务器错误）与 301（永久移动）。"],
+        "result": "B。404 表示请求的资源在服务器上不存在。",
+        "pitfalls": ["与 500 混淆：500 是服务器内部错误。", "与 301/302 混淆：那些是重定向，资源存在于别处。"],
+        "kid": "404 就像你去餐厅点了「红烧月亮」——菜单上压根没这道菜。厨房只好回答：没这道菜（Not Found）。不是厨房着火了（那是 500），也不是搬家了（那是 301）。"
+      }
+    },
+    {
+      "id": "net-10-e04",
+      "level": "easy",
+      "type": "open",
+      "stem": "动手描述题：请在你的电脑上用命令行工具查询 <code>www.example.com</code> 的 IP 地址（写出使用的命令与预期看到的大致输出），并解释返回结果里哪些部分可能来自缓存。",
+      "answer": "可使用 nslookup www.example.com（Windows）或 dig www.example.com（Linux/macOS）。输出包含「服务器的地址」（应答的 DNS 服务器）与「名称/Address」（域名对应的 IP，可能有多条）。nslookup 输出中的「非权威应答」字样说明结果来自缓存或转发，而非权威服务器；本机与本地域名服务器的缓存在有效期内会直接返回结果。",
+      "solution": {
+        "idea": "用系统自带的解析工具观察一次真实的 DNS 应答。",
+        "steps": ["打开命令行，输入 nslookup www.example.com；", "阅读输出：上部是本地域名服务器地址，下部是解析结果；", "关注「非权威应答」（Non-authoritative answer）标注，说明数据来自缓存；", "多次执行对比响应速度，体会缓存的作用。"],
+        "result": "能拿到真实的 IP，并辨认出「非权威应答」这一缓存痕迹。",
+        "pitfalls": ["把输出里的本地 DNS 服务器当成查询结果：真正的 IP 在 Address 行。", "以为每次查询都会问到根服务器：绝大多数命中缓存，几毫秒内返回。"],
+        "kid": "打开「命令提示符」，敲 nslookup www.example.com 再回车，屏幕会给出一个数字地址，那就是真实「号码」。如果上面写着「非权威应答」，意思是这个答案是从查号台的小本本（缓存）里翻出来的，不是现场问的正主。"
+      }
+    },
+    {
+      "id": "net-10-e05",
+      "level": "medium",
+      "type": "derive",
+      "stem": "主机 A 要解析 <code>www.example.com</code>，本机缓存与 hosts 文件均未命中，本地域名服务器也没有该记录的缓存。请按顺序写出本次解析经过的节点，并指出哪一段是递归查询、哪些段是迭代查询。",
+      "answer": "顺序：主机 A → 本地域名服务器（递归）→ 根域名服务器（迭代）→ TLD 服务器（迭代）→ 权威域名服务器（迭代），本地服务器从权威服务器拿到 IP 后返回主机 A 并缓存。主机到本地服务器这一段是递归查询；本地服务器向根、TLD、权威服务器的三段都是迭代查询。",
+      "solution": {
+        "idea": "牢记经典分工：主机只发一次问，本地服务器替它逐级跑腿。",
+        "steps": ["主机 A 用递归方式把问题交给本地域名服务器，只等最终答案；", "本地服务器无缓存，向根服务器发起迭代查询，得到 TLD 服务器地址；", "向 TLD 服务器迭代查询，得到权威服务器地址；", "向权威服务器迭代查询，得到最终 IP，返回主机并写入缓存。"],
+        "result": "A →（递归）本地服务器 →（迭代）根 →（迭代）TLD →（迭代）权威，逐级返回最终 IP。",
+        "pitfalls": ["把主机到本地服务器写成迭代：这一段通常是递归。", "漏掉缓存写入：结果会缓存到本地服务器与本机，TTL 内不再外查。"],
+        "kid": "你（主机）对小区前台说「帮我查到底」（递归），前台自己跑腿：先问大总管（根），总管指路去经理（TLD），经理指路去正主（权威），正主给出号码。前台把号码带回来给你，还抄进小本本备用。你只开口一次，跑腿的才是前台。"
+      }
+    },
+    {
+      "id": "net-10-e06",
+      "level": "medium",
+      "type": "derive",
+      "stem": "某资源此前响应中带有 <code>ETag: \"v7\"</code>，且无 Cache-Control 强缓存头。浏览器再次请求该资源时会如何行动？服务器在资源未变与已变两种情况下分别返回什么？这一机制相比直接重新下载节省了什么？",
+      "answer": "无强缓存时浏览器发起协商缓存：带上 If-None-Match: \"v7\" 的条件请求。资源未变：服务器返回 304 Not Modified（不含实体），浏览器继续用本地副本；已变：返回 200 与新的资源实体及新 ETag。节省的是实体的重复传输与服务器渲染/读取开销，304 响应只有几百字节。",
+      "solution": {
+        "idea": "协商缓存 = 带指纹问一句，不变就继续用旧的。",
+        "steps": ["检查无强缓存字段，发起请求并携带 If-None-Match: \"v7\"；", "服务器比对当前 ETag 与请求中的指纹；", "相同 → 304，浏览器读本地副本；", "不同 → 200 加新实体与新 ETag，更新本地副本。"],
+        "result": "未变回 304、已变回 200；协商缓存省下的是数据体的重复传输。",
+        "pitfalls": ["以为没强缓存就一定重新下载全部内容：协商缓存可以省掉实体。", "把 304 当成错误：它表示「没变，请用本地副本」，是成功语义。"],
+        "kid": "你拿着冰箱里那盘菜的标签（ETag）去问餐厅：「这菜换配方了吗？」没换，餐厅只回一张小纸条「没变，继续吃你的」（304），连菜都不用端；换了，才端上新菜（200）。省下的是把整盘菜再端一遍的力气。"
+      }
+    },
+    {
+      "id": "net-10-e07",
+      "level": "medium",
+      "type": "choice",
+      "stem": "关于 DNS 查询使用的传输层协议，说法正确的是？",
+      "options": ["A. 只能使用 TCP 53 端口", "B. 默认使用 UDP 53 端口，响应过大或区域传送等场景改用 TCP", "C. 只能使用 UDP，因为它不保证可靠", "D. 使用 HTTP 80 端口传输"],
+      "answer": "B",
+      "solution": {
+        "idea": "DNS 以 UDP 为主，TCP 是特定场景的补充。",
+        "steps": ["普通查询报文小、一问一答，UDP 开销最低；", "响应超过一页（如启用某些扩展）或区域传送需要可靠性时改用 TCP 53；", "DNS 与 HTTP 的 80 端口无关。"],
+        "result": "B。DNS 默认 UDP 53，特定场景用 TCP。",
+        "pitfalls": ["以为不可靠就不能用 UDP：查询小而快，失败可重发。", "与端口号张冠李戴：53 是 DNS 的端口。"],
+        "kid": "查号时问一句答一句，特别短，用「寄明信片」（UDP）就够了，快还不费事；只有答案特别长、或者要整本抄通讯录时，才改用「挂号信」（TCP）保证不丢页。所以 DNS 的主力是 UDP，53 是它的门牌号。"
+      }
+    },
+    {
+      "id": "net-10-e08",
+      "level": "medium",
+      "type": "judge",
+      "stem": "HTTPS 是运行在 TLS 之上的 HTTP，浏览器访问 HTTPS 网站默认使用 TCP 的 443 端口。",
+      "answer": "正确",
+      "solution": {
+        "idea": "HTTPS = HTTP over TLS，端口由 80 变为 443。",
+        "steps": ["TLS 插在 TCP 与 HTTP 之间形成加密通道；", "HTTP 报文在通道内传输，协议本身结构不变；", "默认端口 443，明文 HTTP 才是 80。"],
+        "result": "正确。",
+        "pitfalls": ["误记成 8080：那只是常见的备用端口。", "以为 HTTPS 改变了 HTTP 的报文格式：改变的是下层加密，不是内容格式。"],
+        "kid": "HTTPS 就是「套了保险袋的 HTTP」：菜（网页内容）还是那些菜，装袋（TLS 加密）后才上路。它的门牌号也从 80 换成了 443——记住这对数字，一个明送、一个加密送。"
+      }
+    },
+    {
+      "id": "net-10-e09",
+      "level": "hard",
+      "type": "derive",
+      "stem": "某页面响应头包含 <code>Cache-Control: max-age=3600</code> 与 <code>ETag: \"x9\"</code>。用户在 T+0 首次访问，T+30min 刷新一次，T+2h 又刷新一次。请分别说明这两次刷新时浏览器与服务器之间发生了什么（是否发请求、发什么请求、返回什么），要求区分强缓存与协商缓存。",
+      "answer": "T+30min：在 max-age=3600 有效期内，强缓存命中，浏览器直接使用本地副本，不发任何请求。T+2h：已超过有效期，进入协商缓存，浏览器发条件请求，携带 If-None-Match: \"x9\"；资源未变则服务器返回 304（浏览器继续用本地副本并更新计时），已变则返回 200 与新实体、新 ETag。",
+      "solution": {
+        "idea": "先判断强缓存是否过期，过期才发起协商缓存的条件请求。",
+        "steps": ["T+0：首次访问，服务器返回 200、实体、Cache-Control: max-age=3600 与 ETag，浏览器存入缓存并记下到期时刻；", "T+30min：距离存储未超过 3600 秒，强缓存命中，零请求；", "T+2h：超过有效期，缓存失效；", "发起条件请求 If-None-Match: \"x9\"，进入协商缓存分支；", "按服务器比对结果得到 304 或 200。"],
+        "result": "T+30min 零请求；T+2h 发条件请求，未变 304、已变 200。",
+        "pitfalls": ["把 T+30min 当成要发协商请求：强缓存有效期内连问都不问。", "以为 304 之后强缓存清零重新计时：多数实现会重置有效期，但实体不变。", "混淆 ETag 与 Cache-Control 的分工：前者用于协商，后者设定强缓存期限。"],
+        "kid": "冰箱贴上写着「保鲜一小时」：半小时后饿了，直接开冰箱（强缓存，连电话都不打）；两小时后再饿，保质期过了，先拿着标签问餐厅「还能吃吗」（协商缓存）——没坏就继续吃（304），坏了才上新车（200）。两次刷新，两种待遇。"
+      }
+    },
+    {
+      "id": "net-10-e10",
+      "level": "hard",
+      "type": "code",
+      "stem": "编程题：下面的程序模拟本地 DNS 缓存的命中与未命中行为。请先写出预期输出（共几行、每行是什么），再运行验证；并把注释中的域名换成任意其他名字重跑一次，观察缓存是否仍然命中。",
+      "answer": "预期输出 4 行：第一行「example.cn -> 发起 DNS 查询」，第二行「example.cn -> 203.0.113.10（已写入缓存，TTL=60 秒）」，第三行「example.cn -> 203.0.113.10（缓存命中）」，第四行「example.cn -> 203.0.113.10（缓存命中）」。第二次及以后的查询在 TTL 内全部命中缓存，不再「外查」；更换域名则第一次必然未命中。",
+      "code": {
+        "lang": "python",
+        "code": "cache = {}\n\ndef lookup(domain):\n    if domain in cache:\n        print(domain + ' -> ' + cache[domain] + '（缓存命中）')\n        return\n    print(domain + ' -> 发起 DNS 查询')\n    ip = '203.0.113.10'\n    cache[domain] = ip\n    print(domain + ' -> ' + ip + '（已写入缓存，TTL=60 秒）')\n\nlookup('example.cn')\nlookup('example.cn')\nlookup('example.cn')",
+        "output": "example.cn -> 发起 DNS 查询\nexample.cn -> 203.0.113.10（已写入缓存，TTL=60 秒）\nexample.cn -> 203.0.113.10（缓存命中）\nexample.cn -> 203.0.113.10（缓存命中）",
+        "explain": "第一次查询未命中缓存，模拟向权威服务器取回 IP 并写入缓存；后两次查询命中缓存直接返回。真实 DNS 的缓存还有 TTL 限时，这里用简化字典演示命中与未命中两种路径。"
+      },
+      "solution": {
+        "idea": "用字典模拟缓存表，命中直接返回、未命中先查再存。",
+        "steps": ["定义空字典 cache 充当本地缓存；", "lookup 先判断域名是否在字典中；", "命中则打印缓存结果并返回；", "未命中则打印查询动作、写入 IP 并打印缓存标记；", "三次调用分别覆盖未命中一次、命中两次的路径。"],
+        "result": "输出验证了缓存「一次外查、多次命中」的效果；换域名后首次必然未命中。",
+        "pitfalls": ["把打印顺序写反：未命中分支应先打印「发起查询」再打印结果。", "以为同一域名第二次还会外查：缓存命中路径会提前 return。"],
+        "kid": "这段小代码就是那个「小本本」：第一次查号码要真跑一趟，跑完记到本子上；后面再查，翻本子秒答。你可以换成自己的名字试一次，看看新名字第一次是不是也要「真跑一趟」。"
+      }
+    }
+  ]
+}

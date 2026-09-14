@@ -1,0 +1,51 @@
+{
+  "id": "oop",
+  "title": "面向对象编程",
+  "subtitle": "把真实世界装进代码：对象、类与设计思维",
+  "level": "本科基础",
+  "levelNote": "适合大学低年级学习者与零基础自学者；会任意一门语言的最基础语法（变量、判断、循环、函数）即可，不要求任何面向对象经验，也不限定具体语言。",
+  "hours": 14,
+  "keywords": ["面向对象", "类与对象", "封装", "继承", "多态", "SOLID", "设计模式", "UML"],
+  "description": "从「把数据和行为打包」这一个念头出发，搭起类与对象、封装、继承、多态的核心知识体系；再走向 SOLID 设计原则与常用设计模式，学会用 UML 类图给世界建模；最后用一个图书管理系统完整走一遍「需求 → 类图 → 代码 → 迭代」的设计流程。学完你能读懂主流代码库的类结构，也能为自己的小项目设计出结构清晰的类。",
+  "prerequisites": ["任意一门编程语言的入门基础（变量、条件、循环、函数）", "不需要预先学过面向对象；本课以 Python 为主要示例语言，其他语言学习者也能跟上"],
+  "units": [
+    {
+      "id": "oop-u1",
+      "title": "单元一 从世界到代码",
+      "summary": "先建立直觉：对象是什么、类怎么定义、细节为什么要藏起来。",
+      "chapters": [
+        { "id": "oop-01", "title": "第1讲 什么是面向对象", "objective": "理解对象 = 数据 + 行为，分清类与实例，知道 OOP 在解决什么问题", "minutes": 35, "difficulty": 1, "prereqs": [] },
+        { "id": "oop-02", "title": "第2讲 类与对象", "objective": "会定义类、创建对象，理解属性、方法与构造过程", "minutes": 45, "difficulty": 2, "prereqs": ["oop-01"] },
+        { "id": "oop-03", "title": "第3讲 封装：把细节藏起来", "objective": "理解信息隐藏与访问控制，会用 getter/setter 守护对象的不变式", "minutes": 40, "difficulty": 2, "prereqs": ["oop-02"] }
+      ]
+    },
+    {
+      "id": "oop-u2",
+      "title": "单元二 复用与多态",
+      "summary": "站在已有代码的肩膀上：继承复用、重写扩展，让同一命令得到不同应答。",
+      "chapters": [
+        { "id": "oop-04", "title": "第4讲 继承：站在巨人的肩膀上", "objective": "识别 is-a 关系，掌握继承、方法重写与 super 的用法", "minutes": 45, "difficulty": 2, "prereqs": ["oop-03"] },
+        { "id": "oop-05", "title": "第5讲 多态：一个命令，多种作答", "objective": "理解向上转型与动态绑定，能写出对扩展开放的通用代码", "minutes": 50, "difficulty": 3, "prereqs": ["oop-04"] },
+        { "id": "oop-06", "title": "第6讲 抽象类与接口", "objective": "用抽象类与接口表达契约，理解组合优于继承", "minutes": 45, "difficulty": 3, "prereqs": ["oop-05"] }
+      ]
+    },
+    {
+      "id": "oop-u3",
+      "title": "单元三 设计思维",
+      "summary": "从「能跑」走向「好改」：五大设计原则与四个常用设计模式。",
+      "chapters": [
+        { "id": "oop-07", "title": "第7讲 SOLID 五大设计原则", "objective": "说出 SOLID 每条原则的含义，并能用生活例子解释和识别违规代码", "minutes": 55, "difficulty": 3, "prereqs": ["oop-06"] },
+        { "id": "oop-08", "title": "第8讲 常用设计模式", "objective": "理解工厂、单例、观察者、策略四个模式的意图与适用场景", "minutes": 55, "difficulty": 3, "prereqs": ["oop-07"] }
+      ]
+    },
+    {
+      "id": "oop-u4",
+      "title": "单元四 工程实践",
+      "summary": "把前三个单元的知识用起来：UML 建模与一次完整的从设计到代码实战。",
+      "chapters": [
+        { "id": "oop-09", "title": "第9讲 用 UML 给世界建模", "objective": "读懂并绘制类图：类、属性与方法、关联、继承与组合关系", "minutes": 45, "difficulty": 2, "prereqs": ["oop-05"] },
+        { "id": "oop-10", "title": "第10讲 综合实战：从设计到代码", "objective": "完成图书管理系统的需求分析、类图设计、关键代码编写与迭代改进", "minutes": 55, "difficulty": 2, "prereqs": ["oop-09"] }
+      ]
+    }
+  ]
+}
