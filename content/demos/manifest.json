@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "demos": [
+    { "id": "sorting", "title": "排序可视化实验室", "courseId": "alg", "chapters": ["alg-06", "alg-08", "alg-09"], "agent": "main", "desc": "用柱状动画看冒泡、插入、选择、快速、归并、堆排序如何一步步把数据排好，含比较次数与交换次数统计。" },
+    { "id": "searching", "title": "查找之旅：二分查找与二叉搜索树", "courseId": "alg", "chapters": ["alg-05", "alg-07", "alg-10"], "agent": "D1", "desc": "亲手调整有序数组，看二分查找每一步砍掉一半；再在二叉搜索树上找钥匙，理解为什么它能快速定位。" },
+    { "id": "graphtravel", "title": "图世界漫游：BFS、DFS 与最短路径", "courseId": "alg", "chapters": ["alg-11", "alg-12", "dm-05", "ai-02"], "agent": "D1", "desc": "在可编辑的地图上观察广度优先与深度优先如何扩散，以及 Dijkstra 如何一步步找出最短路线。" },
+    { "id": "bigo", "title": "复杂度曲线探索器", "courseId": "alg", "chapters": ["alg-01"], "agent": "D1", "desc": "拖动数据规模滑块，对比 O(1)、O(log n)、O(n)、O(n²) 等增长曲线，直观感受「算法效率」。" },
+    { "id": "fsm", "title": "自动机实验室", "courseId": "dm", "chapters": ["dm-07"], "agent": "D1", "desc": "自己给有限自动机画状态和转移，输入字符串看它一步步接受或拒绝，理解正则语言的机器直觉。" },
+    { "id": "scheduling", "title": "进程调度模拟器", "courseId": "os", "chapters": ["os-04"], "agent": "D2", "desc": "让一群进程等着上 CPU，切换 FCFS、SJF、时间片轮转、优先级算法，看甘特图和等待时间如何变化。" },
+    { "id": "paging", "title": "虚拟内存与页面置换实验室", "courseId": "os", "chapters": ["os-07", "os-08"], "agent": "D2", "desc": "程序访问的页面序列如流水，比较 FIFO、LRU、OPT 谁缺页更少，见证 LRU 用栈实现的巧思。" },
+    { "id": "deadlock", "title": "死锁与银行家算法", "courseId": "os", "chapters": ["os-06"], "agent": "D2", "desc": "建造一个会死锁的系统，再用银行家算法一步步检查「这次借出去安不安全」。" },
+    { "id": "tcp", "title": "TCP 连接与拥塞控制实验室", "courseId": "net", "chapters": ["net-07", "net-08", "net-09"], "agent": "D3", "desc": "亲手完成三次握手与四次挥手，然后让数据流过网线：丢包、重传、滑动窗口、拥塞窗口一屏看懂。" },
+    { "id": "memptr", "title": "内存与指针显微镜", "courseId": "os", "chapters": ["os-09"], "agent": "D4", "desc": "看变量住进栈、malloc 搬进堆、指针指向地址；故意制造内存泄漏与野指针，观察会发生什么。" },
+    { "id": "float", "title": "浮点数拆解实验室", "courseId": "coa", "chapters": ["coa-02"], "agent": "D4", "desc": "输入任意小数，看它被拆成符号、指数、尾数三段；拖动滑块观察精度丢失的瞬间。" },
+    { "id": "cache", "title": "缓存命中大冒险", "courseId": "coa", "chapters": ["coa-07", "coa-08"], "agent": "D4", "desc": "模拟 CPU 访问一串地址，观察直接映射与组相联缓存的命中、 miss 与替换过程，统计命中率。" },
+    { "id": "pipeline", "title": "指令流水线工厂", "courseId": "coa", "chapters": ["coa-06"], "agent": "D5", "desc": "把取指、译码、执行、访存、写回五级流水线变成看得见的装配线，插入数据冒险看气泡与转发如何发生。" },
+    { "id": "oop-model", "title": "对象与多态建模台", "courseId": "oop", "chapters": ["oop-02", "oop-04", "oop-05", "oop-09"], "agent": "D5", "desc": "亲手创建类与对象，让子类继承父类、重写方法，然后看「同一个命令发给不同对象」时谁执行了谁的版本。" },
+    { "id": "compile-flow", "title": "编译器流水线之旅", "courseId": "cmp", "chapters": ["cmp-01", "cmp-02"], "agent": "D5", "desc": "输入一小段代码，跟随它走过词法分析、语法分析、语义检查、中间代码、优化与目标代码的每一站。" },
+    { "id": "neural-net", "title": "神经网络前向传播工坊", "courseId": "ai", "chapters": ["ai-06", "ai-07"], "agent": "D6", "desc": "调整两层神经网络的权重，看信号如何从输入层流到输出层、激活函数如何做出判断；再做一个迷你训练让网络自己变聪明。" }
+  ]
+}

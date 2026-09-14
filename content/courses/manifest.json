@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "siteName": "计算机知识学习站",
+  "siteTagline": "从二进制到人工智能，专业与童趣双讲解的交互式学习之路",
+  "courses": [
+    {
+      "id": "oop",
+      "title": "面向对象编程",
+      "short": "OOP",
+      "level": "本科基础",
+      "color": "#C9A96A",
+      "order": 1,
+      "icon": "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6'><circle cx='7' cy='7' r='3.2'/><circle cx='17' cy='17' r='3.2'/><path d='M9.5 9.3c1.2 1.6 1 4.4 3.6 5.6'/></svg>"
+    },
+    {
+      "id": "alg",
+      "title": "数据结构与算法",
+      "short": "DS & Algorithms",
+      "level": "本科核心",
+      "color": "#5E9E8F",
+      "order": 2,
+      "icon": "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6'><rect x='4' y='14' width='4' height='6' rx='1'/><rect x='10' y='9' width='4' height='11' rx='1'/><rect x='16' y='4' width='4' height='16' rx='1'/></svg>"
+    },
+    {
+      "id": "coa",
+      "title": "计算机组成原理",
+      "short": "Computer Organization",
+      "level": "本科核心",
+      "color": "#7C9CBF",
+      "order": 3,
+      "icon": "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6'><rect x='6' y='6' width='12' height='12' rx='2'/><rect x='10' y='10' width='4' height='4' rx='1'/><path d='M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3'/></svg>"
+    },
+    {
+      "id": "os",
+      "title": "操作系统",
+      "short": "Operating Systems",
+      "level": "本科核心",
+      "color": "#6FA57E",
+      "order": 4,
+      "icon": "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6'><rect x='3' y='4' width='18' height='13' rx='2'/><path d='M3 8h18'/><circle cx='5.6' cy='6' r='0.6'/><circle cx='7.8' cy='6' r='0.6'/><path d='M8 20h8'/></svg>"
+    },
+    {
+      "id": "net",
+      "title": "计算机网络",
+      "short": "Computer Networks",
+      "level": "本科核心",
+      "color": "#C96A6A",
+      "order": 5,
+      "icon": "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6'><circle cx='12' cy='5' r='2.4'/><circle cx='5' cy='19' r='2.4'/><circle cx='19' cy='19' r='2.4'/><path d='M10.8 7.2 6.2 16.8M13.2 7.2l4.6 9.6M7.4 19h9.2'/></svg>"
+    },
+    {
+      "id": "db",
+      "title": "数据库系统",
+      "short": "Database Systems",
+      "level": "本科核心",
+      "color": "#8E7CC3",
+      "order": 6,
+      "icon": "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6'><ellipse cx='12' cy='6' rx='7' ry='3'/><path d='M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6'/><path d='M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3'/></svg>"
+    },
+    {
+      "id": "cmp",
+      "title": "编译原理",
+      "short": "Compilers",
+      "level": "研究生入门",
+      "color": "#B07CA8",
+      "order": 7,
+      "icon": "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6'><path d='M8 5 3 12l5 7M16 5l5 7-5 7M13.5 4l-3 16'/></svg>"
+    },
+    {
+      "id": "dm",
+      "title": "离散数学与计算理论",
+      "short": "Discrete Math & Theory",
+      "level": "研究生入门",
+      "color": "#5E8FA8",
+      "order": 8,
+      "icon": "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6'><circle cx='9' cy='12' r='6'/><circle cx='15' cy='12' r='6'/></svg>"
+    },
+    {
+      "id": "ai",
+      "title": "人工智能与机器学习入门",
+      "short": "AI & ML",
+      "level": "研究生入门",
+      "color": "#C98A5E",
+      "order": 9,
+      "icon": "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6'><circle cx='5' cy='12' r='2'/><circle cx='12' cy='6' r='2'/><circle cx='12' cy='18' r='2'/><circle cx='19' cy='12' r='2'/><path d='M6.8 10.9 10.2 7.1M6.8 13.1l3.4 3.8M13.8 7.1l3.4 3.8M13.8 16.9l3.4-3.8'/></svg>"
+    }
+  ],
+  "paths": [
+    {
+      "id": "start",
+      "title": "轻松起步线",
+      "subtitle": "零基础 / 小孩也能开始",
+      "description": "完全不需要编程经验。先建立编程思维与算法直觉，再认识人工智能——每一步都用生活类比讲清楚。",
+      "courses": ["oop", "alg", "ai"]
+    },
+    {
+      "id": "core",
+      "title": "计算机核心线",
+      "subtitle": "大学本科主线",
+      "description": "计算机专业本科主干：编程 → 算法 → 硬件 → 操作系统 → 网络 → 数据库，按顺序学最省力。",
+      "courses": ["oop", "alg", "coa", "os", "net", "db"]
+    },
+    {
+      "id": "grad",
+      "title": "进阶深造线",
+      "subtitle": "研究生入门导读",
+      "description": "面向研究生入门与进阶读者：离散数学与计算理论的根基、编译器的构造艺术、机器学习的内在机理。",
+      "courses": ["dm", "cmp", "ai"]
+    }
+  ]
+}
