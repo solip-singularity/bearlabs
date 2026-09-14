@@ -102,6 +102,7 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body {
   margin: 0;
+  overflow-x: clip;
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-body);
@@ -226,6 +227,12 @@ h4, .h4 { font-size: var(--fs-h4); line-height: 1.45; font-weight: 600; margin: 
   .topnav { display: none; }
   .menu-btn { display: inline-flex; }
   .searchbox input { width: 150px; }
+}
+@media (max-width: 640px) {
+  .brand span:last-child { display: none; }
+  .topbar-tools { flex: 1 1 auto; min-width: 0; }
+  .searchbox { flex: 1 1 auto; min-width: 0; }
+  .searchbox input { width: 100%; min-width: 0; }
 }
 .mobilenav {
   display: none; border-bottom: 1px solid var(--border-soft); background: var(--bg);
@@ -561,6 +568,7 @@ details.disclosure > summary:hover { text-decoration: underline; text-underline-
 }
 .empty .empty-ico { width: 44px; height: 44px; margin: 0 auto var(--sp-3); color: var(--border); }
 .empty .empty-title { font-weight: 600; color: var(--fg-2); margin-bottom: 4px; }
+.empty.error { background: var(--warn-wash); border-color: color-mix(in srgb, var(--warn) 35%, var(--border)); }
 
 .skeleton { border-radius: var(--radius-sm); background: linear-gradient(90deg, var(--bg-deep) 25%, var(--surface-warm) 50%, var(--bg-deep) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite linear; }
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
@@ -639,7 +647,7 @@ details.disclosure > summary:hover { text-decoration: underline; text-underline-
   background: var(--sand-wash); border: 1px solid var(--sand); color: var(--sand-ink);
   border-radius: var(--radius); padding: 10px 16px; font-size: var(--fs-xs); box-shadow: var(--shadow-soft);
 }
-@media (max-width: 640px) { .hero-float { right: 8px; bottom: -12px; } }
+@media (max-width: 640px) { .hero-float { right: 0; bottom: -10px; font-size: 11px; padding: 8px 12px; } }
 
 .path-card { display: flex; flex-direction: column; gap: var(--sp-3); }
 .path-steps { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }

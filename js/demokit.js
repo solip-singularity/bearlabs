@@ -90,6 +90,7 @@ var DemoKit = (function () {
     };
     kit.sep = (parent) => { (parent || kit._lastRow || ctx.bar).appendChild(el('span', { class: 'dk-sep' })); };
     kit.range = (o, onInput) => {
+      onInput = onInput || o.onInput;
       const wrap = el('label', { class: 'dk-param' });
       if (o.label) wrap.appendChild(el('span', { text: o.label }));
       const input = el('input', { type: 'range', min: o.min, max: o.max, step: o.step || 1, value: o.value });
@@ -104,6 +105,7 @@ var DemoKit = (function () {
       return { el: wrap, input, get: () => Number(input.value), set: (v) => { input.value = v; val.textContent = o.format ? o.format(v) : String(v); } };
     };
     kit.select = (o, onChange) => {
+      onChange = onChange || o.onChange;
       const wrap = el('label', { class: 'dk-param' });
       if (o.label) wrap.appendChild(el('span', { text: o.label }));
       const sel = el('select');
@@ -148,7 +150,7 @@ var DemoKit = (function () {
     };
     kit.onCleanup = (fn) => ctx.cleanups.push(fn);
     kit.playback = (o) => {
-      const total = o.total || 1;
+      let total = o.total || 1;
       let cur = Math.max(0, Math.min(o.index || 0, total - 1));
       let playing = false, timer = null;
       let speed = kit.reducedMotion ? 0.5 : 1;
@@ -197,13 +199,18 @@ var DemoKit = (function () {
       }
       function stop() { playing = false; clearInterval(timer); timer = null; updateUI(); }
       function toggle() { playing ? stop() : play(); }
+      function setTotal(n) {
+        total = Math.max(1, Math.floor(n) || 1);
+        if (cur > total - 1) cur = Math.max(0, total - 1);
+        updateUI();
+      }
       kit._next = () => { stop(); goTo(cur + 1); };
       kit._prev = () => { stop(); goTo(cur - 1); };
       kit._toggle = toggle;
       updateUI();
       o.onChange && o.onChange(cur);
       kit.onCleanup(stop);
-      return { goTo: (i) => goTo(i), next: () => goTo(cur + 1), prev: () => goTo(cur - 1), reset: () => { stop(); goTo(0); }, play, stop, toggle, current: () => cur, total };
+      return { goTo: (i) => goTo(i), next: () => goTo(cur + 1), prev: () => goTo(cur - 1), reset: () => { stop(); goTo(0); }, play, stop, toggle, current: () => cur, setTotal, get total() { return total; } };
     };
     return kit;
   }

@@ -48,7 +48,7 @@ var Views = (function () {
 
   /* ══ 通用组件 ═════════════════════════════════════════════════════ */
   function errorBox(err, retry) {
-    const box = el('div', { class: 'empty' });
+    const box = el('div', { class: 'empty error' });
     box.appendChild(el('div', { class: 'empty-title', text: '内容加载失败' }));
     box.appendChild(el('p', { class: 'small', text: String(err && err.message || err) }));
     if (retry) box.appendChild(el('button', { class: 'btn btn-secondary mt-4', type: 'button', text: '重试', onclick: retry }));
@@ -514,9 +514,8 @@ var Views = (function () {
   /* ══ 章节页 ═══════════════════════════════════════════════════════ */
   async function chapterView(params) {
     const root = el('div', { class: 'view view-chapter' });
-    let course, ch;
+    let course = null; let ch = null;
     try {
-      course = await Data.course(params.courseId);
       ch = await Data.chapter(params.courseId, params.chapterId);
     } catch (e) {
       const c = el('div', { class: 'container', style: undefined });
@@ -524,6 +523,18 @@ var Views = (function () {
       root.appendChild(c);
       return { el: root, title: '章节' };
     }
+    try {
+      course = await Data.course(params.courseId);
+    } catch (e) {
+      const mf = await Data.manifest().catch(() => null);
+      const meta = mf && (mf.courses || []).filter((x) => x.id === params.courseId)[0];
+      course = {
+        id: params.courseId,
+        title: meta ? meta.title : params.courseId,
+        units: [{ id: params.courseId + '-u', title: '（课程目录加载中）', summary: '', chapters: [{ id: ch.id, title: ch.title, minutes: ch.minutes, difficulty: ch.difficulty }] }],
+      };
+    }
+
     const flat = Data.flatten(course);
     const idx = Data.chapterIndex(course, ch.id);
     const prev = idx > 0 ? flat[idx - 1] : null;
@@ -886,7 +897,8 @@ var Views = (function () {
         toast('错题模式：共 ' + filtered.length + ' 题，加油！');
       }).catch((e) => { status.textContent = '加载失败：' + e.message; });
     });
-    return { el: root, title: '练习中心' };
+    root.appendChild(c);
+  return { el: root, title: '练习中心' };
   }
 
   /* ══ 进度面板 ═════════════════════════════════════════════════════ */
@@ -1051,7 +1063,8 @@ var Views = (function () {
     build();
     const onProg = () => { /* 数据在操作处即时重建，无需监听 */ };
     U.on('progress:changed', onProg);
-    return { el: root, title: '我的学习进度', cleanup: () => U.bus.removeEventListener('progress:changed', onProg) };
+    root.appendChild(c);
+  return { el: root, title: '我的学习进度', cleanup: () => U.bus.removeEventListener('progress:changed', onProg) };
   }
 
   /* ══ 管理员台账 ═══════════════════════════════════════════════════ */
@@ -1116,7 +1129,8 @@ var Views = (function () {
       row.appendChild(el('button', { class: 'btn btn-secondary btn-sm', type: 'button', text: '导出 JSON', onclick: () => download('cslearn-admin-records.json', JSON.stringify(records, null, 2), 'application/json') }));
       panel.appendChild(row);
     }
-    return { el: root, title: '管理台账' };
+    root.appendChild(c);
+  return { el: root, title: '管理台账' };
   }
 
   /* ══ 关于 ═════════════════════════════════════════════════════════ */

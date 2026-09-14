@@ -1,0 +1,238 @@
+{
+  "id": "coa-06",
+  "courseId": "coa",
+  "title": "第6讲 指令流水线",
+  "objectives": [
+    "说清五级流水线（IF/ID/EX/MEM/WB）的工作方式与「重叠执行」原理",
+    "记住理想流水线公式：k + n - 1 个周期完成 n 条指令，加速比上限约为 k",
+    "识别三类冒险：数据冒险、控制冒险、结构冒险，并说出对应缓解手段",
+    "理解转发与气泡：能判断哪里可以用转发、哪里必须停一拍",
+    "会做流水线性能计算：周期数、加速比、插入气泡后的变化"
+  ],
+  "keyPoints": [
+    "流水线把指令执行拆成五级、每级一个工位，多条指令同时在不同级上推进",
+    "理想情况：k 级流水线完成 n 条指令需 k + n - 1 个周期；加速比上限约为 k 倍",
+    "数据冒险（如 add 结果被下条 sub 使用）：用转发抄近道；load-use 来不及转发，需插 1 个气泡",
+    "控制冒险：分支方向未知时先预测，猜错则冲刷重取；结构冒险：资源冲突，用拆分部件（如指令/数据存储器）解决",
+    "流水线提升的是吞吐率（单位时间完成指令数），不是单条指令的延迟"
+  ],
+  "minutes": 55,
+  "difficulty": 3,
+  "prerequisites": ["coa-05"],
+  "keywords": ["流水线", "五级流水线", "数据冒险", "控制冒险", "结构冒险", "转发", "气泡", "加速比"],
+  "demoRefs": ["pipeline"],
+  "refs": ["《计算机组成与设计》第4章「处理器」流水线部分（延伸阅读）", "《深入理解计算机系统》第4章「处理器体系结构」（延伸阅读）"],
+  "pro": {
+    "intro": "上一讲我们看到单周期设计的尴尬：五个工位排成一列，同一时刻却只有一个在干活。这一讲给出那个自然而强有力的答案——流水线：让多条指令像工厂装配线一样首尾相接、各占一级、同时前进。我们会推导流水线的理想性能公式，认识会拖后腿的三类「冒险」（数据、控制、结构），并学会估算加速比。这是全书计算密度最高的一讲，也是理解「CPU 为什么越来越快」的关键一站。",
+    "sections": [
+      {
+        "heading": "6.1 从单周期到流水线：让五个工位同时忙起来",
+        "html": "<p>回顾上一讲的舞台：五个工位排成一列，可同一时刻只有一条指令在走，后面的工位都在围观。流水线的想法极其朴素：<strong>既然一条指令要经过若干工序，为什么不让多条指令各占一个工位、同时前进？</strong></p><p>把指令执行拆成五级：<strong>取指（IF）、译码（ID）、执行（EX）、访存（MEM）、写回（WB）</strong>，级与级之间放一组流水线寄存器，负责把上一级的成果「接力」传给下一级。理想情况下，每个时钟周期都有一条新指令进入流水线、一条老指令完成并离开。注意一个容易误解的点：单条指令的个人耗时并没有变短（仍要五个周期走完），变快的是<strong>吞吐率</strong>（Throughput）——单位时间里完成的指令数量。</p>"
+      },
+      {
+        "heading": "6.2 理想性能：k + n - 1 与 k 倍上限",
+        "html": "<p>算一笔干净的账。设流水线有 k 级、每级 1 个时钟周期，连续执行 n 条无冒险指令：第一条要用 k 个周期「灌满」流水线（前几拍只有它自己在走）；此后每个周期完成一条，直到第 n 条离开，总共 k + n - 1 个周期。而同样的 n 条指令在非流水线方式下一条条做完，需要 n × k 个周期。</p><p>于是理想加速比为：<strong>加速比 = n·k ÷ (k + n - 1)</strong>。当 n 很大时，n 在分子分母中占主导，加速比趋于 k——<strong>k 级流水线的加速比上限约为 k 倍</strong>。代入典型数字：n = 100、k = 5 时，流水线用 5 + 100 - 1 = 104 个周期，非流水线要 500 个周期，加速比约 4.81。代价是额外的流水线寄存器、更复杂的控制，以及下一节的主角——冒险。</p>"
+      },
+      {
+        "heading": "6.3 数据冒险与转发：当后一条要用前一条的结果",
+        "html": "<p>流水线里的指令彼此相邻，麻烦随之而来：后面指令可能要用前面指令「还没算完」的结果，这类冲突叫<strong>数据冒险</strong>（Data Hazard）。教科书级的例子：<code>add x1, x2, x3</code> 紧跟 <code>sub x4, x1, x5</code>。按理想节奏，sub 在第 3 级（EX）就要用到 x1，可 add 的结果按部就班要到第 5 级（WB）才写进 x1——差了整整两拍。</p><p>粗暴方案是让 sub 干等两拍。更好的方案叫<strong>转发</strong>（Forwarding，也叫旁路）：add 的结果在它的执行级末尾其实已经算出来了，何必绕远路等写回？把结果顺着专用连线「抄近道」直接送到下一条指令的执行级输入即可。绝大多数数据冒险靠转发就能消除。</p><p>有一类例外：<code>lw x1, 0(x2)</code> 紧跟使用 x1 的指令。取数指令的数据要到第 4 级（访存）结束才拿到，转发也来不及，只能让流水线停顿一拍再走——这一拍叫<strong>气泡</strong>（Bubble）。口诀：能转发就转发，转不了就停一拍。</p>"
+      },
+      {
+        "heading": "6.4 控制冒险与结构冒险：猜错路、抢设备",
+        "html": "<p>第二类麻烦来自「猜」。取指时流水线并不确定下一条指令在哪里——正在处理的若是一条分支指令，是顺序执行还是跳去别处？要等分支结果算出来才知道。为了不停车，硬件先<strong>预测</strong>（例如猜「不跳转」）并继续取指；若猜错，就把已经错误取入的指令全部作废，从正确地址重新取——这个动作叫<strong>冲刷</strong>（Flush）。这叫<strong>控制冒险</strong>（Control Hazard）。分支越晚被解析，损失越大，所以现代处理器都尽量让分支「早点知道答案」。</p><p>第三类是<strong>结构冒险</strong>（Structural Hazard）：两条指令在同一刻抢用同一件硬件。最经典的例子是「取指要读指令存储器、访存要读数据存储器」——如果只有一个存储器，第 4 级的访存就会和第 1 级的取指撞车。解决办法很直接：把指令与数据拆成两个独立存储器（指令缓存 + 数据缓存），各走各路。</p>"
+      },
+      {
+        "heading": "6.5 性能计算实例：从 500ns 到 104ns 再到 105ns",
+        "html": "<figure><svg viewBox='0 0 640 265' role='img' aria-label='五级流水线时空图'><text x='320' y='24' text-anchor='middle' font-size='14' fill='#2A2E33'>流水线时空图：5 条指令、5 级、逐拍错位推进</text><text x='104' y='62' text-anchor='end' font-size='11' fill='#2A2E33'>add</text><text x='104' y='92' text-anchor='end' font-size='11' fill='#2A2E33'>sub</text><text x='104' y='122' text-anchor='end' font-size='11' fill='#2A2E33'>and</text><text x='104' y='152' text-anchor='end' font-size='11' fill='#2A2E33'>or</text><text x='104' y='182' text-anchor='end' font-size='11' fill='#2A2E33'>lw</text><text x='134' y='38' text-anchor='middle' font-size='10' fill='#6C7078'>1</text><text x='182' y='38' text-anchor='middle' font-size='10' fill='#6C7078'>2</text><text x='230' y='38' text-anchor='middle' font-size='10' fill='#6C7078'>3</text><text x='278' y='38' text-anchor='middle' font-size='10' fill='#6C7078'>4</text><text x='326' y='38' text-anchor='middle' font-size='10' fill='#6C7078'>5</text><text x='374' y='38' text-anchor='middle' font-size='10' fill='#6C7078'>6</text><text x='422' y='38' text-anchor='middle' font-size='10' fill='#6C7078'>7</text><text x='470' y='38' text-anchor='middle' font-size='10' fill='#6C7078'>8</text><text x='518' y='38' text-anchor='middle' font-size='10' fill='#6C7078'>9</text><rect x='110' y='44' width='48' height='30' fill='#FAF7F2' stroke='#5E9E8F'/><text x='134' y='63' text-anchor='middle' font-size='10' fill='#5E9E8F'>IF</text><rect x='158' y='44' width='48' height='30' fill='#FAF7F2' stroke='#7C9CBF'/><text x='182' y='63' text-anchor='middle' font-size='10' fill='#7C9CBF'>ID</text><rect x='206' y='44' width='48' height='30' fill='#FAF7F2' stroke='#C9A96A'/><text x='230' y='63' text-anchor='middle' font-size='10' fill='#C9A96A'>EX</text><rect x='254' y='44' width='48' height='30' fill='#FAF7F2' stroke='#C96A6A'/><text x='278' y='63' text-anchor='middle' font-size='10' fill='#C96A6A'>MEM</text><rect x='302' y='44' width='48' height='30' fill='#FAF7F2' stroke='#6FA57E'/><text x='326' y='63' text-anchor='middle' font-size='10' fill='#6FA57E'>WB</text><rect x='158' y='74' width='48' height='30' fill='#FAF7F2' stroke='#5E9E8F'/><text x='182' y='93' text-anchor='middle' font-size='10' fill='#5E9E8F'>IF</text><rect x='206' y='74' width='48' height='30' fill='#FAF7F2' stroke='#7C9CBF'/><text x='230' y='93' text-anchor='middle' font-size='10' fill='#7C9CBF'>ID</text><rect x='254' y='74' width='48' height='30' fill='#FAF7F2' stroke='#C9A96A'/><text x='278' y='93' text-anchor='middle' font-size='10' fill='#C9A96A'>EX</text><rect x='302' y='74' width='48' height='30' fill='#FAF7F2' stroke='#C96A6A'/><text x='326' y='93' text-anchor='middle' font-size='10' fill='#C96A6A'>MEM</text><rect x='350' y='74' width='48' height='30' fill='#FAF7F2' stroke='#6FA57E'/><text x='374' y='93' text-anchor='middle' font-size='10' fill='#6FA57E'>WB</text><rect x='206' y='104' width='48' height='30' fill='#FAF7F2' stroke='#5E9E8F'/><text x='230' y='123' text-anchor='middle' font-size='10' fill='#5E9E8F'>IF</text><rect x='254' y='104' width='48' height='30' fill='#FAF7F2' stroke='#7C9CBF'/><text x='278' y='123' text-anchor='middle' font-size='10' fill='#7C9CBF'>ID</text><rect x='302' y='104' width='48' height='30' fill='#FAF7F2' stroke='#C9A96A'/><text x='326' y='123' text-anchor='middle' font-size='10' fill='#C9A96A'>EX</text><rect x='350' y='104' width='48' height='30' fill='#FAF7F2' stroke='#C96A6A'/><text x='374' y='123' text-anchor='middle' font-size='10' fill='#C96A6A'>MEM</text><rect x='398' y='104' width='48' height='30' fill='#FAF7F2' stroke='#6FA57E'/><text x='422' y='123' text-anchor='middle' font-size='10' fill='#6FA57E'>WB</text><rect x='254' y='134' width='48' height='30' fill='#FAF7F2' stroke='#5E9E8F'/><text x='278' y='153' text-anchor='middle' font-size='10' fill='#5E9E8F'>IF</text><rect x='302' y='134' width='48' height='30' fill='#FAF7F2' stroke='#7C9CBF'/><text x='326' y='153' text-anchor='middle' font-size='10' fill='#7C9CBF'>ID</text><rect x='350' y='134' width='48' height='30' fill='#FAF7F2' stroke='#C9A96A'/><text x='374' y='153' text-anchor='middle' font-size='10' fill='#C9A96A'>EX</text><rect x='398' y='134' width='48' height='30' fill='#FAF7F2' stroke='#C96A6A'/><text x='422' y='153' text-anchor='middle' font-size='10' fill='#C96A6A'>MEM</text><rect x='446' y='134' width='48' height='30' fill='#FAF7F2' stroke='#6FA57E'/><text x='470' y='153' text-anchor='middle' font-size='10' fill='#6FA57E'>WB</text><rect x='302' y='164' width='48' height='30' fill='#FAF7F2' stroke='#5E9E8F'/><text x='326' y='183' text-anchor='middle' font-size='10' fill='#5E9E8F'>IF</text><rect x='350' y='164' width='48' height='30' fill='#FAF7F2' stroke='#7C9CBF'/><text x='374' y='183' text-anchor='middle' font-size='10' fill='#7C9CBF'>ID</text><rect x='398' y='164' width='48' height='30' fill='#FAF7F2' stroke='#C9A96A'/><text x='422' y='183' text-anchor='middle' font-size='10' fill='#C9A96A'>EX</text><rect x='446' y='164' width='48' height='30' fill='#FAF7F2' stroke='#C96A6A'/><text x='470' y='183' text-anchor='middle' font-size='10' fill='#C96A6A'>MEM</text><rect x='494' y='164' width='48' height='30' fill='#FAF7F2' stroke='#6FA57E'/><text x='518' y='183' text-anchor='middle' font-size='10' fill='#6FA57E'>WB</text><text x='320' y='226' text-anchor='middle' font-size='12' fill='#2A2E33'>斜线错位的彩色格子 = 多条指令同时在不同级上工作；第 5 拍起每拍完成一条</text><text x='320' y='250' text-anchor='middle' font-size='12' fill='#C9A96A'>理想周期数 = k + n - 1；本例 5 级走 5 条指令共 9 拍</text></svg><figcaption>图 6-1 流水线时空图：横轴是时钟周期，纵轴是指令；彩色格子显示每条指令依次经过 IF、ID、EX、MEM、WB 五级。</figcaption></figure><p>回到数字。5 级流水线、每级 1ns，执行 100 条指令：理想周期数 = 5 + 100 - 1 = 104，总时间 104ns；同样的 100 条指令在非流水线机器上要 500ns，加速比约 4.81。现在加上现实的重量：若这 100 条指令里有 1 处 load-use 冒险、需要插 1 个气泡，周期数变为 105，加速比降到约 4.76。少量冒险伤害有限，但真实程序的冒险密度高得多——所以流水线级数、转发网络、分支预测器的设计，全是为了把那几个「气泡」抠掉。</p>"
+      },
+      {
+        "heading": "6.6 小结与预告",
+        "html": "<p>本讲主线：流水线把「一条指令独占五个周期」变成「每个周期完成一条指令」，靠的是重叠执行；理想公式 k + n - 1 与上限 k 倍要会算会用；三类冒险各有对策——数据冒险用转发（转不了就插气泡）、控制冒险用预测与冲刷、结构冒险用资源拆分。记住一句话：<strong>流水线不缩短单条指令的延迟，它提升的是吞吐率。</strong></p><p>下一讲换个战场：CPU 越来越快，可数据还躺在缓慢的主存里，两者的速度差距达上百倍。计算机用什么魔法弥合这条鸿沟？存储层次与「局部性」原理将登场——缓存（Cache）正式亮相。</p>"
+      }
+    ]
+  },
+  "kid": {
+    "intro": "上一讲我们看到 CPU 的五个小工位排成一排，可同一时间只有一个在干活，其他四个干瞪眼——多浪费呀！这一讲，我们给工厂做个大改造：让五个工位同时忙起来。这个改造叫「流水线」，它让计算机的速度一下子快了好几倍，是计算机世界里最著名的魔法之一。",
+    "sections": [
+      {
+        "heading": "五个工位的小工厂",
+        "html": "<p>街角汉堡店里有三个人：一个烤面包，一个夹肉，一个打包。如果一份订单非要从前到后走完，才轮到下一份，那大家大部分时间都在发呆。</p><p>聪明的店长换了办法：第一份订单走到夹肉工位时，烤面包的师傅马上开始做第二份；等第一份去打包，第二份刚好到夹肉，第三份又开始烤面包……三个人同时忙活，同样时间里能出好多份！计算机的<strong>流水线</strong>就是把这一招搬进 CPU：取指、译码、执行、访存、写回五个工位，让指令像订单一样排队接力。</p><figure><svg viewBox='0 0 480 200' role='img' aria-label='三份订单同时在流水线上'><text x='240' y='28' text-anchor='middle' font-size='14' fill='#2A2E33'>三个人同时忙：订单接力做</text><text x='84' y='72' text-anchor='end' font-size='11' fill='#2A2E33'>①号</text><text x='84' y='104' text-anchor='end' font-size='11' fill='#2A2E33'>②号</text><text x='84' y='136' text-anchor='end' font-size='11' fill='#2A2E33'>③号</text><rect x='90' y='52' width='52' height='32' fill='#FAF7F2' stroke='#5E9E8F'/><text x='116' y='73' text-anchor='middle' font-size='10' fill='#5E9E8F'>烤面包</text><rect x='142' y='52' width='52' height='32' fill='#FAF7F2' stroke='#C9A96A'/><text x='168' y='73' text-anchor='middle' font-size='10' fill='#C9A96A'>夹肉</text><rect x='194' y='52' width='52' height='32' fill='#FAF7F2' stroke='#7C9CBF'/><text x='220' y='73' text-anchor='middle' font-size='10' fill='#7C9CBF'>打包</text><rect x='142' y='84' width='52' height='32' fill='#FAF7F2' stroke='#5E9E8F'/><text x='168' y='105' text-anchor='middle' font-size='10' fill='#5E9E8F'>烤面包</text><rect x='194' y='84' width='52' height='32' fill='#FAF7F2' stroke='#C9A96A'/><text x='220' y='105' text-anchor='middle' font-size='10' fill='#C9A96A'>夹肉</text><rect x='246' y='84' width='52' height='32' fill='#FAF7F2' stroke='#7C9CBF'/><text x='272' y='105' text-anchor='middle' font-size='10' fill='#7C9CBF'>打包</text><rect x='194' y='116' width='52' height='32' fill='#FAF7F2' stroke='#5E9E8F'/><text x='220' y='137' text-anchor='middle' font-size='10' fill='#5E9E8F'>烤面包</text><rect x='246' y='116' width='52' height='32' fill='#FAF7F2' stroke='#C9A96A'/><text x='272' y='137' text-anchor='middle' font-size='10' fill='#C9A96A'>夹肉</text><rect x='298' y='116' width='52' height='32' fill='#FAF7F2' stroke='#7C9CBF'/><text x='324' y='137' text-anchor='middle' font-size='10' fill='#7C9CBF'>打包</text><text x='240' y='180' text-anchor='middle' font-size='12' fill='#C9A96A'>斜着排开的格子：三个订单同时在店里流转</text></svg><figcaption>图 6-2 像汉堡店一样接力：三份订单同时在流水线上。</figcaption></figure>"
+      },
+      {
+        "heading": "为什么流水线快那么多",
+        "html": "<p>注意一个关键点：流水线并没有让「一份订单」做得更快——每份还是要经过三双手；但它让<strong>同时开工的订单变多</strong>，全店的产出速度一下就上去了。</p><p>算笔小账：5 级流水线做 100 条指令，第一条要 5 拍走完全程；之后每一拍都有一条完成，一共 5 + 100 - 1 = 104 拍。不做流水线呢？一条一条来，要 500 拍。快了将近 5 倍！这就是「同样的工位，更多的成果」的魔法。</p>"
+      },
+      {
+        "heading": "数据冒险：等一等，或者递过去",
+        "html": "<p>流水线也会碰到小尴尬：后一道工序要用前一道「刚算出来的结果」，可它还没送到。就像炒菜师傅要用刚切好的菜，可切配师傅还没切完——炒锅只能干等。</p><p>聪明的店里有办法：切配师傅隔着窗口先把切好的菜递过去！这叫<strong>转发</strong>——结果刚算出来就抄近道送走，不用绕远路等它「正式上桌」。但有的情况递也来不及（比如「去大仓库取货」的命令，货还没出仓库门呢），那就只能老实等一拍。这一拍有个可爱的名字，叫<strong>气泡</strong>。</p>"
+      },
+      {
+        "heading": "猜错路和抢设备",
+        "html": "<p>流水线还要面对两个麻烦。第一个是「猜错路」：读到一条「看情况转弯」的命令时，机器等不及结果，就先猜「不转弯」继续往前走；如果猜错了，只能把这期间拿错的命令全部作废，回到路口重来。这叫<strong>控制冒险</strong>。</p><p>第二个是「抢设备」：取指要翻指令仓库，访存要翻数据仓库；如果只有一个大仓库，两个工位就会撞在一起。怎么办？把仓库分成两个小仓库，一人一个，谁也不用等谁。这叫<strong>结构冒险</strong>。你看，办法总比困难多！</p>"
+      },
+      {
+        "heading": "算一笔账",
+        "html": "<p>最后做个应用题：10 条指令走 5 级流水线，每级 1 拍。头一条要 5 拍走完，之后每拍完成一条：5 + 10 - 1 = 14 拍。中间有一处要等 1 拍（一个气泡），变成 15 拍。</p><p>如果不用流水线呢？每条走 5 拍，10 条就是 50 拍。50 ÷ 15 约等于 3.33——哪怕中间等了一下，流水线还是快了 3 倍多。这就是为什么全世界的处理器都爱用流水线！</p>"
+      },
+      {
+        "heading": "小结",
+        "html": "<p>今天参观了流水线工厂：五个工位接力干活，产出速度翻几倍；碰到「要等结果」，就转发或等一拍；碰到「猜错路」，就作废重来；碰到「抢设备」，就分开资源。每一样都是一个小小的工程智慧。</p><p>下一讲看看 CPU 的另一个大难题：它算得飞快，但大仓库（主存）慢得像蜗牛，两者差了上百倍！这条鸿沟怎么填？「缓存」要登场了。</p>"
+      }
+    ]
+  },
+  "glossary": [
+    { "term": "流水线（Pipeline）", "def": "把指令执行拆成多级、让多条指令同时在不同级上推进的技术，提升的是吞吐率" },
+    { "term": "五级流水线", "def": "取指（IF）、译码（ID）、执行（EX）、访存（MEM）、写回（WB）五个阶段的流水线组织" },
+    { "term": "数据冒险", "def": "后面指令要用前面指令尚未产生的结果而引发的冲突，靠转发或气泡解决" },
+    { "term": "转发（Forwarding）", "def": "把刚算出的结果从流水线中直接「抄近道」送给后续指令的技术，又称旁路" },
+    { "term": "气泡（Bubble）", "def": "流水线为解决无法转发的冒险而插入的空闲周期，会略微拉长总时间" },
+    { "term": "控制冒险", "def": "分支指令导致「下一条指令是哪条」不确定而引发的冲突，靠预测与冲刷应对" },
+    { "term": "结构冒险", "def": "两条指令同时争用同一硬件资源引发的冲突，靠拆分资源（如指令/数据存储器）解决" }
+  ],
+  "exercises": [
+    {
+      "id": "coa-06-e01",
+      "level": "easy",
+      "type": "choice",
+      "stem": "五级流水线的阶段顺序是？",
+      "options": ["A. 取指 → 译码 → 执行 → 访存 → 写回", "B. 取指 → 执行 → 译码 → 访存 → 写回", "C. 译码 → 取指 → 执行 → 写回 → 访存", "D. 执行 → 取指 → 访存 → 译码 → 写回"],
+      "answer": "A",
+      "solution": {
+        "idea": "回忆五级的缩写顺序：IF、ID、EX、MEM、WB。",
+        "steps": ["先取指拿到指令；", "再译码读懂并读寄存器；接着执行、访存，最后写回；", "所以选 A。"],
+        "result": "A。正确顺序是取指、译码、执行、访存、写回。",
+        "pitfalls": ["把译码和执行顺序颠倒：必须先读懂命令才能执行；", "把写回提前：结果最后一步才写回寄存器。"],
+        "kid": "五个小站的旅行顺序是固定的：先拿命令（取指），再读懂（译码），接着算一算（执行），然后去仓库（访存），最后放回抽屉（写回）。顺序乱一步，整个旅程就要出错。"
+      }
+    },
+    {
+      "id": "coa-06-e02",
+      "level": "easy",
+      "type": "choice",
+      "stem": "流水线提高性能的基本原理是？",
+      "options": ["A. 让每条指令都比原来跑得更快", "B. 让多条指令在不同阶段同时工作、重叠执行", "C. 减少程序里的指令数量", "D. 提高时钟频率以超过物理极限"],
+      "answer": "B",
+      "solution": {
+        "idea": "流水线的关键词是「重叠」而非「加速单条」。",
+        "steps": ["单条指令仍要依次经过全部阶段，延迟不变；", "但多条指令可以各占一级、同时推进；", "所以提升的是吞吐率，选 B。"],
+        "result": "B。靠重叠执行提高吞吐率。",
+        "pitfalls": ["以为单条指令延迟变短：五级还是要五个周期；", "把流水线与提高频率混为一谈：两者是不同手段。"],
+        "kid": "汉堡店请的还是那三个人，做一份汉堡的步骤一步没少——但三份订单同时在店里流转，出餐速度就快了。流水线靠的是「同时」，不是「单件更快」。"
+      }
+    },
+    {
+      "id": "coa-06-e03",
+      "level": "easy",
+      "type": "judge",
+      "stem": "理想情况下，k 级流水线的加速比上限大约是 k 倍。",
+      "answer": "正确",
+      "solution": {
+        "idea": "回忆公式：加速比 = n·k ÷ (k + n - 1)，n 很大时趋于 k。",
+        "steps": ["灌满流水线的固定成本 k 被 n 条指令摊薄；", "n 越大，加速比越接近上限 k；", "所以理想上限约为 k 倍，说法正确。"],
+        "result": "正确。理想加速比上限约为 k 倍。",
+        "pitfalls": ["以为能达到无限的加速比：单条延迟没变，输出速度有天花板；", "忽略「理想」二字：真实程序有冒险与停顿，实际达不到 k 倍。"],
+        "kid": "五级流水线最多快约 5 倍——因为流水线一共五个工位，同一时刻最多五个订单在流转。想快过这个数，就得加更多工位（更多级）或别的办法啦。"
+      }
+    },
+    {
+      "id": "coa-06-e04",
+      "level": "easy",
+      "type": "judge",
+      "stem": "当流水线插入气泡（停顿）时，完成全部指令所需的时钟周期数会增加。",
+      "answer": "正确",
+      "solution": {
+        "idea": "气泡 = 空转的周期，不干活但照样消耗时间。",
+        "steps": ["气泡让流水线在某一拍不完成新指令；", "总周期数相应增加；", "所以说法正确。"],
+        "result": "正确。气泡会增加总周期数。",
+        "pitfalls": ["以为气泡会「自动被补回来」：被浪费的周期无法追回，只能靠后续设计改进减少它。"],
+        "kid": "气泡像队伍里空出来的位置：这一拍拍子照样在走，却没有人完成工作。几个气泡，就白白多花几拍时间。所以工程师们总是想方设法少插气泡。"
+      }
+    },
+    {
+      "id": "coa-06-e05",
+      "level": "medium",
+      "type": "choice",
+      "stem": "执行「前一条 add 刚算出的结果，马上被后一条 sub 使用」时，流水线遇到的是哪种冒险？",
+      "options": ["A. 结构冒险", "B. 数据冒险", "C. 控制冒险", "D. 不算冒险，不会有事"],
+      "answer": "B",
+      "solution": {
+        "idea": "看冲突的根源：后一条要用前一条尚未就绪的数据。",
+        "steps": ["sub 在 EX 级就要用 x1；", "x1 的新值由 add 产生，理想上还很晚才写好；", "这是典型的数据冒险（RAW），选 B。"],
+        "result": "B。这是数据冒险，通常用转发解决。",
+        "pitfalls": ["把数据依赖归为控制冒险：分支才是控制冒险的来源；", "以为「编译器会自动搞定」：这是硬件层面的冲突。"],
+        "kid": "后面的工人要用前面工人「刚做好、还没放下」的零件——这就是数据冒险。聪明的做法是隔着窗口先把零件递过去，这叫转发；实在来不及递的，只好等一拍。"
+      }
+    },
+    {
+      "id": "coa-06-e06",
+      "level": "medium",
+      "type": "derive",
+      "stem": "5 级流水线、每级 1 个时钟周期，执行 20 条无冒险指令：（1）共需要多少个周期？（2）若用非流水线方式（每条指令 5 周期）完成同样的工作，加速比是多少（保留两位小数）？",
+      "answer": "（1）5 + 20 - 1 = 24 个周期；（2）非流水线需要 20 × 5 = 100 个周期，加速比 = 100 ÷ 24 ≈ 4.17。",
+      "solution": {
+        "idea": "套公式：流水线周期数 = k + n - 1；加速比 = 非流水时间 ÷ 流水时间。",
+        "steps": ["k = 5、n = 20，周期数 = 5 + 20 - 1 = 24；", "非流水线：20 × 5 = 100 个周期；", "加速比 = 100 ÷ 24 ≈ 4.17。"],
+        "result": "24 个周期；加速比约 4.17。",
+        "pitfalls": ["把周期数算成 20：忘了前 4 拍的「灌满」成本，应为 24；", "加速比算成 24 ÷ 100：方向反了。"],
+        "kid": "头一条指令要走满 5 拍；之后就像工厂出餐一样，每一拍完成一条，再走 19 拍，一共 24 拍。不做流水线呢？一条条来要 100 拍。100 除以 24 约等于 4.17，流水线快了 4 倍多。"
+      }
+    },
+    {
+      "id": "coa-06-e07",
+      "level": "medium",
+      "type": "judge",
+      "stem": "转发（forwarding）技术可以解决所有数据冒险，包括「取数指令之后立刻使用其结果」的情况。",
+      "answer": "错误",
+      "solution": {
+        "idea": "转发并非万能：要看数据什么时候准备好。",
+        "steps": ["普通算术指令的结果在 EX 级末尾就可转发；", "但取数指令的数据要到 MEM 级结束才拿到，再快也来不及；", "这种情况至少要停顿 1 拍，所以说法错误。"],
+        "result": "错误。load-use 冒险无法只靠转发消除，需插入气泡。",
+        "pitfalls": ["把「大多数能转发」记成「全部能转发」：例外正是 load-use。"],
+        "kid": "抄近道递东西也有极限：如果东西还在大仓库里没拿出来，隔着窗口也递不到。取数指令就是这样——再聪明也要等一拍，这一拍就是气泡。"
+      }
+    },
+    {
+      "id": "coa-06-e08",
+      "level": "medium",
+      "type": "code",
+      "stem": "运行下面的 Python 代码，输出结果是什么？两行打印的数字分别代表什么？",
+      "code": { "lang": "python", "code": "n = 100\nk = 5\npipe = k + n - 1\nnopipe = n * k\nprint(pipe, round(nopipe / pipe, 2))", "output": "104 4.81", "explain": "pipe 是流水线完成 100 条指令的周期数（5 + 100 - 1 = 104）；nopipe 是非流水线的周期数（100 × 5 = 500）；round(500/104, 2) 把加速比四舍五入到两位小数，得到 4.81。" },
+      "answer": "输出 104 4.81：流水线需要 104 个周期，加速比约 4.81。",
+      "solution": {
+        "idea": "把公式编成代码：先算两种方式的周期数，再求比值。",
+        "steps": ["pipe = 5 + 100 - 1 = 104；", "nopipe = 100 × 5 = 500；", "500 ÷ 104 ≈ 4.8077，保留两位小数为 4.81。"],
+        "result": "输出 104 与 4.81。",
+        "pitfalls": ["忘记减 1：会得到 105，与公式不符；", "把 round 当成向上取整：它做的是四舍五入。"],
+        "kid": "代码帮我们算了一笔流水线账：100 条指令、5 级流水线，一共 104 拍；不用流水线要 500 拍。500 除以 104 约等于 4.81——快了将近 5 倍，和咱们手算的一模一样。"
+      }
+    },
+    {
+      "id": "coa-06-e09",
+      "level": "hard",
+      "type": "derive",
+      "stem": "某段代码有 10 条指令，其中一处 load-use 冒险需要插入 1 个气泡，其余无冒险。5 级流水线、每级 1 周期：（1）完成全部指令需要多少个周期？（2）相比非流水线方式（每条 5 周期），加速比约为多少（保留两位小数）？",
+      "answer": "（1）理想周期数 = 5 + 10 - 1 = 14，加 1 个气泡 = 15 个周期；（2）非流水线需要 10 × 5 = 50 个周期，加速比 = 50 ÷ 15 ≈ 3.33。",
+      "solution": {
+        "idea": "先算理想周期数，再为每个气泡加 1 个周期；最后求加速比。",
+        "steps": ["k = 5、n = 10：5 + 10 - 1 = 14；", "1 个气泡使周期数 +1，得 15；", "加速比 = 50 ÷ 15 ≈ 3.33。"],
+        "result": "15 个周期；加速比约 3.33。",
+        "pitfalls": ["忘记加气泡：得到 14 就丢掉了停顿成本；", "把气泡算成 2 拍：load-use 在常见设计中插 1 拍即可（配合转发）。"],
+        "kid": "10 条指令本来 14 拍能走完；中途有一条要等 1 拍，变成 15 拍。不用流水线要 50 拍。50 ÷ 15 约等于 3.33——哪怕停了一下，还是快了 3 倍多。等一拍不亏！"
+      }
+    },
+    {
+      "id": "coa-06-e10",
+      "level": "hard",
+      "type": "open",
+      "stem": "流水线的级数是否可以无限增加、让速度无限提升？请给出至少两条理由说明为什么不能，并各用一句话解释其机制。",
+      "answer": "参考：① 流水线寄存器的开销与延迟占比上升——每多一级就要多一组寄存器，切得越细，固定开销在每级占比越大，单级时间无法继续缩短；② 冒险与停顿增多——级数越多，指令之间的依赖跨越的级数越多，转发逻辑更复杂，气泡更容易出现，收益被抵消；③ 功耗与面积上升——更深的流水线需要更多寄存器和更复杂的控制，频率提升带来的功耗增长很快；④ 单条指令的延迟反而变长（级间寄存器传递增加延迟），对延迟敏感的场景不利。因此级数需要与工艺、功耗、工作负载折中，而不是越大越好。",
+      "solution": {
+        "idea": "从「每级切得更细的边际收益递减」与「冒险/功耗的边际成本上升」两侧推演。",
+        "steps": ["列出加深流水线的成本项：寄存器开销、控制复杂度、功耗；", "列出收益项：每级理论变短、频率可能更高；", "论证成本增速超过收益，选择需要折中；", "给出两条以上理由并解释机制。"],
+        "result": "开放题。要点：级数加深的边际收益递减，而寄存器、冒险和功耗的代价递增，所以不能无限增加。",
+        "pitfalls": ["只答「技术上做不到」而不说机制；", "忽略功耗维度：深流水线的高频代价在移动设备上尤其昂贵。"],
+        "kid": "流水线加级数，就像把汉堡店的工序切成一步一厘米：切得越细，负责传菜的人越多、递来递去越容易出错，还要多买好多盘子。切细省下的时间被这些麻烦吃掉了，所以级数要挑一个刚刚好的数字，不是越多越好。"
+      }
+    }
+  ]
+}
