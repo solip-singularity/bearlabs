@@ -1,0 +1,231 @@
+{
+  "id": "oop-10",
+  "courseId": "oop",
+  "title": "第10讲 综合实战：从设计到代码",
+  "objectives": [
+    "走完从需求到可运行代码的完整流程：分析需求、设计类图、实现、用例走查与迭代改进",
+    "使用第 9 讲的类图工具为图书管理系统设计四类结构，并能说明每条关系与多重性的理由",
+    "把类图逐条翻译成 Python 代码，保证图与代码一一对应",
+    "实现借书、还书与逾期判断等用例，并处理重复借、重复还等边界情况",
+    "面对一次需求变化执行标准迭代：先改图、再改码、补测试，并用「职责/关系/边界」三问评审设计"
+  ],
+  "keyPoints": [
+    "从需求文字提炼类与职责：名词定类、动词定方法；借阅记录 Loan 是连接 Book 与 Reader 的中间类",
+    "四个类的分工：Book 管在架状态、Reader 管身份、Loan 记一次借阅、Library 是服务类，持有全部集合并实现用例",
+    "关系与多重性：Library 聚合 Book 与 Reader（可聚可散）、组合借阅账簿 Loan；每条 Loan 恰好关联一本 Book 与一位 Reader，每本书、每位读者都对应 0..* 条 Loan",
+    "关键业务规则：不在架不能借、归还需恢复可借、逾期 = 未归还且今天超过应还日期；书号或读者号不存在等边界要交代清楚",
+    "代码与类图一一对应：状态检查放在数据所属的类里（Book.borrow），用例流程放在服务类里（Library）",
+    "迭代方法：需求变化先改图、再改码、补测试；用「职责说得清、关系读得通、边界兜得住」三问评审设计"
+  ],
+  "minutes": 55,
+  "difficulty": 2,
+  "prerequisites": ["oop-09 用 UML 给世界建模"],
+  "keywords": ["综合实战", "图书管理系统", "需求分析", "类图设计", "用例", "迭代", "边界情况"],
+  "demoRefs": [],
+  "refs": ["《UML 精粹（第3版）》（延伸阅读：从模型到代码）"],
+  "pro": {
+    "intro": "这是全课的收官实战：用一个完整的小项目，把前面九讲的手艺全部串起来。我们会从一段口语化的需求出发，分析功能、筛选类、画出一张完整的类图，再把它逐条翻译成可运行的 Python 代码；随后像真实项目那样走查用例、处理边界，最后迎接一次需求变化，演示「先改图、再改码、补测试」的标准迭代流程。项目不大，但流程一分不少——走完这一趟，你就拥有了独立完成一个小系统的全流程经验。",
+    "sections": [
+      {
+        "heading": "10.1 开工之前：把需求听全",
+        "html": "<p>前面九讲练的是单项动作：封装、继承、多态、原则、模式、画图。这一讲把它们连起来打一场「全场」：从一个真实小需求出发，一路做到能跑的代码，再经历一次需求变化。项目就叫「迷你图书管理系统」。</p><p>先立一条工程铁律：<strong>需求不听全，代码就白写</strong>。把客户的话逐条听清楚再动手。需求原文如下：</p><blockquote><p>图书馆要管理图书和读者。每本图书有书名和 ISBN；每位读者有姓名和读者号。读者可以借书，借期 30 天，只有「在架」的书才能借出；书归还后重新变回「在架」。系统要记录每一笔借阅（谁借了哪本书），并能随时回答「某笔借阅是否逾期」。暂时不做数据库和界面。</p></blockquote><p>先把这段话拆成<strong>功能清单</strong>：1）录入图书；2）登记读者；3）借书（含「只有可借才能借」的检查）；4）还书（让书恢复可借）；5）查询逾期。再圈出<strong>名词</strong>：图书、读者、借阅、书名、ISBN、姓名、读者号；圈出<strong>动词</strong>：借、还、记录、查询。这些名词与动词，就是下一节要变成类与方法的原料。</p><p>最后确认<strong>范围边界</strong>：只做内存版领域模型，不连数据库、不做界面、不做登录——范围越小，第一轮闭环越快。别忘了把「暂时不做」也写下来，它是防止需求悄悄膨胀的第一道闸。</p>"
+      },
+      {
+        "heading": "10.2 从需求到类图：四类一张图",
+        "html": "<p>掏出第 9 讲的四步法：找名词 → 筛候选类 → 找动词 → 定关系与多重性，再补属性方法。</p><p>筛类结果四个：<strong>Book</strong>（图书与在架状态）、<strong>Reader</strong>（读者信息）、<strong>Loan</strong>（一笔借阅记录：哪本书、谁借的、何时借出何时到期、是否已还）、<strong>Library</strong>（服务类：代表图书馆本体，保管全部图书、读者与借阅记录，对外提供借书、还书等用例）。第 9 讲的迷你图只有前三者，还欠一个服务类和 Loan 的归还状态——这一讲补全。</p><p>关系与多重性：Library 与 Book、Reader 是<strong>聚合</strong>——图书馆散了，书和读者还在，可聚可散；Library 与 Loan 是<strong>组合</strong>——借阅账簿由图书馆维护，离开图书馆没有意义，同生共死；每条 Loan 恰好关联一本 Book 和一位 Reader（两端都是 1），而一本书、一位读者都可以对应多条记录（0..*）。照图讲一遍故事：一位读者借一本书 = 一条 Loan 把一本书与一位读者连起来；Library 站在中心，保管所有对象并执行「借」与「还」。</p><figure><svg viewBox='0 0 680 540' role='img' aria-label='图书管理系统类图'><rect x='40' y='30' width='240' height='220' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.5'/><line x1='40' y1='74' x2='280' y2='74' stroke='#5E9E8F' stroke-width='1.1'/><line x1='40' y1='158' x2='280' y2='158' stroke='#5E9E8F' stroke-width='1.1'/><text x='160' y='58' text-anchor='middle' font-size='13' fill='#2A2E33'>Library（图书馆）</text><text x='56' y='100' font-size='12' fill='#2A2E33'>- books: dict</text><text x='56' y='120' font-size='12' fill='#2A2E33'>- readers: dict</text><text x='56' y='140' font-size='12' fill='#2A2E33'>- loans: list</text><text x='56' y='182' font-size='12' fill='#2A2E33'>+ add_book(book)</text><text x='56' y='202' font-size='12' fill='#2A2E33'>+ register_reader(reader)</text><text x='56' y='222' font-size='12' fill='#2A2E33'>+ borrow_book(isbn, reader_id, today)</text><text x='56' y='242' font-size='12' fill='#2A2E33'>+ return_book(isbn)</text><rect x='420' y='30' width='220' height='110' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.5'/><line x1='420' y1='74' x2='640' y2='74' stroke='#5E9E8F' stroke-width='1.1'/><text x='530' y='58' text-anchor='middle' font-size='13' fill='#2A2E33'>Reader（读者）</text><text x='436' y='100' font-size='12' fill='#2A2E33'>- reader_id: str</text><text x='436' y='122' font-size='12' fill='#2A2E33'>- name: str</text><rect x='40' y='310' width='240' height='185' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.5'/><line x1='40' y1='354' x2='280' y2='354' stroke='#5E9E8F' stroke-width='1.1'/><line x1='40' y1='440' x2='280' y2='440' stroke='#5E9E8F' stroke-width='1.1'/><text x='160' y='338' text-anchor='middle' font-size='13' fill='#2A2E33'>Book（图书）</text><text x='56' y='380' font-size='12' fill='#2A2E33'>- isbn: str</text><text x='56' y='402' font-size='12' fill='#2A2E33'>- title: str</text><text x='56' y='424' font-size='12' fill='#2A2E33'>- available: bool</text><text x='56' y='464' font-size='12' fill='#2A2E33'>+ borrow()</text><text x='56' y='484' font-size='12' fill='#2A2E33'>+ give_back()</text><rect x='420' y='310' width='220' height='200' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.5'/><line x1='420' y1='354' x2='640' y2='354' stroke='#5E9E8F' stroke-width='1.1'/><line x1='420' y1='480' x2='640' y2='480' stroke='#5E9E8F' stroke-width='1.1'/><text x='530' y='338' text-anchor='middle' font-size='13' fill='#2A2E33'>Loan（借阅记录）</text><text x='436' y='378' font-size='12' fill='#2A2E33'>- book: Book</text><text x='436' y='400' font-size='12' fill='#2A2E33'>- reader: Reader</text><text x='436' y='422' font-size='12' fill='#2A2E33'>- borrow_date: date</text><text x='436' y='444' font-size='12' fill='#2A2E33'>- due_date: date</text><text x='436' y='466' font-size='12' fill='#2A2E33'>- returned: bool</text><text x='436' y='502' font-size='12' fill='#2A2E33'>+ is_overdue(today): bool</text><polygon points='150,250 144,258 150,266 156,258' fill='#FFFFFF' stroke='#5E9E8F'/><line x1='150' y1='266' x2='150' y2='310' stroke='#5E9E8F' stroke-width='1.4'/><text x='158' y='276' font-size='12' fill='#C96A6A'>1</text><text x='158' y='302' font-size='12' fill='#C96A6A'>0..*</text><polygon points='280,110 288,104 296,110 288,116' fill='#FFFFFF' stroke='#5E9E8F'/><line x1='296' y1='110' x2='420' y2='110' stroke='#5E9E8F' stroke-width='1.4'/><text x='306' y='102' font-size='12' fill='#C96A6A'>1</text><text x='398' y='102' font-size='12' fill='#C96A6A'>0..*</text><polygon points='260,250 254,258 260,266 266,258' fill='#5E9E8F'/><path d='M 260 266 L 260 280 L 530 280 L 530 310' fill='none' stroke='#5E9E8F' stroke-width='1.4'/><text x='268' y='278' font-size='12' fill='#C96A6A'>1</text><text x='536' y='300' font-size='12' fill='#C96A6A'>0..*</text><line x1='280' y1='410' x2='420' y2='410' stroke='#5E9E8F' stroke-width='1.4'/><text x='288' y='402' font-size='12' fill='#C96A6A'>1</text><text x='398' y='402' font-size='12' fill='#C96A6A'>0..*</text><line x1='580' y1='140' x2='580' y2='310' stroke='#5E9E8F' stroke-width='1.4'/><text x='588' y='156' font-size='12' fill='#C96A6A'>1</text><text x='588' y='300' font-size='12' fill='#C96A6A'>0..*</text></svg><figcaption>图 10-1 图书管理系统类图：Library 聚合 Book 与 Reader（可聚可散），以组合方式持有借阅账簿；每条 Loan 恰好关联一本 Book 与一位 Reader，而每本书、每位读者都可对应多条 Loan。</figcaption></figure><p>画完自查一遍：「每个类的职责一句话说得清吗？」Book 管自己的状态、Reader 管身份、Loan 管一笔记录、Library 管协调——职责分明，这张图可以进下一步了。</p>"
+      },
+      {
+        "heading": "10.3 把类图翻译成代码",
+        "html": "<p>类图是图纸，代码是施工。翻译原则只有一条：<strong>图上每个成员都要在代码里有对应，代码里也不要出现图上没有的「惊喜」</strong>。逐个来：Book 管自己的在架状态，借出与归还是它自己的动作（不在架就拒绝）；Reader 只装身份信息；Loan 记下双方引用与各日期，把逾期判断写成方法 is_overdue；Library 持有三个集合，把「借」「还」写成语用方法。</p><pre class='code' data-lang='python'>from datetime import timedelta\n\nclass Book:\n    def __init__(self, isbn, title):\n        self.isbn = isbn\n        self.title = title\n        self.available = True\n\n    def borrow(self):\n        if not self.available:\n            raise ValueError('图书已被借出：' + self.title)\n        self.available = False\n\n    def give_back(self):\n        self.available = True\n\nclass Reader:\n    def __init__(self, reader_id, name):\n        self.reader_id = reader_id\n        self.name = name\n\nclass Loan:\n    def __init__(self, book, reader, borrow_date, days=30):\n        self.book = book\n        self.reader = reader\n        self.borrow_date = borrow_date\n        self.due_date = borrow_date + timedelta(days=days)\n        self.returned = False\n\n    def is_overdue(self, today):\n        return (not self.returned) and today > self.due_date\n\nclass Library:\n    def __init__(self):\n        self.books = {}\n        self.readers = {}\n        self.loans = []\n\n    def add_book(self, book):\n        self.books[book.isbn] = book\n\n    def register_reader(self, reader):\n        self.readers[reader.reader_id] = reader\n\n    def borrow_book(self, isbn, reader_id, today):\n        book = self.books[isbn]\n        reader = self.readers[reader_id]\n        book.borrow()\n        loan = Loan(book, reader, today)\n        self.loans.append(loan)\n        return loan\n\n    def return_book(self, isbn):\n        for loan in reversed(self.loans):\n            if loan.book.isbn == isbn and not loan.returned:\n                loan.returned = True\n                loan.book.give_back()\n                return loan\n        raise ValueError('没有未归还的借出记录：' + isbn)</pre><p>三处「为什么」值得停一下：<strong>其一</strong>，「能不能借」的检查放进 Book.borrow()（守护条件），而不是散落在 Library 里——状态属于书，规矩就贴着状态放，这就是封装的思路；<strong>其二</strong>，逾期判断写成 Loan.is_overdue(today)，「今天」从外面传入，方法保持纯粹、方便测试；<strong>其三</strong>，Library 只对外暴露用例语言（借、还），外部完全不需要知道内部用字典还是列表存数据——这正是服务类的价值。</p><p>把这段代码和类图并排看一遍：Book、Reader、Loan、Library 四个类，成员逐条对应——图不是代码的装饰，代码也不是图之外的自由发挥。这种「图码一致」的意识，就是工程里常说的「设计落到实现」。</p>"
+      },
+      {
+        "heading": "10.4 用例走查：借书与还书的一天",
+        "html": "<p>代码写完不等于设计完成，要把典型场景真的走一遍。准备数据：两本书《Python 入门》《算法图解》，读者「小明」「小红」。走查五步：</p><ol><li>小明借《Python 入门》：调用 borrow_book，返回一条 Loan，书的 available 变为 False；</li><li>小明再借同一本：Book.borrow() 抛出异常「已被借出」——业务规则挡住了重复借阅；</li><li>小明还书：return_book 把记录标为已还、书恢复可借；</li><li>重复归还：找不到「未归还」的记录，抛异常——挡住重复操作；</li><li>逾期检查：3 月 1 日借出（借期 30 天），3 月 31 日查 is_overdue 返回 False（当天到期还不算逾期），4 月 1 日返回 True。</li></ol><p>走查还会暴露隐藏问题：书号或读者号不存在时，字典会直接抛 KeyError，提示不友好；「查某人未还的书」目前要在外部遍历 loans。把这些记下来——先别急着改，完成本轮闭环再迭代，这正是下一节要演的剧情。</p><p>顺带体会全课知识的落点：Book 的状态对外只读、修改走方法（封装）；Library 用现成的 Loan、Book 组合出用例（组合与委托）；以后若出现「教师借期 60 天」，可以给 Reader 加子类、多态地提供借期——第 5 讲的伏笔在这里都有了用武之地。</p>"
+      },
+      {
+        "heading": "10.5 迭代：需求变了怎么办",
+        "html": "<p>产品经理冲进来：「用户要能<strong>续借</strong>！未逾期且未归还的借阅可以顺延 30 天，最多续一次。」正确姿势不是直接改代码，而是三步：先改图、再改码、补测试。</p><p><strong>第一步 改图</strong>：Loan 增加属性 renew_count 与方法 renew(today)；Library 增加 renew_book(isbn)。图上看：四个类、五条主关系纹丝不动，只有两个类各长出一个成员——好设计的特点，正是变化局部化。</p><p><strong>第二步 改码</strong>：renew 里做三个检查——已归还不能续、已逾期不能续（复用现成的 is_overdue）、已续过不能续（renew_count 达到 1）；通过后 due_date 加 30 天、renew_count 加一。<strong>第三步 补测试</strong>：正常续借、逾期被拒、续两次被拒——三条规则对应三个用例。</p><p>送你「评审三问」，以后每完成一版设计都过一遍：<strong>每个类的职责一句话说得清吗？每条关系的方向与多重性读得通吗？正常流程之外的边界都兜住了吗？</strong>回望这门课：对象、封装、继承、多态、抽象、SOLID、模式、UML，一路走到今天这个能落地的小系统。愿你以后先想清楚再动手，用一个个清晰的类，搭出越来越大的世界。结课快乐！</p>"
+      }
+    ]
+  },
+  "kid": {
+    "intro": "前面九讲，我们学会了各种「搭积木」的手艺：做卡片（类与对象）、藏秘密（封装）、盖高楼（继承）、变戏法（多态）、画图纸（UML）……这节课要把手艺全用上：开一家小小的「图书借阅小店」，从好好听顾客说话开始，一路做到让它真正运转起来！",
+    "sections": [
+      {
+        "heading": "先当一次小老板：把话听全",
+        "html": "<p>如果你要开一家借书小店，第一件事不是买书架，而是<strong>把大家的话全听清楚</strong>。老板说：「我要管书、管客人；客人能借书；每本书借出去 30 天要还；书在架上才能借；谁借了哪本要记下来；还要能查有没有到期没还的。」</p><p>听完别急着动手，先把话拆成两摞：一摞是「<strong>都有谁</strong>」——书、客人、借阅记录；另一摞是「<strong>要做什么</strong>」——借书、还书、查有没有过期。这就像做手工前把零件先摆好：零件一个不能漏，后面的图纸才画得准。</p>"
+      },
+      {
+        "heading": "画一张小店全家福",
+        "html": "<p>零件摆好，来画「全家福」——就是第 9 讲学的类图。这次有四位主角：<strong>图书</strong>（记着书名、编号、在不在架上）、<strong>读者</strong>（记着姓名、读者号）、<strong>借阅记录</strong>（一张小借条：哪本书、谁借的、什么时候该还），还有<strong>图书馆</strong>——它自己不是书也不是人，而是「店长」：保管所有的东西、负责办借办还。</p><p>再把它们连起来：店长管着所有的书、所有的客人、所有的借条。书和客人各自独立、来去自由；可借条不一样——借条是店长账簿上的小纸片，账簿没了，纸片也就没意义了（第 9 讲说的「组合」）。每张小借条上写着一本书加一位客人；一位客人可以有好几张借条，一本书被借过好多次，也会多出好几段记录。</p><figure><svg viewBox='0 0 560 340' role='img' aria-label='借阅小店全家福：店长、书、客人与借条'><rect x='190' y='16' width='180' height='54' rx='8' fill='#5E9E8F'/><text x='280' y='50' text-anchor='middle' font-size='14' fill='#FFFFFF'>图书馆（店长）</text><rect x='30' y='140' width='150' height='90' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.5'/><line x1='30' y1='172' x2='180' y2='172' stroke='#5E9E8F' stroke-width='1'/><text x='105' y='162' text-anchor='middle' font-size='14' fill='#2A2E33'>书</text><text x='46' y='194' font-size='12' fill='#2A2E33'>- 书名</text><text x='46' y='216' font-size='12' fill='#2A2E33'>+ 被借走</text><rect x='380' y='140' width='150' height='90' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.5'/><line x1='380' y1='172' x2='530' y2='172' stroke='#5E9E8F' stroke-width='1'/><text x='455' y='162' text-anchor='middle' font-size='14' fill='#2A2E33'>客人</text><text x='396' y='194' font-size='12' fill='#2A2E33'>- 姓名</text><text x='396' y='216' font-size='12' fill='#2A2E33'>+ 借书</text><rect x='195' y='250' width='170' height='74' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.5'/><text x='280' y='278' text-anchor='middle' font-size='13' fill='#2A2E33'>借阅记录（借条）</text><text x='280' y='304' text-anchor='middle' font-size='12' fill='#2A2E33'>- 哪本书 / 谁借的</text><line x1='225' y1='70' x2='105' y2='138' stroke='#5E9E8F' stroke-width='1.4'/><text x='145' y='110' text-anchor='middle' font-size='12' fill='#C96A6A'>管着</text><line x1='335' y1='70' x2='455' y2='138' stroke='#5E9E8F' stroke-width='1.4'/><text x='415' y='110' text-anchor='middle' font-size='12' fill='#C96A6A'>管着</text><line x1='280' y1='70' x2='280' y2='246' stroke='#5E9E8F' stroke-width='1.4'/><text x='292' y='150' font-size='12' fill='#C96A6A'>管着</text><line x1='105' y1='230' x2='195' y2='267' stroke='#5E9E8F' stroke-width='1.4'/><text x='122' y='246' font-size='12' fill='#C96A6A'>1</text><text x='185' y='259' font-size='12' fill='#C96A6A'>*</text><line x1='455' y1='230' x2='365' y2='267' stroke='#5E9E8F' stroke-width='1.4'/><text x='438' y='246' font-size='12' fill='#C96A6A'>1</text><text x='375' y='259' font-size='12' fill='#C96A6A'>*</text><text x='280' y='334' text-anchor='middle' font-size='12' fill='#6C7078'>店长管着大家；每张小借条连着一本书和一位客人</text></svg><figcaption>图 10-2 借阅小店的全家福：店长（图书馆）管着书、客人和一张张借阅记录；每张小借条连着一本书和一位客人。</figcaption></figure>"
+      },
+      {
+        "heading": "给每张卡片配上本领",
+        "html": "<p>图纸画好，给每张卡片写上「会的本领」——这就是写代码。</p><p><strong>图书</strong>的本领：有人来借，先检查「我还在架上吗？不在就拒绝」；还回来时，把「在架」标记重新打上。<strong>读者</strong>很简单：装着自己的姓名和号码。<strong>借条</strong>会算日子：今天有没有超过该还的日子？还没还 + 已过期，才算真逾期。<strong>店长</strong>的本领最多：登记新书、登记新客人、办借书（让书执行「借出」，再开一张新借条）、办还书（找到那张借条，盖上「已归还」，让书回到架上）。</p><p>你发现没有：规矩都长在该管的卡片上——「能不能借」由图书自己说了算，店长只负责跑腿张罗。每张卡片管好自己的事，将来改起来才不打架。</p>"
+      },
+      {
+        "heading": "试营业：借书还书的一天",
+        "html": "<p>小店开张！小明来借《Python 入门》：店长从架上找到书，图书检查「在架」，放心借出；店长开了一张新借条，写下书名、小明的名字、30 天后的还书日。小明过一会儿又来借同一本：图书说「我已经被借走啦，不在架！」——被稳稳地拒绝。</p><p>几天后小明来还书：店长在借条本里找到那张还没还的借条，盖「已归还」的章，图书重新回到架上，等下一位客人。</p><p>又过了一阵，店长翻借条本算账：有一张借条超过 30 天好几天还没还——哦，这张就是「逾期」！从借到还的每一步，都踩在图纸设计好的格子里。</p>"
+      },
+      {
+        "heading": "小店还要长大：先改图纸，再加本领",
+        "html": "<p>生意越来越好，顾客提了新要求：「书还没看完，能再续 30 天吗？」改之前记住规矩：<strong>先改图纸，再改代码</strong>。在借条卡片上添一个新本领「续借一次」，再加一格小记录「续过没有」：动手续之前检查三件事——还回来了吗？过期了吗？已经续过吗？都没问题，就把还书日往后推 30 天，再盖一个「续借过」的小章。</p><p>以后不管加什么新功能（预约、罚金、会员），都用这个办法：加一张卡片、画一条线、写一段本领，小步小步地长大。</p><p>这门课到这里全部讲完啦：从「什么是对象」，到亲手做出一个小系统，你已经把面向对象的全套手艺走了一遍。愿你以后写程序时，先画图、想清楚，再让一屋子的对象配合着帮你干活！</p>"
+      }
+    ]
+  },
+  "glossary": [
+    { "term": "需求分析", "def": "把客户的话整理成「系统必须做什么」的清单，是设计工作的起点" },
+    { "term": "服务类", "def": "像 Library 这样不代表现实物件、负责保管与协调其他对象、实现用例的类" },
+    { "term": "用例走查", "def": "按典型场景把对象交互走一遍，检查设计是否讲得通、边界是否兜得住" },
+    { "term": "不变式（业务规则）", "def": "系统任何时刻都必须成立的规则，如「不在架的书不能借出」" },
+    { "term": "边界情况", "def": "正常流程之外的异常情形，如重复借、重复还、书号不存在" },
+    { "term": "图码一致", "def": "类图成员与代码成员一一对应，改了一边就要同步另一边的习惯" },
+    { "term": "迭代", "def": "设计不是一次成型的：需求变化时先改图、再改码、补测试，小步前进" }
+  ],
+  "exercises": [
+    {
+      "id": "oop-10-e01",
+      "level": "easy",
+      "type": "choice",
+      "stem": "在图书管理系统的设计里，Library 属于「服务类」。服务类的主要职责是？",
+      "options": ["A. 保存书名、ISBN 等数据字段", "B. 代替数据库把所有对象保存到磁盘", "C. 持有并协调其他对象，对外实现「借书」「还书」等用例", "D. 保存读者登录用的密码"],
+      "answer": "C",
+      "solution": {
+        "idea": "服务类不代表现实中的某个物件，而是协调者：保管集合、实现用例。",
+        "steps": ["证据一：它持有 books、readers、loans 三个集合；", "证据二：borrow_book、return_book 这两个用例由它实现；", "证据三：外部系统只通过它来使用功能。"],
+        "result": "C。Library 负责持有并协调对象、实现用例。",
+        "pitfalls": ["把服务类当成数据类：保存书名、ISBN 是 Book 的活；", "以为服务类必须管存储：本系统是内存版，保存到磁盘是数据库的职责。"],
+        "kid": "店长自己不写字、不看书，但他张罗一切：书放哪儿、谁来借、借条记在哪，全都归他管。Library 就是这样的大管家——管人、管物、管流程，所以答案是「持有并协调对象、实现用例」。"
+      }
+    },
+    {
+      "id": "oop-10-e02",
+      "level": "easy",
+      "type": "judge",
+      "stem": "类图与代码应该保持一致：图上画出的成员要能在代码中找到，代码里的关键成员也应在图上有所体现；一边改了，另一边要同步。",
+      "answer": "正确",
+      "solution": {
+        "idea": "图与码是同一系统的两种视图：图是图纸，码是施工，一边改了另一边不跟，图就会「说谎」。",
+        "steps": ["画图的意义在于沟通与评审：图不反映代码就失去价值；", "翻译原则要求成员逐条对应；", "迭代时「先改图、再改码」正是为了维持一致。"],
+        "result": "正确。类图是活文档，要与代码同步维护。",
+        "pitfalls": ["认为「图画完就挂墙上不用管了」：需求一变，图也要变；", "认为「图上可以随便多画几个成员」：多余的成员会误导读图的人。"],
+        "kid": "图纸上画了三扇门，盖出来只有两扇——住进去的人当然会迷路。类图和代码就是一个东西的两种讲法：图上有的，代码里要真有；代码里改的，图上也要跟着改。所以这句话是对的。"
+      }
+    },
+    {
+      "id": "oop-10-e03",
+      "level": "easy",
+      "type": "choice",
+      "stem": "「只有可借的书才能借出」这条业务规则，放在哪里最符合封装的思想？",
+      "options": ["A. 写在 Library.borrow_book 里，直接改 book.available = False，不做检查", "B. 写进 Book.borrow()：不在架就抛出异常，由 Library 在借书流程里调用它", "C. 交给读者自己保证，借不到就多试几次", "D. 不做检查，等冲突发生了再人工处理"],
+      "answer": "B",
+      "solution": {
+        "idea": "状态属于谁，规矩就贴着谁——「在架状态」是 Book 的数据，其检查也应放在 Book 自己的方法里。",
+        "steps": ["available 是 Book 的属性，只有它最清楚自己的状态；", "把检查与修改一起放进 Book.borrow()：任何调用方都绕不过这条规则；", "Library 只负责走流程、调用它，不需要重复写判断。"],
+        "result": "B。让规则跟着状态走，放在 Book.borrow() 里。",
+        "pitfalls": ["选 A：看似能跑，但规则散落在外，下一个开发者很容易绕过；", "把封装理解成「加个下划线就行」：封装的核心是让非法状态无法出现。"],
+        "kid": "玩具锁的钥匙，该由玩具自己保管——图书最清楚自己「在不在架」，所以由图书自己检查、自己关门。店长只喊一声「借出吧」，图书答「好」或「不行」。这样规矩才不会被偷偷绕过去，选 B。"
+      }
+    },
+    {
+      "id": "oop-10-e04",
+      "level": "easy",
+      "type": "judge",
+      "stem": "借期为 30 天：3 月 1 日借出的书，其应还日期 due_date 是 3 月 31 日；is_overdue(today) 在「尚未归还且 today 超过 due_date」时返回 True。",
+      "answer": "正确",
+      "solution": {
+        "idea": "due_date（应还日期）= 借出日期 + 30 天；逾期 = 未归还且今天严格大于应还日期。",
+        "steps": ["3 月 1 日往后数 30 天 = 3 月 31 日；", "3 月 31 日当天，「今天大于 due_date」不成立，返回 False；", "4 月 1 日「今天大于 due_date」成立且未归还，返回 True。"],
+        "result": "正确。计算与判断条件都吻合。",
+        "pitfalls": ["把「超过」当成「达到」：当天到期不算逾期；", "只看日期、不看归还状态：已经还了的借阅永远不会算逾期。"],
+        "kid": "借出那天算起点，往后数 30 天，还书日就是 3 月 31 日。31 号当天来还，赶得上末班车——不算逾期；到 4 月 1 日还没还，才是真的「慢了一天」。而已经还清的借条，永远也不会被算成逾期。所以这句话对。"
+      }
+    },
+    {
+      "id": "oop-10-e05",
+      "level": "medium",
+      "type": "derive",
+      "stem": "新需求：「每位读者最多同时借 3 本。」请完成修改方案：(1) 借书前需要弄清楚什么信息？(2) 最小改动方案：改哪个类的哪个方法、加什么检查（用文字或几行代码描述）？(3) 另一种方案是给 Reader 加一个 loans 列表，说说两种方案的取舍。",
+      "answer": "(1) 该读者当前「未归还」的借阅记录数量。(2) 改 Library.borrow_book：先统计该读者未归还的记录数（遍历 self.loans，条件为读者相同且 not returned），达到 3 本就抛异常拒绝；否则继续原有流程。(3) 遍历方案不动类图、数据只有一个来源（loans 列表），不会失同步，缺点是每次借书要全表数一遍；Reader.loans 方案计数快，但要在借、还两处同步维护列表，漏一处就出现「幽灵记录」。小系统推荐遍历方案。",
+      "solution": {
+        "idea": "「同时借 3 本」是跨「读者 + 记录」的统计规则，属于协调层职责，放在 Library 最合适。",
+        "steps": ["明确口径：统计未归还的、且属于该读者的记录；", "在 borrow_book 开头加检查：count = 未归还记录数；if count >= 3: 拒绝；", "再对比 Reader.loans 方案：查询快，但同一事实存两份、需要两处同步。"],
+        "result": "最小改动是在 Library.borrow_book 中加一次统计检查；两条路线取舍如上，小系统选「单一数据源」的遍历方案。",
+        "pitfalls": ["把检查放进 Book：书不知道读者总共借了几本，职错了位；", "选择 Reader.loans 却只在借出时维护：归还时忘记同步，出现永远还不掉的「幽灵记录」。"],
+        "kid": "店长要管「每人最多借 3 本」：借之前先翻一遍借条本，数一数这位客人还有几张没还的借条——已经到 3 张，就客气地拒绝。另一种办法是给每位客人另配一张自己的小账本，查得是快，但还书时得记得两边都划掉，一忘就出错。小店书少，还是翻借条本最稳。"
+      }
+    },
+    {
+      "id": "oop-10-e06",
+      "level": "medium",
+      "type": "code",
+      "stem": "阅读下面这段代码，写出运行输出，并解释每一行输出的来源。",
+      "code": { "lang": "python", "code": "class Book:\n    def __init__(self, isbn, title):\n        self.isbn = isbn\n        self.title = title\n        self.available = True\n\n    def borrow(self):\n        if not self.available:\n            raise ValueError('已被借出')\n        self.available = False\n\nb1 = Book('978-1', 'Python 入门')\nb2 = Book('978-2', '算法图解')\nb1.borrow()\nfor b in [b1, b2]:\n    print(b.title, b.available)\ntry:\n    b1.borrow()\nexcept ValueError as e:\n    print('第二次借阅失败：', str(e))", "output": "Python 入门 False\n算法图解 True\n第二次借阅失败： 已被借出", "explain": "b1 先被借出，available 变为 False；循环打印两本书，得到「Python 入门 False」与「算法图解 True」；随后再次调用 b1.borrow()，守护条件发现不在架，抛出 ValueError，被 except 捕获后打印「第二次借阅失败： 已被借出」（冒号后的空格来自 print 的分隔符）。" },
+      "answer": "输出三行：Python 入门 False、算法图解 True、第二次借阅失败： 已被借出。第一行来自 b1 借出后状态变化；第二行 b2 从未借出；第三行来自又一次 borrow 触发异常并被捕获。",
+      "solution": {
+        "idea": "跟着状态走：先看每本书的 available 被谁改过，再看异常在哪里被抛出与捕获。",
+        "steps": ["b1.borrow() 执行成功：检查通过，available 置为 False；", "循环打印 b1、b2 的标题与状态：False、True；", "第二次 b1.borrow()：if not self.available 成立，抛出 ValueError；", "except 捕获后打印固定文案加异常信息。"],
+        "result": "输出「Python 入门 False / 算法图解 True / 第二次借阅失败： 已被借出」三行。",
+        "pitfalls": ["以为第二次 borrow 会静默返回：它抛的是异常，没有 try/except 时程序会直接崩溃；", "漏掉 print 两个参数之间的空格：「失败：」后确实有一个空格。"],
+        "kid": "第一行：第一本书刚被借走，它的「可借」灯熄灭了（False）。第二行：第二本书没人动过，灯还亮着（True）。第三行：又来借已经借走的那本，图书拦住说「已被借出」，程序把这句话打印了出来。守护条件真的在站岗！"
+      }
+    },
+    {
+      "id": "oop-10-e07",
+      "level": "medium",
+      "type": "derive",
+      "stem": "一笔借阅：2026 年 3 月 1 日借出，借期 30 天。回答：(1) due_date 是哪一天？(2) 3 月 31 日查询 is_overdue(today) 返回什么？为什么？(3) 4 月 1 日返回什么？(4) 「当天到期算不算逾期」由判断条件里的哪个符号决定？若要改成「当天也算逾期」，怎么改？",
+      "answer": "(1) 2026-03-31。(2) False：条件是「未归还且 today 严格大于 due_date」，3 月 31 日等于 due_date，并不大于。(3) True：4 月 1 日已严格超过。(4) 由「大于号 >」决定；要让当天算逾期，改为 today >= due_date。",
+      "solution": {
+        "idea": "先算应还日期，再把「等于」与「大于」两种情形分别代入判断条件。",
+        "steps": ["due_date = borrow_date + 30 天 = 3 月 31 日；", "代入 3 月 31 日：today > due_date 为假 → False；", "代入 4 月 1 日：today > due_date 为真且未归还 → True；", "边界由 > 控制：想当天也算逾期就把 > 换成 >=。"],
+        "result": "应还日期 3 月 31 日；3 月 31 日不算逾期，4 月 1 日起算逾期；边界符号是 >。",
+        "pitfalls": ["数错天数：借出当天不重复计数，从 3 月 1 日加 30 天正好到 3 月 31 日；", "把闭区间当开区间：不明确「含不含当天」会导致差一天的系统性错误。"],
+        "kid": "3 月 1 日借出、借期 30 天，还书日就是 3 月 31 日。31 号当天来查：还不算过期——因为「超过」才算数，正好相等不算；4 月 1 日再来：超过了一天，就是逾期了。想让「当天也算」，就把「大于」换成「大于等于」，像把末班车多等一分钟。"
+      }
+    },
+    {
+      "id": "oop-10-e08",
+      "level": "medium",
+      "type": "design",
+      "stem": "读者想「查询自己所有没还的书」。方案 A：给 Reader 加一个 loans 列表，借书时加入、还书时移除；方案 B：给 Library 加方法 query_open_loans(reader_id)，每次遍历 loans 过滤出该读者未归还的记录。请比较两种方案，并说明你为这个小系统选哪个、为什么。",
+      "answer": "方案 A 查询快（直接读列表），但同一份事实存了两处（Reader.loans 与 Library.loans），借、还两个用例都必须记得同步，漏一处就出现「幽灵记录」。方案 B 稍慢（每次遍历），但借阅记录只有一个数据源，天然不会失同步，代码也更少。为小系统选 B：数据量小、遍历成本可忽略，正确性优先；将来性能吃紧，再在 Library 内部加索引，仍保持单一数据源。",
+      "solution": {
+        "idea": "比较的核心不是「快慢」，而是「同一事实存几处」。单一数据源优先，性能其次。",
+        "steps": ["列出方案 A 的同步点：借出时 append、归还时 remove，两处都要写对；", "列出方案 B 的成本：每次查询遍历一遍 loans，数据量小可忽略；", "按「正确性 > 简单 > 性能」排序，小系统选 B。"],
+        "result": "选 B（Library.query_open_loans 遍历统计）；A 的列表可作为将来优化用的缓存，但必须保证与主数据同步。",
+        "pitfalls": ["只看速度选 A：忘了「同步漏洞」比慢一点昂贵得多；", "在 A 方案里借出、归还只改一处：另一处失同步，列表开始说谎。"],
+        "kid": "想知道「客人还有哪些书没还」，方案 A 是让客人自己带一张小纸条记账——看着快，但还书时两边都要划掉，一忘就乱；方案 B 是直接翻店长的借条本现查——多翻几页，但绝不记错。小店书不多，选 B；等店特别大了，再想办法把查找变快，记住「只留一本账」最不容易出错。"
+      }
+    },
+    {
+      "id": "oop-10-e09",
+      "level": "hard",
+      "type": "design",
+      "stem": "需求变化：加「续借」——未归还且未逾期的借阅，可以续借一次，due_date 再顺延 30 天。请完成迭代设计：(1) 类图要增加哪些成员（哪个类、加什么）？主结构要不要动？(2) renew 方法要做哪三个检查？通过后更新什么？(3) 需要补哪三个测试用例？",
+      "answer": "(1) Loan 增加属性 renew_count（初始 0）与方法 renew(today)；Library 增加方法 renew_book(isbn)。四个类与五条主关系都不需要动——变化被限制在局部。(2) 检查：已归还不能续；已逾期不能续（复用 is_overdue(today)）；已续借过一次不能续（renew_count 至少为 1）。通过后：due_date 加 30 天、renew_count 加一。(3) 测试：正常续借成功（到期日顺延 30 天）；逾期后被拒；第二次续借被拒。",
+      "solution": {
+        "idea": "按迭代三步走：先补图（加成员）、再补码（加检查与更新）、最后用测试把三条规则钉住。",
+        "steps": ["改图：Loan 长出 renew_count 与 renew(today)；Library 长出 renew_book(isbn)；", "改码：renew 内三重检查（已还、过期、已续），通过后 due_date += 30 天、renew_count += 1；", "补测试：三条规则各配一个用例，跑通再收工。"],
+        "result": "新增成员清单与三个检查、三组测试如答案所示；主结构不动，体现「变化局部化」。",
+        "pitfalls": ["跳过改图直接改码：图码不一致，下一个看图的同事被误导；", "遗漏「已续一次不能再续」的检查：用户能无限续借，规则失效。"],
+        "kid": "给借条添一个新本领「续借一次」，再加一小格记录「续过没有」。动手续之前检查三件事：还回来了吗？过期了吗？已经续过吗？三关都过，就把还书日往后挪 30 天，小记录加一。要试三种情况：正常续成功、过期不给续、想续第二次也不给。改完后，四张卡片和连线都没变——好设计就是只改该改的地方。"
+      }
+    },
+    {
+      "id": "oop-10-e10",
+      "level": "hard",
+      "type": "code",
+      "stem": "这是一个迷你版「借书—还书」程序的完整片段。请回答：(1) 运行输出是什么？(2) return_book 里哪一行负责「让书重新变为可借」？(3) 如果去掉这一行，输出会怎么变、会带来什么后果？",
+      "code": { "lang": "python", "code": "from datetime import date\n\nclass Book:\n    def __init__(self, isbn, title):\n        self.isbn = isbn\n        self.title = title\n        self.available = True\n\nclass Loan:\n    def __init__(self, book, reader_id, borrow_date):\n        self.book = book\n        self.reader_id = reader_id\n        self.borrow_date = borrow_date\n        self.returned = False\n\nclass Library:\n    def __init__(self):\n        self.books = {}\n        self.loans = []\n\n    def borrow_book(self, isbn, reader_id, today):\n        book = self.books[isbn]\n        if not book.available:\n            raise ValueError('已被借出')\n        book.available = False\n        self.loans.append(Loan(book, reader_id, today))\n\n    def return_book(self, isbn, today):\n        for loan in reversed(self.loans):\n            if loan.book.isbn == isbn and not loan.returned:\n                loan.returned = True\n                loan.book.available = True\n                return loan\n        raise ValueError('该书没有未归还记录')\n\nlib = Library()\nlib.books['A1'] = Book('A1', '算法图解')\nlib.borrow_book('A1', 'R1', date(2026, 3, 1))\nprint('借出后可借：', lib.books['A1'].available)\nloan = lib.return_book('A1', date(2026, 3, 20))\nprint('归还记录已归还：', loan.returned)\nprint('归还后可借：', lib.books['A1'].available)", "output": "借出后可借： False\n归还记录已归还： True\n归还后可借： True", "explain": "借出后 available 为 False；归还时 return_book 找到最近一条未归还记录，把 returned 置为 True，并把书的 available 重置为 True；因此三行输出依次是 False、True、True。若删去 loan.book.available = True 这一行，第三行会变成 False——书被卡死在「已借出」，之后没人能再借。" },
+      "answer": "(1) 输出三行：借出后可借： False、归还记录已归还： True、归还后可借： True。(2) loan.book.available = True 这一行负责恢复可借状态。(3) 去掉它后第三行变为「归还后可借： False」——记录显示已归还，但书永远卡在不可借状态，后续谁也无法借出。",
+      "solution": {
+        "idea": "顺着「借出 → 归还」两条路径核对书本状态的三次取值，再模拟删掉关键行后的状态。",
+        "steps": ["借出后：book.available 被置 False → 第一行 False；", "归还时：找到未归还记录，置 returned=True → 第二行 True；", "同一循环里恢复 available=True → 第三行 True；", "假设删掉恢复行：available 保持 False，第三行变 False。"],
+        "result": "三行 True/False 输出如上；关键行是 loan.book.available = True；删掉会造成「幽灵占用」。",
+        "pitfalls": ["以为 returned=True 就等于书可借：记录状态与书的可借状态是两处，必须同时更新；", "忽略 reversed：后借的记录在外层没有影响，但按「最近一条未归还记录」处理更稳健。"],
+        "kid": "三道打印像三张快照：借出后，书的「可借」灯灭了（False）；归还后，借条盖上「已归还」（True）；同一时刻书架的灯重新亮起（True）。关键是还书时那句「把书的灯重新点亮」——忘了它，书就永远显示「不可借」，谁也借不到。状态更新要成对出现：借出时关灯，归还时必须开灯。"
+      }
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 {
-  "at": 1789490957620,
+  "at": 1789493875767,
   "base": "http://127.0.0.1:8642",
   "results": [
     {
@@ -25,7 +25,7 @@
     {
       "name": "答题与章节访问已写入本地存储",
       "ok": true,
-      "detail": "{\"key\":\"cslearn.progress.v1\",\"exCount\":1,\"chCount\":1,\"sample\":{\"attempts\":1,\"correct\":0,\"wrong\":1,\"lastAt\":1789490949483,\"lastAnswer\":\"A\",\"lastCorrect\":false}}"
+      "detail": "{\"key\":\"cslearn.progress.v1\",\"exCount\":1,\"chCount\":1,\"sample\":{\"attempts\":1,\"correct\":0,\"wrong\":1,\"lastAt\":1789493867651,\"lastAnswer\":\"A\",\"lastCorrect\":false}}"
     },
     {
       "name": "标记完成且刷新后数据不丢",
@@ -40,12 +40,12 @@
     {
       "name": "练习中心加载题目",
       "ok": true,
-      "detail": "items=90"
+      "detail": "items=100"
     },
     {
       "name": "演示：单步前进→旁白显示→重置",
       "ok": true,
-      "detail": "{\"badge\":\"比较 1 次\",\"afterNext\":\"比较 2 次\",\"afterReset\":\"比较 1 次\",\"narrShown\":true,\"narrText\":\"步骤 2 / 100比较 76 和 59\"}"
+      "detail": "{\"badge\":\"比较 1 次\",\"afterNext\":\"比较 2 次\",\"afterReset\":\"比较 1 次\",\"narrShown\":true,\"narrText\":\"步骤 2 / 109比较 32 和 24\"}"
     },
     {
       "name": "站内搜索返回结果",
@@ -63,9 +63,7 @@
       "detail": "csvLines=2"
     }
   ],
-  "jsErrors": [
-    "Failed to load resource: the server responded with a status of 404 (Not Found)"
-  ],
+  "jsErrors": [],
   "pass": 12,
   "fail": 0
 }

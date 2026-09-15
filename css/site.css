@@ -253,7 +253,7 @@ h4, .h4 { font-size: var(--fs-h4); line-height: 1.45; font-weight: 600; margin: 
 /* ── 6. 按钮、链接、小标签 ─────────────────────────────────────────────── */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 10px 18px; min-height: 42px;
+  padding: 10px 18px; min-height: 42px; white-space: nowrap;
   border-radius: var(--radius-sm); border: 1px solid transparent;
   font-size: 15px; font-weight: 500; letter-spacing: 0.01em;
   transition: background var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), transform 60ms var(--ease-standard);
@@ -390,6 +390,11 @@ a.card:hover { text-decoration: none; color: var(--fg); }
 .toc-side a:hover { background: var(--bg-deep); text-decoration: none; color: var(--fg); }
 .toc-side a.current { background: var(--accent-wash); color: var(--accent-strong); font-weight: 600; }
 .toc-side a .toc-done { color: var(--success); margin-left: 4px; }
+.toc-side summary.toc-summary { cursor: pointer; list-style: none; display: flex; align-items: center; font-weight: 600; font-size: 15px; color: var(--fg); padding: 4px 0; min-height: 40px; }
+.toc-side summary.toc-summary::-webkit-details-marker { display: none; }
+.toc-side summary.toc-summary::after { content: ''; width: 7px; height: 7px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); margin-left: auto; transition: transform var(--motion-fast); }
+.toc-side[open] summary.toc-summary::after { transform: rotate(225deg); }
+.toc-side[open] summary.toc-summary { margin-bottom: 8px; }
 @media (max-width: 1024px) {
   .toc-side { position: static; max-height: none; border: 1px solid var(--border); border-radius: var(--radius); padding: var(--sp-4); background: var(--surface); }
 }

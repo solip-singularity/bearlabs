@@ -556,8 +556,10 @@ var Views = (function () {
 
     const wrap = el('div', { class: 'container chapter-layout' });
 
-    /* 侧边目录 */
-    const toc = el('aside', { class: 'toc-side', 'aria-label': '课程目录' });
+    /* 侧边目录（移动端折叠为可展开卡片） */
+    const tocMobile = window.matchMedia('(max-width: 1024px)').matches;
+    const toc = el(tocMobile ? 'details' : 'aside', { class: 'toc-side', 'aria-label': '课程目录' });
+    if (tocMobile) toc.appendChild(el('summary', { class: 'toc-summary', text: '本课程目录 · 共 ' + flat.length + ' 讲（点击展开）' }));
     toc.appendChild(el('div', { class: 'toc-course', text: course.title }));
     course.units.forEach((u) => {
       toc.appendChild(el('div', { class: 'toc-unit', text: u.title }));
