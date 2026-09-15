@@ -1,6 +1,6 @@
-# 计算机知识学习站
+# 贝尔实验室 · 计算机知识学习站（从入门到入坟）
 
-从二进制到人工智能：**9 门课程 · 100 讲 · 双讲解 · 三级习题 · 16 个可动手交互动画**的学习网站。
+**Bearlabs** · 从二进制到人工智能：**9 门课程 · 100 讲 · 双讲解 · 三级习题 · 16 个可动手交互动画**的学习网站。
 零第三方依赖：纯 HTML/CSS/JS 前端 + 可选的零依赖 Node 同步服务。
 
 ## 功能亮点
@@ -10,6 +10,11 @@
 - **交互动画**：进程调度、TCP 握手与拥塞控制、内存与指针、浮点数拆解、缓存命中、流水线、排序/查找/图遍历、面向对象建模、编译流水线、神经网络等，全部支持重置 / 上一步 / 播放暂停 / 下一步 / 速度调节与参数调整，每步配旁白。
 - **学习台账**：章节进度、答题记录、错题本、学习时长全部本地持久化；支持导出 JSON/CSV、导入恢复；可选账号同步与管理员学习记录导出。
 - **多端适配**：桌面 / 平板 / 手机响应式布局，触控目标达标，低性能设备自动降级为分步模式。
+
+## 作者与研究所
+
+- **作者**：Solips-Singularitat。如发现问题，请联系作者邮箱：2451101123@qq.com。
+- **研究所专栏**：中国美术学院 网络社会研究所（INS）—— 站点内专栏页 `#/institute`；官网：<https://www.caa-ins.org/>。
 
 ## 快速开始
 
@@ -32,6 +37,7 @@ node server/server.js        # 或 npm start
 cs-learn-site/
 ├─ index.html              # 应用入口（SPA）
 ├─ css/site.css            # 全站样式（Takram 柔和科技风设计系统）
+├─ assets/                  # 图片资源：作者头像、网研所图标（见 docs/asset-ledger.md）
 ├─ js/
 │  ├─ util.js              # 工具库（DOM/存储/弹窗/图标）
 │  ├─ store.js             # 学习进度、错题本、导入导出、同步客户端
@@ -61,6 +67,7 @@ cs-learn-site/
 - **账号同步**（可选）：进度面板内注册 / 登录后可上传 / 下载学习记录，用于跨设备（需要本地 Node 服务在运行）。
 - **管理员台账**（#/admin）：输入启动时打印的管理员密钥，可查看全部同步用户的学习摘要并导出 CSV / JSON。
 - **演示实验室**（#/demos）：16 个交互动画的独立入口页，每个都有「这个演示帮你理解什么」与操作提示。
+- **关于与研究所**：「关于」（#/about）包含作者信息与联系邮箱；「网络社会研究所」（#/institute）为独立专栏，含官网入口。
 
 ## 数据与隐私
 
@@ -83,6 +90,22 @@ cs-learn-site/
 - **新增课程**：在 `content/courses/manifest.json` 登记课程（id、图标、学习路径），再建 `content/courses/<id>/course.json` 与章节文件。
 - **新增交互动画**：阅读 `docs/demo-spec.md`，在 `js/demos/<id>.js` 实现（照 `js/demos/sorting.js` 的帧序列模式）并在 `content/demos/` 写元数据、在 `content/demos/manifest.json` 登记。
 - 改完内容记得 `npm run build` 刷新搜索索引，并跑 `npm run validate`。
+
+## 图片资源与换图
+
+站点图片统一放在 `assets/` 目录，更换图片只需覆盖同名文件（无需改代码）：
+
+| 图片 | 路径 | 出现位置 |
+|---|---|---|
+| 作者头像 | `assets/author/avatar.jpg` | 关于页（#/about）作者卡 |
+| 作者迷你头像 | `assets/author/avatar-mini.jpg` | 页脚作者入口 |
+| 网研所图标 | `assets/institute/caa-ins-icon.jpg` | 研究所专栏（#/institute）、关于页、页脚 |
+
+完整说明、来源备注与聚焦点调整方法见 [docs/asset-ledger.md](docs/asset-ledger.md)。
+
+## 更新记录
+
+- **v1.1（2026-09-16）**：站点更名为「贝尔实验室 · 计算机知识学习站（从入门到入坟）」（英文名 Bearlabs）；新增作者信息模块与网络社会研究所专栏；接入作者头像与网研所图标；页脚与站点元信息更新；新增图片资源台账。涉及文件：`index.html`、`css/site.css`、`js/app.js`、`js/views.js`、`server/server.js`、`package.json`、`assets/`（新增）、`docs/asset-ledger.md`（新增）。
 
 ## 部署
 

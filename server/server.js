@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* ============================================================================
- * server.js — 「计算机知识学习站」本地服务（零依赖，Node >= 18）
+ * server.js — 「贝尔实验室 · 计算机知识学习站」本地服务（零依赖，Node >= 18）
  * 功能：
  *   1. 静态文件服务（项目根目录，含内容 JSON）
  *   2. 可选账号同步 API（注册/登录/推送/拉取）
@@ -243,7 +243,7 @@ function listen() {
     const key = fs.readFileSync(ADMIN_KEY_FILE, 'utf8').trim();
     const host = process.env.HOST || '127.0.0.1';
     console.log('==============================================');
-    console.log('  计算机知识学习站 · 本地服务已启动');
+    console.log('  贝尔实验室 · 计算机知识学习站 · 本地服务已启动');
     console.log('  访问地址:  http://' + (host === '0.0.0.0' ? '<本机IP>' : host) + ':' + port + '/');
     console.log('  管理员密钥: ' + key);
     console.log('  （密钥文件: server/data/admin-key.txt）');

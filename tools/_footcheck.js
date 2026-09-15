@@ -1,7 +1,5 @@
 #!/usr/bin/env node
-/* _mobshot.js — 用 CDP 移动仿真（390x844, dsf2, mobile:true）重拍手机版截图
- * 覆盖 docs/screenshots/<page>-mobile.png（home/chapter/dashboard/practice/demos/demo-sorting）
- */
+/* _footcheck.js — 页脚专项检查：图标加载、链接与「滚动到底部」截图取证 */
 'use strict';
 const { spawn } = require('child_process');
 const fs = require('fs');
@@ -9,13 +7,13 @@ const os = require('os');
 const path = require('path');
 
 const CHROME = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-const PORT = 9983;
+const PORT = 9985;
 const BASE = 'http://127.0.0.1:8642';
 const OUT = path.resolve(__dirname, '..', 'docs', 'screenshots');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
-  const profile = path.join(os.tmpdir(), 'cslearn-ms-' + Date.now());
+  const profile = path.join(os.tmpdir(), 'cslearn-foot-' + Date.now());
   const chrome = spawn(CHROME, ['--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check', '--user-data-dir=' + profile, '--remote-debugging-port=' + PORT, 'about:blank'], { stdio: 'ignore' });
   try {
     let ok = false;
@@ -30,21 +28,34 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     const evl = async (expr) => { const r = await send('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true }); return r.result ? r.result.value : undefined; };
     await send('Runtime.enable');
     await send('Page.enable');
-    await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+    await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
 
-    const pages = [['#/', 'home'], ['#/chapter/oop/oop-01', 'chapter'], ['#/about', 'about'], ['#/institute', 'institute'], ['#/dashboard', 'dashboard'], ['#/practice', 'practice'], ['#/demos', 'demos'], ['#/demo/sorting', 'demo-sorting']];
-    for (const [hash, name] of pages) {
-      await evl(`location.hash = '${hash}'`);
-      await sleep(2400);
-      const shot = await send('Page.captureScreenshot', { format: 'png' });
-      const file = path.join(OUT, name + '-mobile.png');
-      fs.writeFileSync(file, Buffer.from(shot.data, 'base64'));
-      const size = fs.statSync(file).size;
-      console.log('OK ' + name + '-mobile.png  ' + Math.round(size / 1024) + 'KB');
-    }
+    await evl(`location.hash = '#/institute'`);
+    await sleep(2200);
+    const r1 = await evl(`(function(){
+      var imgs = [].slice.call(document.querySelectorAll('.sitefoot img'));
+      var links = [].slice.call(document.querySelectorAll('.sitefoot a'));
+      return {
+        iconCount: imgs.length,
+        icons: imgs.map(function(i){ return { src: i.getAttribute('src'), loaded: i.naturalWidth > 0, w: i.naturalWidth }; }),
+        linkCount: links.length,
+        hasInstitute: links.some(function(a){ return (a.getAttribute('href')||'').indexOf('#/institute')>=0; }),
+        hasAbout: links.some(function(a){ return (a.getAttribute('href')||'').indexOf('#/about')>=0; }),
+        hasOfficial: links.some(function(a){ return (a.getAttribute('href')||'').indexOf('caa-ins.org')>=0 && a.getAttribute('target')==='_blank'; })
+      };
+    })()`);
+    console.log('footer check:', JSON.stringify(r1, null, 2));
+
+    await evl(`window.scrollTo(0, document.body.scrollHeight)`);
+    await sleep(800);
+    const shot = await send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync(path.join(OUT, 'institute-footer-desktop.png'), Buffer.from(shot.data, 'base64'));
+    console.log('saved: docs/screenshots/institute-footer-desktop.png');
+
     try { ws.close(); } catch (e) {}
   } catch (e) {
     console.log('ERROR:', e.message);
+    process.exitCode = 1;
   } finally {
     try { chrome.kill(); } catch (e) {}
     await sleep(300);

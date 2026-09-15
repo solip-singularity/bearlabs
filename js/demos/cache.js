@@ -310,12 +310,14 @@ DemoKit.register('cache', function (root, kit) {
     } else {
       ctx.fillStyle = P.muted;
       ctx.font = '12px ' + kit.font;
+      ctx.textAlign = 'left';
       ctx.fillText('准备就绪：点击「▶ 播放」或「下一步 ▶」开始访问。', 24, lineY + 17);
     }
 
     /* 缓存状态 */
     ctx.fillStyle = P.ink;
     ctx.font = '12px ' + kit.font;
+    ctx.textAlign = 'left';
     ctx.fillText('缓存状态（' + (f.G === 1 ? '共 8 行' : '共 ' + f.sets + ' 组 × ' + f.G + ' 路') + '）：', 24, 136);
     const rowsTop = 144;
     const regionH = 190;
@@ -413,6 +415,7 @@ DemoKit.register('cache', function (root, kit) {
     drawChip(ctx, 24, 386, 92, 30, chipInfo[1], chipInfo[2], chipInfo[0], chipInfo[3], 13);
     ctx.fillStyle = P.ink;
     ctx.font = '12px ' + kit.font;
+    ctx.textAlign = 'left';
     const pct = f.done ? Math.round((f.hits / f.done) * 100) : 0;
     ctx.fillText('累计：命中 ' + f.hits + ' 次 · 缺失 ' + f.misses + ' 次 · 命中率 ' + pct + '%（已访问 ' + f.done + ' / ' + f.seq.length + ' 次）', 132, 405);
   }

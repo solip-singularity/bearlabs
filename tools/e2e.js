@@ -170,21 +170,25 @@ async function main() {
     await goto('#/demo/sorting');
     await waitFor("document.querySelector('.dk-shell') && document.querySelector('.dk-bar')", 20000, '演示页');
     await sleep(800);
-    const demoInfo = await evl(`(function(){
+    const demoInfo = await evl(`(async function(){
       var bar=document.querySelector('.dk-bar');
-      var badge=bar.querySelector('.chip');
+      function snap(){ var cs=[].slice.call(bar.querySelectorAll('.chip,.dk-badge')).map(function(c){return c.textContent;}).join('|'); var n=document.querySelector('.dk-narr'); return cs+'::'+(n?n.textContent.trim():''); }
       var nextBtn=[].slice.call(bar.querySelectorAll('button')).find(function(b){return b.textContent.indexOf('下一步')>=0;});
-      if(!nextBtn) return {err:'no next btn'};
-      nextBtn.click();
-      var after=document.querySelector('.dk-bar .chip').textContent;
-      var narr=document.querySelector('.dk-narr');
-      var narrText=narr?narr.textContent.slice(0,80):'';
       var resetBtn=[].slice.call(bar.querySelectorAll('button')).find(function(b){return b.textContent.indexOf('重置')>=0;});
+      if(!nextBtn || !resetBtn) return {err:'no btns'};
       resetBtn.click();
-      var afterReset=document.querySelector('.dk-bar .chip').textContent;
-      return {badge:badge?badge.textContent:'', afterNext:after, afterReset:afterReset, narrShown: narr? !narr.classList.contains('hidden'):false, narrText:narrText};
+      await new Promise(function(res){setTimeout(res,400);});
+      var s0=snap();
+      nextBtn.click();
+      await new Promise(function(res){setTimeout(res,600);});
+      var s1=snap();
+      resetBtn.click();
+      await new Promise(function(res){setTimeout(res,300);});
+      var s2=snap();
+      var narr=document.querySelector('.dk-narr');
+      return { changed: s1!==s0, restored: s2===s0, narrShown: !!narr, s0:s0.slice(0,70), s1:s1.slice(0,70) };
     })()`);
-    check('演示：单步前进→旁白显示→重置', !!(demoInfo && demoInfo.afterNext && demoInfo.afterNext !== demoInfo.badge && demoInfo.afterReset === demoInfo.badge && demoInfo.narrShown), JSON.stringify(demoInfo));
+    check('演示：单步前进→旁白显示→重置', !!(demoInfo && demoInfo.changed && demoInfo.restored && demoInfo.narrShown), JSON.stringify(demoInfo));
 
     /* ── 10. 搜索 ── */
     await goto('#/');
@@ -199,11 +203,51 @@ async function main() {
     const searchCount = await evl("document.querySelectorAll('#search-results a').length");
     check('站内搜索返回结果', !!search && searchCount >= 1, 'results=' + searchCount);
 
-    /* ── 11. JS 运行错误（应为空） ── */
+    /* ── 11. 品牌·作者信息（v1.1 更新） ── */
+    await goto('#/about');
+    await waitFor("document.querySelector('.author-card')", 12000, '作者信息卡');
+    const brandInfo = await evl(`(function(){
+      var title = document.title;
+      var foot = document.querySelector('.sitefoot').textContent;
+      var mail = document.querySelector('.sitefoot .mailto');
+      var avatar = document.querySelector('.author-avatar');
+      var name = document.querySelector('.author-name');
+      var aMail = document.querySelector('.author-mail');
+      return {
+        title: title, footHasCn: foot.indexOf('贝尔实验室') >= 0, footHasEn: foot.indexOf('BEARLABS') >= 0,
+        footMail: mail ? (mail.getAttribute('href') || '') : 'none',
+        avatarOk: !!avatar && avatar.naturalWidth > 0,
+        name: name ? name.textContent : '',
+        aMailHref: aMail ? aMail.getAttribute('href') : '', aMailText: aMail ? aMail.textContent : ''
+      };
+    })()`);
+    check('更名与页脚品牌（贝尔实验室 + BEARLABS + 邮箱组装）', !!(brandInfo && brandInfo.footHasCn && brandInfo.footHasEn && /^mailto:2451101123@qq\.com$/.test(brandInfo.footMail)), JSON.stringify(brandInfo).slice(0,220));
+    check('作者信息模块（姓名/邮箱/头像加载）', !!(brandInfo && brandInfo.name === 'Solips-Singularitat' && brandInfo.aMailHref === 'mailto:2451101123@qq.com' && brandInfo.aMailText === '2451101123@qq.com' && brandInfo.avatarOk), JSON.stringify(brandInfo).slice(0,220));
+    check('页面标题含品牌英文名', !!(brandInfo && brandInfo.title.indexOf('Bearlabs') >= 0), brandInfo && brandInfo.title);
+
+    /* ── 12. 研究所专栏（v1.1 更新） ── */
+    await goto('#/institute');
+    await waitFor("document.querySelector('.institute-logo')", 12000, '研究所专栏');
+    const instInfo = await evl(`(function(){
+      var logo = document.querySelector('.institute-logo');
+      var link = [].slice.call(document.querySelectorAll('.view-institute a')).find(function(a){return (a.getAttribute('href')||'').indexOf('caa-ins.org')>=0;});
+      var prose = document.querySelector('.view-institute .prose');
+      return {
+        logoOk: !!logo && logo.naturalWidth > 0,
+        linkHref: link ? link.getAttribute('href') : 'none',
+        linkTarget: link ? link.getAttribute('target') : '',
+        linkRel: link ? (link.getAttribute('rel')||'') : '',
+        bodyLen: prose ? prose.textContent.length : 0
+      };
+    })()`);
+    check('研究所专栏：内容与图标加载', !!(instInfo && instInfo.logoOk && instInfo.bodyLen > 60), JSON.stringify(instInfo).slice(0,220));
+    check('研究所官网链接（新标签+安全属性）', !!(instInfo && instInfo.linkHref === 'https://www.caa-ins.org/' && instInfo.linkTarget === '_blank' && /noopener/.test(instInfo.linkRel)), JSON.stringify(instInfo).slice(0,220));
+
+    /* ── 13. JS 运行错误（应为空） ── */
     const critErrors = jsErrors.filter((e) => !/favicon|net::ERR|404/i.test(e));
     check('页面无 JavaScript 异常', critErrors.length === 0, critErrors.slice(0, 5).join(' | '));
 
-    /* ── 12. 导出功能（CSV 生成） ── */
+    /* ── 14. 导出功能（CSV 生成） ── */
     const csv = await evl("(function(){ try { return Store.exportCSV_exercises().split('\\r\\n').length; } catch(e) { return 'ERR:'+e.message; } })()");
     check('答题记录可导出 CSV', typeof csv === 'number' && csv >= 2, 'csvLines=' + csv);
 

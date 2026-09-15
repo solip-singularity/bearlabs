@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>计算机知识学习站 · 从二进制到人工智能</title>
-  <meta name="description" content="交互式计算机知识学习站：9 门课程、100 讲，专业版与小孩版双讲解，三级难度习题与完整解答，重点知识配可动手交互动画。" />
+  <title>贝尔实验室 · 计算机知识学习站（从入门到入坟）</title>
+  <meta name="description" content="贝尔实验室（Bearlabs）· 计算机知识学习站：9 门课程、100 讲，专业版与小孩版双讲解，三级难度习题与完整解答，重点知识配可动手交互动画。从入门到入坟。" />
+  <meta name="application-name" content="Bearlabs" />
   <meta name="theme-color" content="#FAF7F2" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2346796B'/%3E%3Crect x='9' y='9' width='14' height='14' rx='3' fill='none' stroke='white' stroke-width='2'/%3E%3Crect x='13.5' y='13.5' width='5' height='5' rx='1.2' fill='white'/%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2346796B'/%3E%3Ccircle cx='10.8' cy='11.2' r='2.6' fill='none' stroke='white' stroke-width='1.9'/%3E%3Ccircle cx='21.2' cy='11.2' r='2.6' fill='none' stroke='white' stroke-width='1.9'/%3E%3Ccircle cx='16' cy='17.5' r='6.2' fill='none' stroke='white' stroke-width='1.9'/%3E%3Ccircle cx='13.8' cy='16.6' r='0.9' fill='white'/%3E%3Ccircle cx='18.2' cy='16.6' r='0.9' fill='white'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="css/site.css" />
 </head>
 <body data-route="loading">
@@ -15,11 +16,11 @@
 
   <header class="topbar">
     <div class="container topbar-inner">
-      <a class="brand" href="#/">
+      <a class="brand" href="#/" title="Bearlabs · 从入门到入坟">
         <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8"><rect x="6" y="6" width="12" height="12" rx="3"/><rect x="10" y="10" width="4" height="4" rx="1" fill="#FFFFFF" stroke="none"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.7"><circle cx="12" cy="13.6" r="5.4"/><circle cx="7.6" cy="7.9" r="2.2"/><circle cx="16.4" cy="7.9" r="2.2"/><circle cx="10.1" cy="12.9" r="0.85" fill="#FFFFFF" stroke="none"/><circle cx="13.9" cy="12.9" r="0.85" fill="#FFFFFF" stroke="none"/><path d="M10.6 15.6c.9.8 1.9.8 2.8 0"/></svg>
         </span>
-        <span>计算机知识学习站</span>
+        <span class="brand-text">贝尔实验室 <em>· 计算机知识学习站</em></span>
       </a>
       <nav class="topnav" id="topnav" aria-label="主导航"></nav>
       <div class="topbar-tools">
@@ -49,9 +50,10 @@
   <footer class="sitefoot">
     <div class="container">
       <div class="foot-grid">
-        <div>
-          <div class="foot-title">计算机知识学习站</div>
-          <p style="margin:0; max-width: 46ch;">从二进制到人工智能：9 门课程、双讲解、三级习题、可动手交互演示。为大学生、研究生与零基础学习者共同准备。</p>
+        <div class="foot-brand">
+          <div class="foot-title foot-lockup">贝尔实验室 <span class="foot-en">BEARLABS</span></div>
+          <p class="foot-line">计算机知识学习站（从入门到入坟）：9 门课程、双讲解、三级习题、可动手交互演示。为大学生、研究生与零基础学习者共同准备。</p>
+          <p class="foot-contact">如发现问题，请联系作者邮箱：<a class="mailto" data-user="2451101123" data-domain="qq.com" href="#/about">联系作者</a></p>
         </div>
         <div>
           <div class="foot-title">快速链接</div>
@@ -64,17 +66,25 @@
           </ul>
         </div>
         <div>
+          <div class="foot-title">作者与研究所</div>
+          <ul>
+            <li class="foot-with-ico"><img src="assets/author/avatar-mini.jpg" alt="作者头像：Solips-Singularitat" width="20" height="20" /><a href="#/about">作者信息</a></li>
+            <li class="foot-with-ico"><img src="assets/institute/caa-ins-icon.jpg" alt="中国美术学院网络社会研究所（INS）图标" width="20" height="20" /><a href="#/institute">网络社会研究所专栏</a></li>
+            <li><a href="https://www.caa-ins.org/" target="_blank" rel="noopener noreferrer">访问研究所官网 ↗</a></li>
+          </ul>
+        </div>
+        <div>
           <div class="foot-title">文档与说明</div>
           <ul>
             <li><a href="docs/handoff.html">使用与交接说明</a></li>
             <li><a href="docs/AUTHORING-GUIDE.md">内容维护指南</a></li>
-            <li><a href="#/about">关于本站</a></li>
+            <li><a href="docs/self-check-report.html">自检报告</a></li>
           </ul>
         </div>
       </div>
       <hr class="divider" />
       <div class="row-between">
-        <span class="meta">© 2026 计算机知识学习站 · 内容为原创讲解，欢迎学习使用</span>
+        <span class="meta">© 2026 贝尔实验室 Bearlabs · 内容为原创讲解，欢迎学习使用</span>
         <span class="meta">数据默认保存在本机浏览器 · 可导出备份</span>
       </div>
     </div>

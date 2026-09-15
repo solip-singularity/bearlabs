@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>交付自检报告 · 计算机知识学习站</title>
+<title>交付自检报告 · 贝尔实验室 计算机知识学习站</title>
 <style>
   :root{
     --bg:#FAF7F2; --surface:#FFFFFF; --fg:#26292E; --muted:#676B73;
@@ -49,7 +49,7 @@
 <div class="wrap">
 
   <p class="eyebrow">Self-check · 交付自检报告</p>
-  <h1>计算机知识学习站 · 交付自检报告</h1>
+  <h1>贝尔实验室 · 计算机知识学习站 · 交付自检报告</h1>
   <p class="lead">按目标验收标准逐项核对：结论、证据、修复清单与复检结果。全部由可复现的脚本与实测截图作证；本报告即最终自检记录。</p>
   <p class="meta">生成时间：2026-09-16 · 交付目录：<code>DELIVERY/cs-learn-site/</code> · 运行地址：http://127.0.0.1:8642/ （本地服务）</p>
 
@@ -169,6 +169,23 @@
     <tr><td>交接与维护</td><td><code>README.md</code>、<code>docs/handoff.html</code>、<code>docs/AUTHORING-GUIDE.md</code>、<code>docs/demo-spec.md</code>、<code>docs/deploy.md</code>、<code>deploy/</code></td></tr>
     <tr><td>多端实测截图（19 张）</td><td><code>docs/screenshots/</code></td></tr>
   </table>
+
+  <h2>七、更新记录 v1.1 · 更名与作者/研究所模块（2026-09-16）</h2>
+  <p>在既有站点上完成增量更新（改造强度：Refinement——保留原结构与视觉体系，新增品牌、作者与研究所模块）。本次更新按 10 条验收标准逐项自检如下：</p>
+  <table>
+    <tr><th style="width:30%">验收标准</th><th style="width:9%">结论</th><th>证据</th></tr>
+    <tr><td>站点更名与品牌统一</td><td class="ok">通过</td><td>导航/页脚/浏览器标签/元信息一致出现「贝尔实验室 · 计算机知识学习站（从入门到入坟）」与 Bearlabs；端到端「更名与页脚品牌」「页面标题含品牌英文名」通过；全站扫描无旧站名残留。</td></tr>
+    <tr><td>作者信息模块完整可访问</td><td class="ok">通过</td><td>关于页（#/about）作者卡含姓名 Solips-Singularitat、邮箱、头像；首页 1 次点击可达（导航「关于」）；端到端「作者信息模块」通过。</td></tr>
+    <tr><td>作者头像正确显示</td><td class="ok">通过</td><td>400×400（21KB）+ 96px 迷你版；圆形显示、带描边与间距、无变形；识图终检「居中/留白 = 是/是」；alt=「作者头像：Solips-Singularitat」。</td></tr>
+    <tr><td>联系邮箱一键直达</td><td class="ok">通过</td><td>mailto:2451101123@qq.com，源码分片组装（轻量反爬）、渲染后可选中复制；端到端验证 href 与可见文本一致。</td></tr>
+    <tr><td>研究所专栏独立成篇</td><td class="ok">通过</td><td>独立页面 #/institute：客观介绍（年会 / 讲座 / 黑客松 / 出版与译介）+ 官网按钮；端到端「内容与图标加载」「新标签+安全属性」通过。</td></tr>
+    <tr><td>网研所图标规范应用</td><td class="ok">通过</td><td>图标用于专栏页、关于页入口卡与页脚；页脚专项检查：2 个图标均加载（naturalWidth&gt;0）、不变形、alt 完整。</td></tr>
+    <tr><td>资源与引用台账可查</td><td class="ok">通过</td><td>docs/asset-ledger.md：文件 / 路径 / 引用位置 / 替换步骤 / 来源备注；换图无需改代码。</td></tr>
+    <tr><td>装饰内容协调不干扰</td><td class="ok">通过</td><td>小熊徽标（SVG）、品牌行与细线装饰遵循 Build 式留白与克制；无自动播放、无滚动劫持；正文行宽/对比度沿用既有规范。</td></tr>
+    <tr><td>多端适配与链接资源无异常</td><td class="ok">通过</td><td>多宽度专项检查 20/20（1920/1440/414/375 × 5 页，零横向溢出）；截图 26 张（8 张移动仿真）全部有效；冒烟 13/13、端到端 17/17 全绿。</td></tr>
+    <tr><td>交付与交接清晰</td><td class="ok">通过</td><td>README 新增「作者与研究所 / 图片资源与换图 / 更新记录」；交接文档同步更新；本报告即更新凭证。</td></tr>
+  </table>
+  <p class="meta">本次更新涉及文件：index.html、css/site.css、js/app.js、js/views.js、server/server.js、package.json、readme.md、docs/handoff.html、docs/self-check-report.html、docs/asset-ledger.md（新增）、assets/（新增：作者头像与图标及其过程稿）。</p>
 
   <p class="meta" style="margin-top:36px">本报告由交付方自动生成并经主线逐项复核；所有数字均来自本次交付目录内的可复现脚本输出。</p>
 </div>

@@ -1,5 +1,5 @@
 /* ============================================================================
- * 计算机知识学习站 · site.css
+ * 贝尔实验室 · 计算机知识学习站 · site.css
  * 设计体系：Takram 柔和科技（暖纸底色 / 深青主色 / 砂金辅色 / 圆角柔影）
  * 基线：web-prototype 骨架 token 体系扩展为多视图应用
  * font-stack: CJK 系统栈（刻意选择：无品牌库、离线优先、跨端可靠性；
@@ -709,3 +709,42 @@ kbd {
 .scroll-top { position: fixed; right: 20px; bottom: 24px; z-index: 60; opacity: 0; pointer-events: none; transition: opacity var(--motion-base) var(--ease-standard); }
 .scroll-top.show { opacity: 1; pointer-events: auto; }
 @media (max-width: 640px) { .scroll-top { display: none; } }
+
+/* ── 24. 品牌与作者/研究所（v1.1 更新，Build 式留白与克制） ─────── */
+.brand-text em { font-style: normal; color: var(--muted); font-weight: 500; font-size: 13.5px; margin-left: 2px; }
+@media (max-width: 700px) { .brand-text em { display: none; } }
+.brand-line { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.14em; color: var(--muted); margin: 0 0 12px; }
+
+.foot-brand .foot-lockup { display: flex; gap: 10px; align-items: baseline; }
+.foot-en { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em; color: var(--accent-strong); }
+.foot-line { margin: 0 0 10px; max-width: 46ch; }
+.foot-contact { margin: 0; }
+.foot-contact .mailto { font-family: var(--font-mono); font-size: 13px; }
+.foot-with-ico { display: flex; align-items: center; gap: 8px; }
+.foot-with-ico img { border-radius: 6px; object-fit: cover; flex: none; }
+
+.author-card { display: flex; gap: 22px; align-items: center; margin-top: 26px; padding: 24px 26px; }
+@media (max-width: 560px) { .author-card { flex-direction: column; align-items: flex-start; } }
+.author-avatar { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; object-position: 50% 30%; flex: none; border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--border), var(--shadow-soft); background: var(--bg-deep); }
+.author-name { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+.author-role { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.author-mailrow { margin-top: 12px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.author-mail { font-family: var(--font-mono); font-size: 14px; }
+.author-note { margin: 8px 0 0; }
+
+.institute-teaser { display: flex; gap: 16px; align-items: center; margin-top: 16px; padding: 20px 22px; }
+@media (max-width: 560px) { .institute-teaser { flex-direction: column; align-items: flex-start; } }
+.institute-icon { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; flex: none; border: 1px solid var(--border); }
+.institute-teaser-body { min-width: 0; }
+.institute-name { font-weight: 600; font-size: 15px; }
+.institute-teaser-body p { margin: 6px 0 10px; }
+
+.institute-head { display: flex; gap: 20px; align-items: center; margin-top: 8px; }
+@media (max-width: 560px) { .institute-head { flex-direction: column; align-items: flex-start; } }
+.institute-head-body { min-width: 0; }
+.institute-head h1 { font-size: var(--fs-h2); }
+.institute-logo { width: 72px; height: 72px; border-radius: 14px; object-fit: cover; flex: none; border: 1px solid var(--border); box-shadow: var(--shadow-soft); }
+.institute-en { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.05em; color: var(--muted); margin: 8px 0 0; max-width: 60ch; }
+.institute-links { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
+.institute-cta { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.institute-cta p { margin: 0; }

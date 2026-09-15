@@ -14,6 +14,7 @@ var App = (function () {
     { href: '#/demos', label: '演示实验室', match: (r) => r.name === 'demos' || r.name === 'demo' },
     { href: '#/practice', label: '练习中心', match: (r) => r.name === 'practice' },
     { href: '#/dashboard', label: '我的进度', match: (r) => ['dashboard', 'admin'].indexOf(r.name) >= 0 },
+    { href: '#/about', label: '关于', match: (r) => ['about', 'institute'].indexOf(r.name) >= 0 },
   ];
 
   function parseRoute() {
@@ -24,7 +25,7 @@ var App = (function () {
     const seg = path.split('/').filter(Boolean);
     const base = { anchor };
     if (!seg.length) return Object.assign(base, { name: 'home' });
-    const simple = ['paths', 'courses', 'demos', 'practice', 'dashboard', 'admin', 'about'];
+    const simple = ['paths', 'courses', 'demos', 'practice', 'dashboard', 'admin', 'about', 'institute'];
     if (simple.indexOf(seg[0]) >= 0) return Object.assign(base, { name: seg[0] });
     if (seg[0] === 'course' && seg[1]) return Object.assign(base, { name: 'course', id: seg[1] });
     if (seg[0] === 'chapter' && seg[1] && seg[2]) return Object.assign(base, { name: 'chapter', courseId: seg[1], chapterId: seg[2] });
@@ -69,6 +70,7 @@ var App = (function () {
         case 'dashboard': view = await Views.dashboard(); break;
         case 'admin': view = await Views.admin(); break;
         case 'about': view = await Views.about(); break;
+        case 'institute': view = await Views.institute(); break;
         default: view = Views.notFound(); break;
       }
     } catch (e) {
@@ -77,7 +79,7 @@ var App = (function () {
     if (token !== renderToken) return;
     app.innerHTML = '';
     app.appendChild(view.el);
-    document.title = (view.title && route.name !== 'home') ? (view.title + ' · 计算机知识学习站') : '计算机知识学习站 · 从二进制到人工智能';
+    document.title = (view.title && route.name !== 'home') ? (view.title + ' · 贝尔实验室 Bearlabs') : '贝尔实验室 · 计算机知识学习站（从入门到入坟）';
     if (view.onMount) { try { view.onMount(view.el); } catch (e) { if (window.console) console.error(e); } }
     current = { cleanup: view.cleanup };
     if (route.anchor === 'exercises' || route.anchor === 'demos') {
@@ -152,6 +154,13 @@ var App = (function () {
   /* ── 启动 ─────────────────────────────────────────────────────── */
   function boot() {
     renderNav({ name: 'home' });
+    /* 邮箱链接组装（来源中的地址分片，渲染时拼合；保持不变可见与可复制） */
+    $$('[data-user][data-domain]').forEach((a) => {
+      const em = a.getAttribute('data-user') + '@' + a.getAttribute('data-domain');
+      a.setAttribute('href', 'mailto:' + em);
+      a.textContent = em;
+      a.setAttribute('title', '点击打开邮件客户端给作者写信');
+    });
     setupSearch();
     const menuBtn = $('#menu-btn');
     const mnav = $('#mobilenav');

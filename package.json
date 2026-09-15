@@ -1,8 +1,8 @@
 {
-  "name": "cs-learn-site",
+  "name": "bearlabs",
   "version": "1.0.0",
   "private": true,
-  "description": "计算机知识学习站：交互式计算机课程学习应用（静态前端 + 可选 Node 同步服务，零第三方依赖）",
+  "description": "贝尔实验室（Bearlabs）· 计算机知识学习站：交互式计算机课程学习应用（静态前端 + 可选 Node 同步服务，零第三方依赖）",
   "scripts": {
     "start": "node server/server.js",
     "validate": "node tools/validate-content.js --all",

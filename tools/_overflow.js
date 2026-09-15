@@ -1,22 +1,21 @@
 #!/usr/bin/env node
-/* _mobshot.js — 用 CDP 移动仿真（390x844, dsf2, mobile:true）重拍手机版截图
- * 覆盖 docs/screenshots/<page>-mobile.png（home/chapter/dashboard/practice/demos/demo-sorting）
+/* _overflow.js — 多宽度横向溢出检查（1920 / 1440 / 414 / 375）
+ * 对首页、关于页、研究所专栏、章节页、进度面板逐一检查 scrollWidth 与越界元素。
  */
 'use strict';
 const { spawn } = require('child_process');
-const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
 const CHROME = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-const PORT = 9983;
+const PORT = 9991;
 const BASE = 'http://127.0.0.1:8642';
-const OUT = path.resolve(__dirname, '..', 'docs', 'screenshots');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
-  const profile = path.join(os.tmpdir(), 'cslearn-ms-' + Date.now());
+  const profile = path.join(os.tmpdir(), 'cslearn-ovf-' + Date.now());
   const chrome = spawn(CHROME, ['--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check', '--user-data-dir=' + profile, '--remote-debugging-port=' + PORT, 'about:blank'], { stdio: 'ignore' });
+  let bad = 0;
   try {
     let ok = false;
     for (let i = 0; i < 60; i++) { try { const r = await fetch('http://127.0.0.1:' + PORT + '/json/version'); if (r.ok) { ok = true; break; } } catch (e) {} await sleep(250); }
@@ -29,25 +28,34 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     const send = (method, params) => new Promise((resolve, reject) => { const mid = ++id; pend.set(mid, { resolve, reject }); ws.send(JSON.stringify({ id: mid, method, params: params || {} })); });
     const evl = async (expr) => { const r = await send('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true }); return r.result ? r.result.value : undefined; };
     await send('Runtime.enable');
-    await send('Page.enable');
-    await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
 
-    const pages = [['#/', 'home'], ['#/chapter/oop/oop-01', 'chapter'], ['#/about', 'about'], ['#/institute', 'institute'], ['#/dashboard', 'dashboard'], ['#/practice', 'practice'], ['#/demos', 'demos'], ['#/demo/sorting', 'demo-sorting']];
-    for (const [hash, name] of pages) {
-      await evl(`location.hash = '${hash}'`);
-      await sleep(2400);
-      const shot = await send('Page.captureScreenshot', { format: 'png' });
-      const file = path.join(OUT, name + '-mobile.png');
-      fs.writeFileSync(file, Buffer.from(shot.data, 'base64'));
-      const size = fs.statSync(file).size;
-      console.log('OK ' + name + '-mobile.png  ' + Math.round(size / 1024) + 'KB');
+    const widths = [1920, 1440, 414, 375];
+    const pages = [['#/', 'home'], ['#/about', 'about'], ['#/institute', 'institute'], ['#/chapter/oop/oop-01', 'chapter'], ['#/dashboard', 'dashboard']];
+    for (const w of widths) {
+      await send('Emulation.setDeviceMetricsOverride', { width: w, height: 900, deviceScaleFactor: 1, mobile: w < 500 });
+      for (const [hash, name] of pages) {
+        await evl(`location.hash = '${hash}'`);
+        await sleep(1600);
+        const r = await evl(`(function(){
+          var iw = window.innerWidth; var sw = document.documentElement.scrollWidth;
+          var off = [].slice.call(document.querySelectorAll('body *')).filter(function(el){
+            var b = el.getBoundingClientRect(); return b.right > iw + 1 && b.width > 0;
+          }).slice(0, 5).map(function(el){ var b = el.getBoundingClientRect(); return el.tagName.toLowerCase() + '.' + String(el.className||'').split(' ').slice(0,2).join('.') + ' r=' + Math.round(b.right); });
+          return { iw: iw, sw: sw, off: off };
+        })()`);
+        const overflow = r.sw > r.iw + 1;
+        if (overflow || (r.off && r.off.length)) { bad++; console.log('OVERFLOW @' + w + ' ' + name + ' -> ' + JSON.stringify(r)); }
+        else console.log('OK  @' + w + ' ' + name + ' (scrollW=' + r.sw + ')');
+      }
     }
     try { ws.close(); } catch (e) {}
   } catch (e) {
-    console.log('ERROR:', e.message);
+    bad++; console.log('ERROR:', e.message);
   } finally {
     try { chrome.kill(); } catch (e) {}
     await sleep(300);
-    try { fs.rmSync(profile, { recursive: true, force: true }); } catch (e) {}
+    try { require('fs').rmSync(profile, { recursive: true, force: true }); } catch (e) {}
   }
+  console.log(bad ? ('存在 ' + bad + ' 处异常') : '全部宽度无横向溢出');
+  process.exit(bad ? 1 : 0);
 })();

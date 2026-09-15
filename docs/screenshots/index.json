@@ -1,114 +1,150 @@
 {
   "base": "http://127.0.0.1:8642",
-  "at": 1789493924508,
+  "at": 1789495890910,
   "list": [
     {
       "page": "home",
       "vp": "desktop",
       "file": "docs\\screenshots\\home-desktop.png",
-      "size": 86591
+      "size": 82747
     },
     {
       "page": "home",
       "vp": "tablet",
       "file": "docs\\screenshots\\home-tablet.png",
-      "size": 72415
+      "size": 74291
     },
     {
       "page": "home",
       "vp": "mobile",
       "file": "docs\\screenshots\\home-mobile.png",
-      "size": 163416
+      "size": 175067
     },
     {
       "page": "courses",
       "vp": "desktop",
       "file": "docs\\screenshots\\courses-desktop.png",
-      "size": 121859
+      "size": 125492
     },
     {
       "page": "courses",
       "vp": "tablet",
       "file": "docs\\screenshots\\courses-tablet.png",
-      "size": 103253
+      "size": 103771
     },
     {
       "page": "courses",
       "vp": "mobile",
       "file": "docs\\screenshots\\courses-mobile.png",
-      "size": 43377
+      "size": 43506
     },
     {
       "page": "chapter",
       "vp": "desktop",
       "file": "docs\\screenshots\\chapter-desktop.png",
-      "size": 139725
+      "size": 140253
     },
     {
       "page": "chapter",
       "vp": "tablet",
       "file": "docs\\screenshots\\chapter-tablet.png",
-      "size": 80924
+      "size": 117319
     },
     {
       "page": "chapter",
       "vp": "mobile",
       "file": "docs\\screenshots\\chapter-mobile.png",
-      "size": 196632
+      "size": 205483
+    },
+    {
+      "page": "about",
+      "vp": "desktop",
+      "file": "docs\\screenshots\\about-desktop.png",
+      "size": 115639
+    },
+    {
+      "page": "about",
+      "vp": "tablet",
+      "file": "docs\\screenshots\\about-tablet.png",
+      "size": 127211
+    },
+    {
+      "page": "about",
+      "vp": "mobile",
+      "file": "docs\\screenshots\\about-mobile.png",
+      "size": 209328
+    },
+    {
+      "page": "institute",
+      "vp": "desktop",
+      "file": "docs\\screenshots\\institute-desktop.png",
+      "size": 107003
+    },
+    {
+      "page": "institute",
+      "vp": "tablet",
+      "file": "docs\\screenshots\\institute-tablet.png",
+      "size": 108663
+    },
+    {
+      "page": "institute",
+      "vp": "mobile",
+      "file": "docs\\screenshots\\institute-mobile.png",
+      "size": 212526
     },
     {
       "page": "demo-sorting",
       "vp": "desktop",
       "file": "docs\\screenshots\\demo-sorting-desktop.png",
-      "size": 69229
+      "size": 70370
     },
     {
       "page": "demo-sorting",
       "vp": "tablet",
       "file": "docs\\screenshots\\demo-sorting-tablet.png",
-      "size": 79406
+      "size": 79911
     },
     {
       "page": "demo-sorting",
       "vp": "mobile",
       "file": "docs\\screenshots\\demo-sorting-mobile.png",
-      "size": 137428
+      "size": 138138
     },
     {
       "page": "practice",
       "vp": "desktop",
       "file": "docs\\screenshots\\practice-desktop.png",
-      "size": 56839
+      "size": 69096
     },
     {
       "page": "practice",
       "vp": "tablet",
       "file": "docs\\screenshots\\practice-tablet.png",
-      "size": 51214
+      "size": 63035
     },
     {
       "page": "practice",
       "vp": "mobile",
       "file": "docs\\screenshots\\practice-mobile.png",
-      "size": 134304
+      "size": 152073
     },
     {
       "page": "dashboard",
       "vp": "desktop",
       "file": "docs\\screenshots\\dashboard-desktop.png",
-      "size": 53063
+      "size": 53767
     },
     {
       "page": "dashboard",
       "vp": "tablet",
       "file": "docs\\screenshots\\dashboard-tablet.png",
-      "size": 51398
+      "size": 51949
     },
     {
       "page": "dashboard",
       "vp": "mobile",
       "file": "docs\\screenshots\\dashboard-mobile.png",
-      "size": 73979
+      "size": 74981
     }
   ]
 }

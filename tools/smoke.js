@@ -52,7 +52,7 @@ async function main() {
     await check('首页返回 200 且包含站点标识', async () => {
       const r = await fetch(BASE + '/');
       const t = await r.text();
-      if (!r.ok || !t.includes('计算机知识学习站')) throw new Error('HTTP ' + r.status);
+      if (!r.ok || !t.includes('贝尔实验室') || !t.includes('BEARLABS')) throw new Error('HTTP ' + r.status + ' / 品牌文案缺失');
     });
     await check('关键静态资源可访问', async () => {
       const rs = await Promise.all(['/css/site.css', '/js/app.js', '/js/views.js', '/js/store.js', '/js/demokit.js', '/js/util.js'].map((u) => fetch(BASE + u)));

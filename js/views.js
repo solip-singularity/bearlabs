@@ -283,6 +283,7 @@ var Views = (function () {
     const hc = el('div', { class: 'container hero-split' });
     const left = el('div');
     left.appendChild(el('p', { class: 'eyebrow', text: 'COMPUTER SCIENCE · 交互式学习' }));
+    left.appendChild(el('p', { class: 'brand-line', text: '贝尔实验室（Bearlabs）· 计算机知识学习站 · 从入门到入坟' }));
     left.appendChild(el('h1', { text: '从 0 和 1，到会思考的机器。' }));
     left.appendChild(el('p', { class: 'lead', text: '9 门课程、100 讲计算机知识：每讲都有「专业版 + 小孩版」双讲解、三档难度习题与完整解答；进程调度、TCP 握手、指针、排序、多态……全都能亲手玩着学。' }));
     const cta = el('div', { class: 'hero-cta' });
@@ -387,7 +388,7 @@ var Views = (function () {
     ]));
     feat.appendChild(fc);
     elRoot.appendChild(feat);
-    return { el: elRoot, title: '计算机知识学习站' };
+    return { el: elRoot, title: '贝尔实验室' };
   }
 
   /* ══ 学习路径 ═════════════════════════════════════════════════════ */
@@ -1142,10 +1143,31 @@ var Views = (function () {
   async function about() {
     const root = el('div', { class: 'view' });
     const c = el('div', { class: 'container container-narrow' });
-    c.appendChild(el('h1', { text: '关于本站' }));
+    c.appendChild(el('p', { class: 'eyebrow', text: 'ABOUT · 关于' }));
+    c.appendChild(el('h1', { text: '关于本站与作者' }));
+    /* 作者信息 */
+    const author = el('section', { class: 'card author-card' });
+    author.appendChild(el('img', { class: 'author-avatar', src: 'assets/author/avatar.jpg', alt: '作者头像：Solips-Singularitat', width: 96, height: 96, loading: 'lazy' }));
+    const ab = el('div', { class: 'author-body' });
+    ab.appendChild(el('div', { class: 'author-name', text: 'Solips-Singularitat' }));
+    ab.appendChild(el('div', { class: 'author-role', text: '本站作者 · 内容与开发' }));
+    const mailRow = el('div', { class: 'author-mailrow' }, [el('span', { class: 'small muted', text: '联系邮箱：' }), mailLink('author-mail')]);
+    ab.appendChild(mailRow);
+    ab.appendChild(el('p', { class: 'small muted author-note', text: '如发现问题，请联系作者邮箱。' }));
+    author.appendChild(ab);
+    c.appendChild(author);
+    /* 研究所入口 */
+    const teaser = el('section', { class: 'card institute-teaser' });
+    teaser.appendChild(el('img', { class: 'institute-icon', src: 'assets/institute/caa-ins-icon.jpg', alt: '中国美术学院网络社会研究所（INS）图标', width: 44, height: 44, loading: 'lazy' }));
+    const tb = el('div', { class: 'institute-teaser-body' });
+    tb.appendChild(el('div', { class: 'institute-name', text: '中国美术学院 · 网络社会研究所（INS）' }));
+    tb.appendChild(el('p', { class: 'small muted', text: '本站作者所在的研究所，关注网络社会的理论、艺术与实践。' }));
+    tb.appendChild(el('a', { class: 'btn btn-secondary btn-sm', href: '#/institute', text: '进入研究所专栏 →' }));
+    teaser.appendChild(tb);
+    c.appendChild(teaser);
     const sec1 = el('div', { class: 'prose mt-6' });
     sec1.innerHTML = sanitize(
-      '<p>这是一个为「从零基础到研究生入门」设计的计算机知识学习站：9 门课程、100 讲，每讲都提供<strong>专业版</strong>与<strong>小孩版</strong>两种讲解，配套三级难度习题与完整解答，重点知识点配有可以动手操作的交互演示。</p>' +
+      '<p>这里是「贝尔实验室 · 计算机知识学习站」：为「从零基础到研究生入门」而设计——9 门课程、100 讲，每讲都提供<strong>专业版</strong>与<strong>小孩版</strong>两种讲解，配套三级难度习题与完整解答，重点知识点配有可以动手操作的交互演示。</p>' +
       '<h4>学习方式</h4><ul>' +
       '<li>从<a href="#/paths">学习路径</a>选一条线，按顺序学；或直接进<a href="#/courses">课程目录</a>挑感兴趣的主题。</li>' +
       '<li>每讲读完做一遍习题：选择题、判断题可即时判分；推导、设计、编程题对照完整解答自评。</li>' +
@@ -1159,6 +1181,56 @@ var Views = (function () {
     return { el: root, title: '关于本站' };
   }
 
+  /* ══ 研究所专栏 ═════════════════════════════════════════════ */
+  async function institute() {
+    const root = el('div', { class: 'view view-institute' });
+    const c = el('div', { class: 'container container-narrow' });
+    c.appendChild(el('p', { class: 'eyebrow', text: 'INS · 网络社会研究所专栏' }));
+    const head = el('div', { class: 'institute-head' });
+    head.appendChild(el('img', { class: 'institute-logo', src: 'assets/institute/caa-ins-icon.jpg', alt: '中国美术学院网络社会研究所（INS）图标：紫底白色 iNs 字母', width: 72, height: 72, loading: 'lazy' }));
+    const ht = el('div', { class: 'institute-head-body' });
+    ht.appendChild(el('h1', { text: '中国美术学院 · 网络社会研究所' }));
+    ht.appendChild(el('p', { class: 'institute-en', text: 'Institute of Network Society (INS), School of Intermedia Art, China Academy of Art' }));
+    const links = el('div', { class: 'institute-links' });
+    links.appendChild(el('a', { class: 'btn btn-primary btn-sm', href: 'https://www.caa-ins.org/', target: '_blank', rel: 'noopener noreferrer', text: '访问研究所官网 ↗' }));
+    ht.appendChild(links);
+    head.appendChild(ht);
+    c.appendChild(head);
+
+    const prose = el('div', { class: 'prose mt-8' });
+    prose.innerHTML = sanitize(
+      '<p>中国美术学院网络社会研究所（Institute of Network Society，简称 <strong>INS</strong>）隶属中国美术学院跨媒体艺术学院，长期关注「网络社会」中的理论、艺术与实践问题——从平台与算法，到数字文化与媒介理论。</p>' +
+      '<h4>它在做什么</h4><ul>' +
+      '<li><strong>网络社会年会</strong>：年度学术会议，邀请世界各地的研究者与艺术家，已连续举办多届（最新为第十届）；</li>' +
+      '<li><strong>国际讲座与研究者论坛</strong>：常态化的公开讲座与青年学者论坛；</li>' +
+      '<li><strong>黑客松与工作坊</strong>：如「AIathon 智能松」等活动，推动动手实践与技术思辨；</li>' +
+      '<li><strong>出版与译介</strong>：出版期刊与文集（如 ACID、历届年会论文集），并译介斯蒂格勒（Bernard Stiegler）、洛文克（Geert Lovink）等学者的研究。</li></ul>' +
+      '<p>本站作者来自该研究所；本专栏仅作学习与交流展示，不代表研究所官方发布。</p>'
+    );
+    c.appendChild(prose);
+
+    const cta = el('section', { class: 'card institute-cta' });
+    cta.appendChild(el('div', { class: 'institute-name', text: '访问研究所官网' }));
+    cta.appendChild(el('p', { class: 'small muted', text: '活动预告、年会日程与出版物的完整信息，请前往官网查看。' }));
+    cta.appendChild(el('a', { class: 'btn btn-primary', href: 'https://www.caa-ins.org/', target: '_blank', rel: 'noopener noreferrer', text: '前往 www.caa-ins.org ↗' }));
+    c.appendChild(cta);
+    c.appendChild(el('p', { class: 'meta mt-6', text: '本专栏根据研究所官网公开信息整理，仅供参考；如与官网表述不一致，以官网为准。' }));
+    root.appendChild(c);
+    return { el: root, title: '网络社会研究所' };
+  }
+
+  /* ══ 邮件链接（轻量组装，降低被爬取概率） ═══════════════════ */
+  function mailLink(cls) {
+    const a = el('a', { class: cls || 'mailto', href: '#/about' });
+    const user = '2451101123';
+    const domain = 'qq.com';
+    const em = user + '@' + domain;
+    a.href = 'mailto:' + em;
+    a.textContent = em;
+    a.setAttribute('title', '点击打开邮件客户端给作者写信');
+    return a;
+  }
+
   function notFound() {
     const root = el('div', { class: 'view' });
     const c = el('div', { class: 'container narrow', style: 'text-align:center;padding-block:80px;' });
@@ -1169,6 +1241,6 @@ var Views = (function () {
     return { el: root, title: '页面不存在' };
   }
 
-  return { Data, home, paths, courses, coursePage, chapterView, demosPage, demoPage, practice, dashboard, admin, about, notFound, renderExercise, courseCard, statTile, progressBar, progressRing, difficultyDots, errorBox, loadingBlock, breadcrumbs };
+  return { Data, home, paths, courses, coursePage, chapterView, demosPage, demoPage, practice, dashboard, admin, about, institute, notFound, renderExercise, courseCard, statTile, progressBar, progressRing, difficultyDots, errorBox, loadingBlock, breadcrumbs };
 })();
 window.Views = Views;

@@ -29,6 +29,8 @@ const PAGES = [
   ['home', '#/'],
   ['courses', '#/courses'],
   ['chapter', '#/chapter/oop/oop-01'],
+  ['about', '#/about'],
+  ['institute', '#/institute'],
   ['demo-sorting', '#/demo/sorting'],
   ['practice', '#/practice'],
   ['dashboard', '#/dashboard'],
