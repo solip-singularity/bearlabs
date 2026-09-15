@@ -1,0 +1,235 @@
+{
+  "id": "oop-05",
+  "courseId": "oop",
+  "title": "第5讲 多态：一个命令，多种作答",
+  "objectives": [
+    "说出多态的定义：同一个方法调用，作用在不同实际类型的对象上会产生不同的行为",
+    "解释向上转型的含义与限制：能用父类身份统一管理子类对象，但静态类型语言中不能直接调用子类新增成员",
+    "说清动态绑定发生在运行期：执行哪个版本的方法由对象的实际类型决定，而不是变量的声明类型",
+    "用多态改造带类型判断分支的代码，说明运行时多态在扩展新类型时的价值"
+  ],
+  "keyPoints": [
+    "多态三要素：继承（或实现同一接口）、子类重写方法、用父类类型的引用指向子类对象",
+    "向上转型：把子类对象当作父类类型使用；对象本体不变，静态语言中经由父类引用只能访问父类声明的成员",
+    "动态绑定（运行时绑定）：调用重写方法时，运行期按对象的实际类型分发到对应实现；编译期只按声明类型做检查",
+    "接口思维：调用方只关心「对象会做什么」，不关心「对象是什么」",
+    "运行时多态的价值：新增子类无需修改通用调用逻辑，显著减少类型判断分支"
+  ],
+  "minutes": 50,
+  "difficulty": 3,
+  "prerequisites": ["oop-04 继承：站在巨人的肩膀上"],
+  "keywords": ["多态", "动态绑定", "向上转型", "方法重写", "运行时多态", "接口思维"],
+  "demoRefs": ["oop-model"],
+  "refs": ["《Head First Java》（延伸阅读：继承与多态部分）"],
+  "pro": {
+    "intro": "上一讲我们学会了继承：子类可以复用父类的属性和方法，还能重写（Override）出属于自己的版本。可是重写之后立刻冒出一个新问题——程序里到处写着 a.speak() 这样的调用，编译器怎么知道该执行父类还是子类的版本？如果每个调用点都写一堆类型判断，继承带来的便利就所剩无几了。本讲的主角就是解决这个问题的钥匙：多态（Polymorphism，同一个调用在不同对象上产生不同行为）。学会它，你会第一次体会到「代码写一次，行为随对象变」的优雅。",
+    "sections": [
+      {
+        "heading": "5.1 同一句代码，不同的作答",
+        "html": "<p>动物乐园要开演唱会。按照上一讲的知识，我们让每个动物子类都重写 <code>speak()</code>：</p><pre class='code' data-lang='python'>class Animal:\n    def speak(self):\n        return '……'\n\nclass Dog(Animal):\n    def speak(self):\n        return '汪汪'\n\nclass Cat(Animal):\n    def speak(self):\n        return '喵喵'\n\nfor a in [Dog(), Cat()]:\n    print(a.speak())   # 两次调用，两种结果</pre><p>循环里只有一句 <code>a.speak()</code>，输出却是「汪汪」和「喵喵」两种作答——这就是<strong>多态</strong>（Polymorphism，字面意思是「多种形态」）：同一个方法调用，作用在不同实际类型的对象上，会产生不同的行为。</p><p>请注意它的价值取向：调用方只说「叫一声」，不关心对方是谁、怎么叫。把「叫什么」的决定权交还给每个对象自己，调用代码因此变得极简、极稳。</p>"
+      },
+      {
+        "heading": "5.2 向上转型：用父类的身份管理子类对象",
+        "html": "<p>多态的舞台由三块板搭成：<strong>继承或实现同一接口</strong>、<strong>子类重写方法</strong>，以及本节的<strong>向上转型</strong>（Upcasting，把子类对象当作父类类型来使用）。上面例子里的列表 <code>[Dog(), Cat()]</code> 正是转型思想的体现：我们按「动物」的身份把它们装进同一个列表统一指挥。</p><p>在 Java 这类静态类型语言里，向上转型写得很显式：<code>Animal a = new Dog()</code>。要精确理解它的两条规则：</p><ul><li><strong>编译期看声明类型</strong>：变量 <code>a</code> 的类型是 <code>Animal</code>，所以只能通过它调用 <code>Animal</code> 里声明过的方法；想调用 <code>Dog</code> 新增的 <code>fetch()</code>，编译器直接报错；</li><li><strong>运行期看实际对象</strong>：<code>a</code> 指向的对象本体是 <code>Dog</code>，所以 <code>a.speak()</code> 执行的是 Dog 的版本。程序员口诀：「编译看左边，运行看右边」。</li></ul><p>Python 没有编译期类型检查，变量只是对象的名字，向上转型天然成立、甚至不必写出来，方法查找永远发生在对象自己身上；但两条规则的「精神」一致：用更笼统的身份去管理对象，具体行为仍由对象自己负责。</p><p>还要纠正一个常见误解：向上转型不是「把对象改成父类对象」。对象从头到尾只有一个，变的只是我们看待它的类型标签——狗戴上了写有「动物」的名牌，狗还是那条狗。</p>"
+      },
+      {
+        "heading": "5.3 动态绑定：运行期才揭晓答案",
+        "html": "<p>「运行看右边」是怎么做到的？答案是<strong>动态绑定</strong>（Dynamic Binding，也叫后期绑定）：调用哪个版本的方法，不在写代码或编译时敲定，而是推迟到程序运行、看到对象实际类型的那一刻。以 <code>a.speak()</code> 为例：</p><ol><li>编译期只检查一件事：声明类型 <code>Animal</code> 有没有 <code>speak()</code> 这个方法，有就放行；</li><li>运行期查看 <code>a</code> 指向的对象的真实类型，比如 <code>Dog</code>；</li><li>在 <code>Dog</code> 类里查找 <code>speak()</code>，找到就执行；没找到就沿继承链向父类继续找（Python 正是按这个顺序查找的）；</li><li>于是 Dog 对象执行 Dog 的版本，Cat 对象执行 Cat 的版本。</li></ol><figure><svg viewBox='0 0 640 240' role='img' aria-label='动态绑定分发示意图'><rect x='20' y='85' width='200' height='70' rx='10' fill='#FAF7F2' stroke='#5E9E8F' stroke-width='1.6'/><text x='120' y='112' text-anchor='middle' font-size='13' fill='#2A2E33'>调用点：a.speak()</text><text x='120' y='134' text-anchor='middle' font-size='12' fill='#6C7078'>声明类型：Animal</text><rect x='420' y='16' width='200' height='52' rx='9' fill='#FFFFFF' stroke='#5E9E8F'/><text x='520' y='38' text-anchor='middle' font-size='12' fill='#2A2E33'>实际类型 Dog</text><text x='520' y='58' text-anchor='middle' font-size='12' fill='#6C7078'>执行 Dog.speak()：汪汪</text><rect x='420' y='94' width='200' height='52' rx='9' fill='#FFFFFF' stroke='#C9A96A'/><text x='520' y='116' text-anchor='middle' font-size='12' fill='#2A2E33'>实际类型 Cat</text><text x='520' y='136' text-anchor='middle' font-size='12' fill='#6C7078'>执行 Cat.speak()：喵喵</text><rect x='420' y='172' width='200' height='52' rx='9' fill='#FFFFFF' stroke='#7C9CBF'/><text x='520' y='194' text-anchor='middle' font-size='12' fill='#2A2E33'>实际类型 Bird</text><text x='520' y='214' text-anchor='middle' font-size='12' fill='#6C7078'>执行 Bird.speak()：叽叽</text><path d='M220 105 C 300 60 340 40 420 42' stroke='#5E9E8F' stroke-width='1.5' fill='none' stroke-dasharray='5 4'/><path d='M220 120 C 300 120 340 120 420 120' stroke='#C9A96A' stroke-width='1.5' fill='none' stroke-dasharray='5 4'/><path d='M220 135 C 300 180 340 200 420 198' stroke='#7C9CBF' stroke-width='1.5' fill='none' stroke-dasharray='5 4'/><text x='320' y='232' text-anchor='middle' font-size='12' fill='#C96A6A'>运行期按实际对象分发，编译期只核对方法是否存在</text></svg><figcaption>图 5-1 动态绑定：编译期只核对「有没有这个方法」，运行期按对象实际类型分发到对应实现。</figcaption></figure><p>与之相对的是<strong>静态绑定</strong>：比如方法重载（同名但参数不同）在编译期就按参数类型选定版本。一个「按对象分」，一个「按参数分」，别混淆。</p><p>动态绑定还有个漂亮的推论：<strong>父类方法内部调用 <code>self.speak()</code> 时，同样按实际类型分发</strong>。于是父类可以写出「流程固定、步骤留白」的骨架方法，把关键步骤交给子类填空——这正是后面设计模式里「模板方法」的基石。</p>"
+      },
+      {
+        "heading": "5.4 接口思维与多态的价值",
+        "html": "<p>动态绑定支撑起一种重要的思考方式——<strong>接口思维</strong>：调用方只关心「对象会做什么」（有没有 <code>speak()</code>、<code>pay()</code>、<code>draw()</code>），不关心「对象是什么」。Python 程序员常说的鸭子类型（Duck Typing，只要它叫起来像鸭子，就把它当鸭子用）正是这种思路的通俗版。</p><p>落到工程上，运行时多态至少带来三笔看得见的收益：</p><ul><li><strong>扩展不动旧代码</strong>：新增一个 <code>Bird</code> 子类，遍历调用 <code>speak()</code> 的循环一个字都不用改；</li><li><strong>消灭类型判断链</strong>：不用再写 <code>if isinstance(a, Dog): ... elif isinstance(a, Cat): ...</code> 这样的长分支，分支数量不再随类型增长而爆炸；</li><li><strong>支撑框架与回调</strong>：界面控件响应点击、插件响应事件，本质上都是框架准备好调用时机，你的对象提供具体作答。</li></ul><p>设想一个结账函数 <code>checkout(amount, payment)</code>：只要传入的对象都会 <code>pay()</code>，微信支付、支付宝、刷卡就能随意替换。这层「依赖抽象行为而不是具体类型」的思想，下一讲会用抽象类与接口把它制度化，第 7 讲的开闭原则更是它的直接推论。</p>"
+      },
+      {
+        "heading": "5.5 小结与三个易错点",
+        "html": "<p>本讲三个关键词连成一条线：用<strong>向上转型</strong>把不同子类对象装进同一个容器统一指挥；调用方法时发生<strong>动态绑定</strong>，运行期按实际类型分发；由此获得<strong>运行时多态</strong>——同一句代码，多种作答，扩展新类型而不动旧代码。</p><p>三个高频易错点请你自查：</p><ul><li>重写时方法名、参数要与父类一致。Python 里把 <code>speak</code> 拼成 <code>spek</code> 不会报错，只会悄悄变成「新增方法」，多态随之失效；</li><li>向上转型后（静态语言中）不能直接调用子类新增方法——这不是对象丢了功能，而是编译器按声明类型从严检查；确需调用时要显式向下转型（Downcasting，把父类类型的引用转回子类类型），它有失败风险，应尽量避免；</li><li>不要为了「蹭多态」硬造继承。猫和狗都是动物，继承成立；汽车和自行车若没有合理的共同基类，用共同接口（都会「启动」「停驶」）更干净——这正好引出下一讲。</li></ul>"
+      }
+    ]
+  },
+  "kid": {
+    "intro": "看完前几讲，你手里的「类」和「对象」已经像一支小部队了。这一讲要学一个魔法口令：喊同一句话，队伍里的每个成员却各有各的回答。音乐会上，指挥家一抬手，小提琴响、大鼓震、长笛鸣——同一个手势，千百种声音。程序里也有这样的口令，它的名字叫「多态」。",
+    "sections": [
+      {
+        "heading": "指挥家一抬手",
+        "html": "<p>想象你在指挥一支动物合唱团。你喊一声「叫一句！」——小狗答「汪汪」，小猫答「喵喵」，小鸟答「叽叽」。你的口令只有一句，回答却各不相同，而且你完全不用管它们怎么叫。</p><p>程序里这句口令就是 <code>a.speak()</code>。同一个写法，作用在小狗对象上就汪汪，作用在小猫对象上就喵喵。这个「一个口令、多种作答」的本事，就叫<strong>多态</strong>。</p><figure><svg viewBox='0 0 560 210' role='img' aria-label='一个口令多种作答示意图'><rect x='24' y='70' width='170' height='70' rx='12' fill='#FAF7F2' stroke='#5E9E8F' stroke-width='2'/><text x='109' y='100' text-anchor='middle' font-size='14' fill='#2A2E33'>口令：speak()</text><text x='109' y='122' text-anchor='middle' font-size='12' fill='#6C7078'>只喊一句</text><rect x='360' y='16' width='170' height='46' rx='9' fill='#FFFFFF' stroke='#5E9E8F'/><text x='445' y='44' text-anchor='middle' font-size='12' fill='#2A2E33'>小狗回答：汪汪</text><rect x='360' y='82' width='170' height='46' rx='9' fill='#FFFFFF' stroke='#C9A96A'/><text x='445' y='110' text-anchor='middle' font-size='12' fill='#2A2E33'>小猫回答：喵喵</text><rect x='360' y='148' width='170' height='46' rx='9' fill='#FFFFFF' stroke='#7C9CBF'/><text x='445' y='176' text-anchor='middle' font-size='12' fill='#2A2E33'>小鸟回答：叽叽</text><path d='M194 92 C 260 60 290 38 360 39' stroke='#5E9E8F' stroke-width='1.6' fill='none' stroke-dasharray='6 4'/><path d='M194 105 C 260 105 290 105 360 105' stroke='#C9A96A' stroke-width='1.6' fill='none' stroke-dasharray='6 4'/><path d='M194 118 C 260 150 290 172 360 171' stroke='#7C9CBF' stroke-width='1.6' fill='none' stroke-dasharray='6 4'/></svg><figcaption>图 5-2 一个口令，三种作答：口令不变，回答交给每个动物自己。</figcaption></figure>"
+      },
+      {
+        "heading": "名牌写「动物」，本人还是小狗",
+        "html": "<p>春游点名时，老师按「学生名单」喊人，不管你是三年级的还是五年级的。程序里也一样：我们可以给小狗戴一张写着「动物」的名牌，把它和小猫放进同一个笼车统一运输。这张名牌就是「向上转型」——<strong>用更笼统的身份来管理对象</strong>。</p><p>放心，戴名牌不会把小狗变成小猫：它的本事一点没丢，只是点名册上只登记「动物都会的事」。在 Java 这类语言里，戴着「动物」名牌的小狗，不能直接表演「只有小狗才会」的新杂技；要表演，得把名牌换回小狗的。这一点到中学再深入也来得及。</p>"
+      },
+      {
+        "heading": "到上台那一刻才揭晓",
+        "html": "<p>学校汇演的节目单上只写「才艺表演：三(2)班」，到底变魔术还是唱首歌？要等演员真的上台那一刻才知道。程序也一样：<code>a.speak()</code> 这句代码写好的时候，谁来回答回不来；要等程序真正跑到这一行、看清楚 a 背后站的是谁，才决定执行谁的版本。这个「当场揭晓」的机制，大名叫<strong>动态绑定</strong>，你可以记成「运行时才对号入座」。</p>"
+      },
+      {
+        "heading": "这样排队有什么好处",
+        "html": "<p>好处看得见：第一，新同学加入零打扰——合唱团来了一只新鸭子，只要它会「叫一句」，流程一个字都不用改；第二，不用写啰嗦的「如果是小狗就让它汪汪，如果是小猫就让它喵喵」——这种长长的判断清单每加一种动物都要重写一遍，最容易漏改出错；第三，游乐园的闸机不用认识每个游客，它只认「能刷的票」，谁持票谁进场。</p>"
+      },
+      {
+        "heading": "小结",
+        "html": "<p>记住三句话：<strong>一个口令，多种作答，叫多态</strong>；<strong>名牌写什么不重要，本人是谁才重要</strong>；<strong>程序跑到那一刻才揭晓谁出场</strong>。你还可以回家表演一遍：喊家人一起玩「叫一句」的游戏，你当指挥，让每个玩偶答自己的台词——能演出来，就真的学会了。下一讲我们要把「必须会什么」写成正式的合同，有的合同还允许留空让你自己填，敬请期待。</p>"
+      }
+    ]
+  },
+  "glossary": [
+    { "term": "多态（Polymorphism）", "def": "同一个方法调用，作用在不同实际类型的对象上会产生不同行为" },
+    { "term": "向上转型（Upcasting）", "def": "把子类对象当作父类类型来使用；对象本体不变，只是换个更笼统的身份管理它" },
+    { "term": "动态绑定（Dynamic Binding）", "def": "运行时才根据对象的实际类型决定执行哪个版本的方法" },
+    { "term": "静态绑定", "def": "在编译期就确定调用哪个方法，例如按参数类型区分的方法重载" },
+    { "term": "方法重写（Override）", "def": "子类提供与父类方法同名同参数的新实现，替换父类版本" },
+    { "term": "向下转型（Downcasting）", "def": "把父类类型的引用转回子类类型；静态语言中需要显式转换且有失败风险" },
+    { "term": "鸭子类型（Duck Typing）", "def": "一种 Python 风格：只要对象有需要的方法就能用，不苛求它的出身" }
+  ],
+  "exercises": [
+    {
+      "id": "oop-05-e01",
+      "level": "easy",
+      "type": "choice",
+      "stem": "运行时多态通常需要同时满足三个条件，下列哪一组是正确的？",
+      "options": ["A. 有继承（或实现同一接口）、有方法重写、用父类类型的引用指向子类对象", "B. 有封装、有组合、有多重继承", "C. 方法名相同但参数不同、编译期选定版本", "D. 类里必须定义静态方法才能触发多态"],
+      "answer": "A",
+      "solution": {
+        "idea": "多态三要素：继承/实现、重写、向上转型后统一调用。",
+        "steps": ["先要有「大家族」：子类继承父类或实现同一接口；", "子类重写同名方法，提供自己的版本；", "调用时用父类（接口）类型的引用指向子类对象，让动态绑定有发挥空间。"],
+        "result": "A。三要素缺一不可：缺了重写就没有「多种作答」，缺了向上转型就没有统一调用点。",
+        "pitfalls": ["把「方法重载」当成多态条件：重载在编译期按参数区分，不属于运行时多态；", "漏掉向上转型：即使有重写，也要通过统一类型的引用调用才能体现多态。"],
+        "kid": "想玩「一个口令、多种作答」，要先有一群同门师兄弟（继承同一个家族），每个人都把口号喊出自己的味道（重写），最后老师按家族名单点名（用父类身份管理）。三样凑齐，魔法才生效，缺一样都会冷场。"
+      }
+    },
+    {
+      "id": "oop-05-e02",
+      "level": "easy",
+      "type": "judge",
+      "stem": "在 Java 等静态类型语言中，把 Dog 对象赋值给 Animal 类型的变量后，通过这个变量可以直接调用 Dog 新增的、Animal 中没有的方法（如 fetch()）。",
+      "answer": "错误",
+      "solution": {
+        "idea": "编译期按声明类型检查可调用的成员。",
+        "steps": ["变量声明为 Animal，编译器只认 Animal 里声明过的方法；", "fetch() 只在 Dog 中声明，编译直接报错；", "不过 fetch() 的功能没有消失，只是要显式向下转型后才能调用。"],
+        "result": "错误。静态语言中「能点出哪些成员」看声明类型，「执行哪个版本」看实际对象。",
+        "pitfalls": ["误以为对象功能丢失：功能还在对象上，只是「名牌」限制了入口；", "把 Python 的规则套过来：Python 没有编译期检查，但那是另一套玩法，题干限定的是静态类型语言。"],
+        "kid": "名牌上写的是「动物」，老师点名时只能点「动物都会的事」。小狗新学的杂技名牌上没写，按名单是点不到的——不是它不会，是名单上没有这一栏。"
+      }
+    },
+    {
+      "id": "oop-05-e03",
+      "level": "easy",
+      "type": "choice",
+      "stem": "下列场景中，属于运行时多态的是？",
+      "options": ["A. 同名方法参数不同，编译期根据实参类型选定版本", "B. 遍历动物列表，对每个对象调用 speak()，狗与猫输出不同", "C. 加号既能算数字相加也能拼接字符串", "D. 函数内部使用全局变量改变行为"],
+      "answer": "B",
+      "solution": {
+        "idea": "运行时多态=同一句调用，运行期按对象实际类型产生不同行为。",
+        "steps": ["A 是方法重载，属于静态绑定；", "C 是运算符的内建多用法，不经过继承与重写；", "B 完全符合三要素与动态绑定过程。"],
+        "result": "B。同一句 a.speak()，不同对象给出不同作答。",
+        "pitfalls": ["看到「多种行为」就选：还要检查是不是「运行期按实际类型分发」。"],
+        "kid": "要分清「菜单上印好的两种做法」和「上台时才揭晓的真表演」。B 是真表演：同一句口令，每个动物上台才亮出自己的拿手戏；A 像菜单分流，印菜单时就定好了。"
+      }
+    },
+    {
+      "id": "oop-05-e04",
+      "level": "easy",
+      "type": "judge",
+      "stem": "合理使用多态后，新增一个子类通常不需要修改「遍历调用通用方法」的那段旧代码。",
+      "answer": "正确",
+      "solution": {
+        "idea": "通用代码依赖抽象行为，动态绑定会自动纳入新类型。",
+        "steps": ["旧循环只调用 a.speak()，不关心具体类型；", "新子类实现（重写）speak() 后加入列表即可；", "循环本身无需改动，这正是多态的扩展价值。"],
+        "result": "正确。扩展靠「加对象」，不靠「改循环」。",
+        "pitfalls": ["以为要修改循环来「登记」新类型：把它放进列表即可，循环不变。"],
+        "kid": "合唱团来了一只新鸭子，只要它学会喊口令时的回答，队伍照常往前走，指挥的口令和流程都不用改——这就是多态最讨人喜欢的地方。"
+      }
+    },
+    {
+      "id": "oop-05-e05",
+      "level": "medium",
+      "type": "code",
+      "stem": "阅读下面的 Python 代码，运行后控制台依次输出什么？",
+      "code": {
+        "lang": "python",
+        "code": "class Shape:\n    def area(self):\n        return 0\n\nclass Rect(Shape):\n    def __init__(self, w, h):\n        self.w = w\n        self.h = h\n\n    def area(self):\n        return self.w * self.h\n\nclass Circle(Shape):\n    def __init__(self, r):\n        self.r = r\n\n    def area(self):\n        return 3.14 * self.r * self.r\n\nshapes = [Rect(3, 4), Circle(1)]\nfor s in shapes:\n    print(s.area())",
+        "output": "12\n3.14",
+        "explain": "循环里只有一句 s.area()：第一次 s 是 Rect，按实际类型执行 Rect.area 得 12；第二次 s 是 Circle，执行 Circle.area 得 3.14。"
+      },
+      "answer": "依次输出 12 和 3.14。",
+      "solution": {
+        "idea": "动态绑定：运行期按 s 指向的实际对象选择 area() 的版本。",
+        "steps": ["列表里先放 Rect(3,4)，后放 Circle(1)；", "第一次循环 s 实际是 Rect，重写版 area() 返回 3*4=12；", "第二次循环 s 实际是 Circle，返回 3.14*1*1=3.14；", "print 按 12、3.14 两行输出。"],
+        "result": "依次输出 12 和 3.14。",
+        "pitfalls": ["以为基类 area 返回 0 会输出 0：子类重写版本优先于父类默认实现；", "误以为输出顺序颠倒：按列表顺序依次循环。"],
+        "kid": "队伍里先走矩形后走圆形。喊到「报面积」时，矩形按自己的公式算出 12，圆形按自己的公式算出 3.14。口令只有一句，答案各报各的。"
+      }
+    },
+    {
+      "id": "oop-05-e06",
+      "level": "medium",
+      "type": "derive",
+      "stem": "已知类定义：<code>Animal</code> 的 <code>intro()</code> 返回 <code>'我会' + self.skill()</code>，其中 <code>skill()</code> 返回 <code>'呼吸'</code>；子类 <code>Bird</code> 重写 <code>skill()</code> 返回 <code>'飞'</code>。请问 <code>print(Bird().intro())</code> 输出什么？请写出推理过程。",
+      "answer": "输出：我会飞。",
+      "solution": {
+        "idea": "intro 虽然定义在父类，但它内部的 self.skill() 仍按实际类型动态绑定。",
+        "steps": ["Bird() 创建的对象实际类型是 Bird；", "Bird 未重写 intro()，沿继承链调用 Animal.intro()；", "执行 intro 时 self 仍是 Bird 实例，self.skill() 动态绑定到 Bird.skill，返回 '飞'；", "拼接得 '我会飞'。"],
+        "result": "我会飞。父类方法内部调用 self 的方法，同样按实际类型分发。",
+        "pitfalls": ["误答「我会呼吸」：以为进入父类方法后 self 也变成父类——self 始终是实际对象；", "误以为必须重写 intro 才能用：继承来的方法照样可以调用被重写的小步骤。"],
+        "kid": "自我介绍的「套路」是家族统一教的：先说「我会」，再让你报自己的绝活。小鸟用家族套路，但报绝活这一步当然报自己的「飞」，所以是「我会飞」，不是「我会呼吸」。"
+      }
+    },
+    {
+      "id": "oop-05-e07",
+      "level": "medium",
+      "type": "design",
+      "stem": "结账函数原本写成 <code>def checkout(amount, way):</code>，内部用 <code>isinstance</code> 判断 way 是微信还是支付宝，分别执行不同逻辑。请用多态重新设计支付模块：需要哪些类、checkout 怎么写、以后新增「银联支付」要改哪些地方？",
+      "answer": "设计 Payment 基类（或接口）声明 pay(amount)；WechatPay、AliPay 各自重写 pay；checkout 只写一句 return payment.pay(amount)。新增银联时只需新增 UnionPay 类并实现 pay()，checkout 与既有类零修改。",
+      "solution": {
+        "idea": "把「按类型分支」改成「按对象分发」，让每种支付自己负责 pay。",
+        "steps": ["抽象出共同行为 pay(amount)，作为父类或接口的契约；", "每种支付方式实现自己的 pay；", "checkout 的参数声明为 Payment 类型（向上转型），内部只调用 payment.pay；", "对比旧写法：新增类型不再需要修改 checkout 的分支。"],
+        "result": "以「抽象契约 + 重写 + 向上转型」替代 isinstance 分支；新支付方式只需新增子类。",
+        "pitfalls": ["把类型判断换成「按字符串名字判断」：本质没变，依然要改 checkout；", "忘记统一方法签名：契约要求同名同参数，调用方才能无差别调用。"],
+        "kid": "以前收银台要认人：见穿微信制服的走微信流程，见支付宝制服的走支付宝流程，每来新员工都要重画流程图。现在改成：收银台只喊「付钱！」，每个支付员自己知道自己怎么付，新员工报到也不用改收银台。"
+      }
+    },
+    {
+      "id": "oop-05-e08",
+      "level": "medium",
+      "type": "choice",
+      "stem": "关于动态绑定的发生时机，说法正确的是？",
+      "options": ["A. 在编译期根据变量的声明类型确定", "B. 在运行期根据对象的实际类型确定", "C. 根据方法参数的个数在编译期确定", "D. 根据变量命名规范自动确定"],
+      "answer": "B",
+      "solution": {
+        "idea": "动态绑定的定义就是推迟到运行期决定调用谁。",
+        "steps": ["编译期只检查声明类型有没有该方法；", "真正执行时按对象实际类型查找方法版本；", "A、C 描述的是重载等静态绑定情形。"],
+        "result": "B。动态绑定发生在运行期：执行哪个版本由对象的实际类型决定，与声明类型、参数个数、变量名都无关。",
+        "pitfalls": ["与重载混淆：重载按参数在编译期选，重写按对象在运行期选。"],
+        "kid": "就像拆盲盒：盒子买回家（代码写好）时不知道里面是谁，拆开的那一刻（程序运行到这行）才揭晓，按揭晓的身份表演。所以答案是 B：先看清是谁，再让它开口。"
+      }
+    },
+    {
+      "id": "oop-05-e09",
+      "level": "hard",
+      "type": "design",
+      "stem": "通知系统现有 <code>send_all(msg)</code> 函数，内部依次判断邮箱、短信两种发送器并分别调用各自方法。现在要求新增「企业微信」和「语音电话」两种通知方式，且不允许修改 send_all 与既有发送器。请设计类结构并说明 send_all 最终长什么样；再说明若坚持用 isinstance 分支，这个系统会烂在哪里。",
+      "answer": "设计 Notifier 基类（或接口）约定 notify(msg)；EmailSender、SmsSender、WecomSender、VoiceSender 分别重写 notify；send_all(notifiers, msg) 对列表循环调用 n.notify(msg)，类型一概不问。若用 isinstance：每新增一种通知都要改 send_all 加分支，分支随类型线性膨胀，旧代码反复改动、回归风险高，任何一处漏改都发不出通知。",
+      "solution": {
+        "idea": "用统一契约收编所有发送器，把差异下沉到各子类。",
+        "steps": ["抽取共同行为 notify(msg) 作为契约；", "四个发送器各自实现 notify；", "send_all 接收通知器列表，循环调用 notify；", "新增类型 = 新增一个类 + 加入列表，send_all 不动。"],
+        "result": "send_all 只剩一句循环调用；isinstance 方案违背「扩展不动旧代码」，越用越难维护。",
+        "pitfalls": ["只抽象不向上转型：列表里混存各类型却仍写判断，等于没改；", "契约方法名不统一（notify/send/trigger 混用）：动态绑定找不到统一入口。"],
+        "kid": "以前广播站要认话筒：看见邮箱话筒用一套、短信话筒用一套，来个新话筒还得改装广播站。现在广播站只喊「开始广播！」，每支话筒自己出声。新话筒插上就用，广播站一颗螺丝都不拧。"
+      }
+    },
+    {
+      "id": "oop-05-e10",
+      "level": "hard",
+      "type": "choice",
+      "stem": "在静态类型语言中，变量 <code>a</code> 的声明类型为 Animal，指向的对象是 Dog。下列说法完全正确的一项是？",
+      "options": ["A. a.speak() 执行父类版本，因为声明类型是 Animal", "B. a.speak() 执行 Dog 重写后的版本；但 a 不能直接调用 Dog 新增的方法", "C. a.speak() 编译报错，因为 Dog 覆盖了父类方法", "D. a 能直接调用 Dog 新增的方法，因为对象实际是 Dog"],
+      "answer": "B",
+      "solution": {
+        "idea": "编译看左边（能调什么），运行看右边（执行谁的版本）。",
+        "steps": ["编译期按 Animal 检查：speak 存在，放行；", "运行期按实际对象 Dog 分发：执行重写版本；", "Dog 新增方法未经向下转型不可直接调用。"],
+        "result": "B。前半句是动态绑定，后半句是静态检查，两条规则合起来才是完整答案。",
+        "pitfalls": ["只答对一半：A 错在执行版本，D 错在可调用成员；", "以为重写会导致编译错误：重写恰恰是多态的前提。"],
+        "kid": "名牌是「动物」，所以只能点动物都会的节目（点不了小狗专属杂技）；但真上台时，站上台的还是那条狗，唱的自然是狗的歌。名牌管能点什么，本人管怎么演，两句话合起来才完整。"
+      }
+    }
+  ]
+}

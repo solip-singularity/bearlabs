@@ -1,0 +1,230 @@
+{
+  "id": "os-12",
+  "courseId": "os",
+  "title": "第12讲 虚拟化与容器",
+  "objectives": [
+    "说出虚拟化要解决的三个问题：资源利用率低、缺乏隔离、环境难以复制与迁移",
+    "解释虚拟机的工作方式：hypervisor 拦截并代答敏感操作，让客户操作系统以为自己独占硬件",
+    "解释容器的本质：用 namespaces 隔离「看见什么」、用 cgroups 限制「用多少」的普通进程",
+    "从隔离强度、启动速度、资源开销三个维度比较虚拟机与容器",
+    "理解云时代「虚拟机做租户隔离、容器做应用部署」的分层架构及其意义"
+  ],
+  "keyPoints": [
+    "一台物理机只跑一个服务时利用率常低于 20%；虚拟化的核心价值是把「一机一用」变成「一机多用、互不干扰」",
+    "虚拟机=完整的一台「软件电脑」：hypervisor 管理之下每台 VM 携带完整客户操作系统，隔离最强、开销也最大",
+    "容器=被特殊视野和限额约束的普通进程：共享宿主内核，启动秒级、开销 MB 级，隔离弱于 VM",
+    "namespaces 管「看得见什么」（进程号、网络、挂载点各自独立），cgroups 管「用得了多少」（CPU、内存、IO 限额）",
+    "云时代的分层实践：不同租户之间用 VM 划安全边界，同一租户内部用容器提高密度、支撑微服务"
+  ],
+  "minutes": 40,
+  "difficulty": 3,
+  "prerequisites": ["os-03", "os-07"],
+  "keywords": ["虚拟机", "Hypervisor", "容器", "namespaces", "cgroups", "Docker", "云原生", "微服务"],
+  "demoRefs": [],
+  "refs": ["《操作系统导论》第18章「虚拟机 Monitor 的对话」（延伸阅读）", "《深入理解计算机系统》第9章「虚拟内存」（延伸阅读）"],
+  "pro": {
+    "intro": "这是课程的进阶导读：当一台物理机要同时伺候几十个互不信任的租户时，操作系统演化出两种隔离形态——虚拟机与容器。本讲不展开实现细节，而是回答四个问题：为什么需要虚拟化？虚拟机如何「以软代硬」装出一台电脑？容器凭什么又轻又快？以及两者如何在云计算中分工协作。理解这一讲，你对「操作系统」的认识就从管理一台机器扩展到了管理整个数据中心。",
+    "sections": [
+      {
+        "heading": "12.1 为什么需要虚拟化",
+        "html": "<p>早期服务器大多「一机一用」：一台物理机装一个操作系统、跑一个应用。实测中这类机器的 CPU 利用率常低于两成——九成以上的算力在空转，而隔壁项目还在排队买新机器。此外还有两个痛点：不同应用抢夺同一台机器的资源（一个失控进程能拖垮全部邻居），以及环境难以复制（在这台机器上能跑、搬到那台就出错）。</p><p><strong>虚拟化</strong>（Virtualization）给出的答案是：用软件把一台物理机切成多台逻辑机器，每台都拥有独立的 CPU、内存、磁盘视图，彼此隔离、可快照、可迁移。承担切割工作的软件层叫 <strong>hypervisor</strong>（虚拟机监视器，VMM），它是虚拟机世界的「内核之上的内核」。</p>"
+      },
+      {
+        "heading": "12.2 虚拟机：用软件装出一台电脑",
+        "html": "<p>虚拟机（VM）的本质是：<strong>一台由软件模拟、却让客户操作系统信以为真的完整电脑</strong>。hypervisor 接管 CPU、内存与外设，把物理资源划分给多台 VM；Guest OS（客户操作系统）运行在 VM 里，每次访问硬件、修改页表、响应中断，都会被 hypervisor 拦截并代为处理——Guest 以为自己独占整台机器，实际上只是一个被严格看管的租户。现代 CPU 提供硬件辅助虚拟化（如 Intel VT-x 的根模式/非根模式），让拦截从纯软件模拟变成硬件直接支持，开销大幅下降。</p><p>hypervisor 分两类：<strong>Type 1</strong> 直接跑在裸硬件上（如数据中心常用的 ESXi、KVM 底层），<strong>Type 2</strong> 作为普通应用跑在宿主操作系统上（如个人电脑里的 VirtualBox）。VM 的代价同样明显：每台 VM 都要背一份完整的 Guest OS——内存以 GB 计、镜像以 GB 计、启动以分钟计。隔离强、开销大，是 VM 的双面。</p>"
+      },
+      {
+        "heading": "12.3 容器：共享内核的进程隔离房",
+        "html": "<p>换一条思路：隔离一定要虚拟整台机器吗？如果所有应用都用同一个宿主内核，那只需要让每个应用「看见一个独立的世界、用掉一份限额的资源」即可——这就是<strong>容器</strong>。容器不是轻量级虚拟机，而是<strong>被两种内核机制武装过的普通 Linux 进程</strong>：</p><p><strong>namespaces</strong>（命名空间）管「看得见什么」：PID namespace 让容器内进程以为自己是 1 号进程，且只看得到本容器的进程；NET namespace 给它独立网卡与端口空间；MNT namespace 给它独立的文件系统挂载视图。视野一隔离，容器内如同身在一台独立的机器。<strong>cgroups</strong>（控制组）管「用得了多少」：给容器设定 CPU 份额、内存上限、IO 带宽，超限时内核会限流甚至杀掉进程，防止一个容器吃光整机。此外，容器<strong>镜像</strong>把应用连同依赖库打成只读的分层包，实现「在我机器上能跑，在你的机器上也能跑」——这解决了 12.1 提到的环境复制难题。</p><figure><svg viewBox='0 0 640 300' role='img' aria-label='虚拟机与容器结构对比'><text x='170' y='24' text-anchor='middle' font-size='14' fill='#2A2E33'>虚拟机：每台携带完整 Guest OS</text><text x='470' y='24' text-anchor='middle' font-size='14' fill='#2A2E33'>容器：共享宿主内核</text><rect x='30' y='36' width='280' height='230' rx='8' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='330' y='36' width='280' height='230' rx='8' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='45' y='52' width='78' height='22' fill='#5E9E8F'/><rect x='131' y='52' width='78' height='22' fill='#5E9E8F'/><rect x='217' y='52' width='78' height='22' fill='#5E9E8F'/><text x='84' y='67' text-anchor='middle' font-size='12' fill='#FAF7F2'>App A</text><text x='170' y='67' text-anchor='middle' font-size='12' fill='#FAF7F2'>App B</text><text x='256' y='67' text-anchor='middle' font-size='12' fill='#FAF7F2'>App C</text><rect x='45' y='78' width='78' height='34' fill='#C96A6A'/><rect x='131' y='78' width='78' height='34' fill='#C96A6A'/><rect x='217' y='78' width='78' height='34' fill='#C96A6A'/><text x='84' y='99' text-anchor='middle' font-size='12' fill='#FAF7F2'>Guest OS</text><text x='170' y='99' text-anchor='middle' font-size='12' fill='#FAF7F2'>Guest OS</text><text x='256' y='99' text-anchor='middle' font-size='12' fill='#FAF7F2'>Guest OS</text><rect x='45' y='120' width='250' height='24' fill='#7C9CBF'/><text x='170' y='136' text-anchor='middle' font-size='12' fill='#FAF7F2'>Hypervisor（虚拟机监视器）</text><rect x='45' y='150' width='250' height='24' fill='#6C7078'/><text x='170' y='166' text-anchor='middle' font-size='12' fill='#FAF7F2'>物理硬件</text><text x='170' y='196' text-anchor='middle' font-size='12' fill='#C96A6A'>镜像 GB 级，启动分钟级</text><rect x='345' y='52' width='78' height='22' fill='#5E9E8F'/><rect x='431' y='52' width='78' height='22' fill='#5E9E8F'/><rect x='517' y='52' width='78' height='22' fill='#5E9E8F'/><text x='384' y='67' text-anchor='middle' font-size='12' fill='#FAF7F2'>App A</text><text x='470' y='67' text-anchor='middle' font-size='12' fill='#FAF7F2'>App B</text><text x='556' y='67' text-anchor='middle' font-size='12' fill='#FAF7F2'>App C</text><rect x='345' y='78' width='78' height='34' fill='#C9A96A'/><rect x='431' y='78' width='78' height='34' fill='#C9A96A'/><rect x='517' y='78' width='78' height='34' fill='#C9A96A'/><text x='384' y='99' text-anchor='middle' font-size='12' fill='#2A2E33'>依赖库</text><text x='470' y='99' text-anchor='middle' font-size='12' fill='#2A2E33'>依赖库</text><text x='556' y='99' text-anchor='middle' font-size='12' fill='#2A2E33'>依赖库</text><rect x='345' y='120' width='250' height='24' fill='#5E9E8F'/><text x='470' y='136' text-anchor='middle' font-size='12' fill='#FAF7F2'>容器引擎（namespaces + cgroups）</text><rect x='345' y='150' width='250' height='24' fill='#7C9CBF'/><text x='470' y='166' text-anchor='middle' font-size='12' fill='#FAF7F2'>宿主操作系统（共享内核）</text><rect x='345' y='180' width='250' height='24' fill='#6C7078'/><text x='470' y='196' text-anchor='middle' font-size='12' fill='#FAF7F2'>物理硬件</text><text x='470' y='224' text-anchor='middle' font-size='12' fill='#5E9E8F'>镜像 MB 级，启动秒级</text><text x='320' y='288' text-anchor='middle' font-size='12' fill='#2A2E33'>隔离强度：虚拟机（内核级）强于容器（进程级）；密度与速度：容器占优</text></svg><figcaption>图 12-1 虚拟机与容器的结构对比：VM 自带 Guest OS、隔离最彻底；容器共享宿主内核，靠 namespaces 与 cgroups 实现轻量隔离。</figcaption></figure>"
+      },
+      {
+        "heading": "12.4 虚拟机、容器与云时代的分工",
+        "html": "<p>两条路线的取舍可以从三个维度看：<strong>隔离强度</strong>——VM 之间没有共享内核，Guest OS 的漏洞很难波及宿主机，适合「互不信任」的场景；容器共享内核，一旦内核出现可被利用的漏洞，理论上存在「容器逃逸」风险，隔离是进程级的。<strong>启动与开销</strong>——VM 分钟级、GB 级；容器秒级、MB 级，能在一台机器上密密麻麻跑上百个。<strong>灵活性</strong>——VM 可以运行不同内核甚至不同系统（Windows、旧版 Linux）；容器离不开宿主内核。</p><p>于是云时代形成经典分层：<strong>云厂商用虚拟机划分租户的安全边界</strong>（你的 VM 与我的 VM 在硬件级隔离），<strong>租户内部用容器部署应用</strong>（同一业务的几十个微服务打成镜像，秒级扩缩容，由 Kubernetes 这样的编排系统统一调度）。这种「VM 保安全、容器保密度」的组合，正是微服务与云原生技术栈的地基。</p>"
+      },
+      {
+        "heading": "12.5 小结与课程收官",
+        "html": "<p>本讲导读完成三件事：虚拟化的动机（利用率、隔离、可迁移）；虚拟机的机制与代价（hypervisor 拦截 + 完整 Guest OS，隔离强、开销大）；容器的机制与边界（namespaces 管视野、cgroups 管限额，轻快但共享内核）。二者不是替代关系，而是云上分工的两层。</p><p>十二讲课程到此收官。回望主线：操作系统以「大管家」身份管理进程、内存、文件与设备；虚拟化与容器则把这台管家「复制」到成千上万台机器上，支撑起云计算。下一站无论走向系统编程、后端开发还是考研深入，这一套心智模型都会持续生效。</p>"
+      }
+    ]
+  },
+  "kid": {
+    "intro": "一栋大楼只住一户人，太浪费了；可要是一栋楼住几十家公司，又怕大家抢电梯、抢厨房、还怕互相打扰。计算机的世界也一样：一台超级电脑怎么安全地分给很多人用？人们发明了两种「分房」办法——虚拟机和容器。这一讲我们逛一逛这栋神奇的大楼，看看每家公司是怎么各过各的。",
+    "sections": [
+      {
+        "heading": "一栋楼只住一户人，太浪费",
+        "html": "<p>想象一栋超级大楼（一台大服务器），只住了一户人家（一个程序）。这一家只用了一楼的客厅，楼上几十层全空着——浪费！更糟的是，如果再搬来一户，两家会抢厨房、抢电梯，甚至一家开派对，另一家整夜睡不着。</p><p>所以我们需要「分房制度」：把大楼分成好多间，每间独立、互不干扰，还能随时复制一间新房给新住户。这就是虚拟化。</p>"
+      },
+      {
+        "heading": "虚拟机：完全装修的独立套房",
+        "html": "<p>虚拟机就像楼里的<strong>独立套房</strong>：每套都带全套家具家电（一个完整的操作系统）、独立水表电表，还有一个尽职的物业管理员（hypervisor，虚拟机管家）。住户在自己家里为所欲为，甚至不知道隔壁住了谁——隔离特别彻底。</p><p>代价是套房太「重」：每套房都要配一整套家具（GB 级的系统镜像），搬进来要花好几分钟，一栋楼装不了几套。适合「跟别人不熟、必须彻底隔开」的住户。</p><figure><svg viewBox='0 0 560 210' role='img' aria-label='套房与隔间的比喻'><text x='150' y='26' text-anchor='middle' font-size='14' fill='#2A2E33'>虚拟机 = 独立套房（自带全套家具）</text><rect x='50' y='44' width='200' height='110' rx='8' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='66' y='60' width='76' height='30' fill='#C96A6A'/><text x='104' y='80' text-anchor='middle' font-size='12' fill='#FAF7F2'>完整系统</text><rect x='158' y='60' width='76' height='30' fill='#C96A6A'/><text x='196' y='80' text-anchor='middle' font-size='12' fill='#FAF7F2'>完整系统</text><text x='150' y='120' text-anchor='middle' font-size='12' fill='#6C7078'>各有各的管家和水电表</text><text x='150' y='142' text-anchor='middle' font-size='12' fill='#C96A6A'>重、慢，但隔离最彻底</text><text x='410' y='26' text-anchor='middle' font-size='14' fill='#2A2E33'>容器 = 精装隔间（只带自己的行李）</text><rect x='310' y='44' width='200' height='110' rx='8' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='326' y='60' width='76' height='30' fill='#5E9E8F'/><text x='364' y='80' text-anchor='middle' font-size='12' fill='#FAF7F2'>我的行李</text><rect x='418' y='60' width='76' height='30' fill='#5E9E8F'/><text x='456' y='80' text-anchor='middle' font-size='12' fill='#FAF7F2'>我的行李</text><text x='410' y='120' text-anchor='middle' font-size='12' fill='#6C7078'>共用大楼的厨房和大门</text><text x='410' y='142' text-anchor='middle' font-size='12' fill='#5E9E8F'>轻、快，密度超高</text><text x='280' y='192' text-anchor='middle' font-size='12' fill='#2A2E33'>一栋楼：套房数量少而稳，隔间数量多而灵活</text></svg><figcaption>图 12-2 虚拟机像独立套房，自带动全套系统；容器像精装隔间，只带自己的行李，共用大楼设施。</figcaption></figure>"
+      },
+      {
+        "heading": "容器：共用厨房的精装隔间",
+        "html": "<p>容器更像楼里的<strong>精装隔间</strong>：楼房的大结构（操作系统内核）大家共用，每个隔间只装自己的行李（程序加它需要的库文件）。搬进一个隔间只要几秒钟，一栋楼能塞进上百个隔间——特别适合装许多小而灵活的应用。</p><p>你可能担心：共用厨房会打架吗？不会，因为每位隔间住户都签了两份「合同」：一份管<strong>看见什么</strong>，一份管<strong>用多少</strong>。这两份合同就是容器的两件法宝。</p>"
+      },
+      {
+        "heading": "两件法宝：门牌隔离与电表限流",
+        "html": "<p>第一件法宝叫 <strong>namespaces</strong>（命名空间），管「看见什么」：每个隔间有自己独立的门牌系统。隔间里的住户看自己是「1 号住户」，看不见隔壁的住户；有自己的门牌（网络地址）、自己的储物柜编号（文件系统视野）。视野一隔开，每个隔间都像一栋独立的小楼。</p><p>第二件法宝叫 <strong>cgroups</strong>（控制组），管「用多少」：每个隔间装了独立电表，约定一个月最多用多少电（CPU）、多少水（内存）。要是哪个住户无节制地开空调（内存暴涨），电表会自动跳闸，保证别家不受影响。</p>"
+      },
+      {
+        "heading": "小结",
+        "html": "<p>今天逛了「云大楼」：虚拟机是独立套房，自带全套家具（完整操作系统），隔离最彻底但又重又慢；容器是精装隔间，共用大楼设施，靠 namespaces（各看各的门牌）和 cgroups（各用各的额度）做到又轻又快。云公司的大招是：楼和楼之间用套房隔开（不同客户用虚拟机），楼里面用隔间高效出租（应用用容器）。</p><p>我们十二讲的操作系统之旅就到这里啦！从管家角色、进程调度、内存管理，到文件、IO，再到虚拟化与容器——你已经是懂得计算机「大楼」运转规则的人了。继续保持好奇！</p>"
+      }
+    ]
+  },
+  "glossary": [
+    { "term": "虚拟化", "def": "用软件把一台物理机切分成多台逻辑机器的技术，每台互相隔离、可快照迁移" },
+    { "term": "虚拟机（VM）", "def": "由软件模拟、运行完整客户操作系统的逻辑电脑，隔离强度最高" },
+    { "term": "Hypervisor", "def": "虚拟机监视器：拦截并代答客户系统的硬件访问，把物理资源分配给各台虚拟机" },
+    { "term": "容器", "def": "由 namespaces 隔离视野、cgroups 限制资源的普通进程，共享宿主内核" },
+    { "term": "namespaces", "def": "内核的视野隔离机制：让进程拥有独立的进程号、网络、挂载点等视图" },
+    { "term": "cgroups", "def": "内核的资源限额机制：限制一组进程可用的 CPU、内存与 IO 量" },
+    { "term": "容器镜像", "def": "把应用与其依赖打包成的只读分层文件包，保证在任何环境一致运行" }
+  ],
+  "exercises": [
+    {
+      "id": "os-12-e01",
+      "level": "easy",
+      "type": "choice",
+      "stem": "容器与虚拟机最本质的区别是什么？",
+      "options": ["A. 容器比虚拟机功能更强大", "B. 容器共享宿主操作系统内核，虚拟机携带完整客户操作系统", "C. 虚拟机不能运行网络服务", "D. 容器的隔离强度一定高于虚拟机"],
+      "answer": "B",
+      "solution": {
+        "idea": "回到结构图：VM 的 Guest OS 与宿主无共享；容器的进程直接跑在宿主内核上。",
+        "steps": ["VM：Guest OS → hypervisor → 硬件，内核级隔离；", "容器：App 进程 → 宿主内核 → 硬件，只隔离视野与限额；", "因此容器轻快但隔离弱，VM 重量级但隔离强。"],
+        "result": "B。是否共享宿主内核，是两种技术的分水岭。",
+        "pitfalls": ["把「更快启动」当本质区别：那只是共享内核带来的结果；", "以为容器隔离更强：共享内核决定了它的隔离上限低于 VM。"],
+        "kid": "套房（虚拟机）自带全套家具和独立水电表，谁也碰不到谁；隔间（容器）共用大楼的厨房和电路，只是每人有独立门牌和电表。轻便和彻底隔离，不可兼得。"
+      }
+    },
+    {
+      "id": "os-12-e02",
+      "level": "easy",
+      "type": "judge",
+      "stem": "在虚拟机中运行的是一个完整的客户操作系统（Guest OS），它「以为」自己独占整台硬件。",
+      "answer": "正确",
+      "solution": {
+        "idea": "虚拟机的定义：hypervisor 营造的「整台机器」幻觉。",
+        "steps": ["hypervisor 截获 Guest OS 的敏感操作（改页表、访问 IO）；", "由 hypervisor 或硬件辅助机制代为执行真实动作；", "Guest OS 自始至终认为自己独占 CPU、内存与外设。"],
+        "result": "正确。完整的 Guest OS 是虚拟机隔离强的根源。",
+        "pitfalls": ["以为 VM 里只跑应用、共享宿主系统：那是容器的模式；", "以为幻觉靠应用层模拟：关键在特权指令的拦截与代答。"],
+        "kid": "套房里的住户以为自己住的是一整栋楼：有自己的门牌、水表、电梯。其实一切都被物业管理员（hypervisor）悄悄管理和分配。住户深信不疑，这正是虚拟机的高明之处。"
+      }
+    },
+    {
+      "id": "os-12-e03",
+      "level": "easy",
+      "type": "choice",
+      "stem": "关于 namespaces 与 cgroups 的分工，下列说法正确的是？",
+      "options": ["A. namespaces 限制资源用量，cgroups 隔离视野", "B. namespaces 隔离「看得见什么」，cgroups 限制「用得了多少」", "C. 两者都是虚拟出另一套内核的技术", "D. 两者只在虚拟机中使用，容器不使用"],
+      "answer": "B",
+      "solution": {
+        "idea": "namespaces 管视野（PID、网络、挂载），cgroups 管额度（CPU、内存、IO）。",
+        "steps": ["namespaces：让容器内进程有独立的进程号、网卡、文件系统视图；", "cgroups：设定 CPU 份额、内存上限、IO 带宽并强制执行；", "二者正交配合，构成容器的两大支柱。"],
+        "result": "B。视野归 namespaces，限额归 cgroups。",
+        "pitfalls": ["把两者功能对调：记「看不见的归 namespace，用不多的归 cgroup」；", "以为容器用了独立内核：容器始终共享宿主内核。"],
+        "kid": "namespaces 是「门牌隔离」：你只看得到自家门牌，看不到隔壁；cgroups 是「电表限流」：你最多用这么多电，超了就跳闸。一个管看见什么，一个管用多少。"
+      }
+    },
+    {
+      "id": "os-12-e04",
+      "level": "easy",
+      "type": "judge",
+      "stem": "容器的启动速度通常比虚拟机快得多，因为容器不需要引导一个完整的操作系统。",
+      "answer": "正确",
+      "solution": {
+        "idea": "启动 VM 要从引导加载程序到 Guest OS 完整开机；启动容器只是创建一个带隔离属性的进程。",
+        "steps": ["VM 启动：虚拟硬件自检 → 引导 Guest OS → 系统服务逐个就绪，常以十秒到分钟计；", "容器启动：宿主内核 fork 出进程、应用 namespaces 与 cgroups、加载镜像层，秒级；", "共享内核省掉了整个「开机」过程。"],
+        "result": "正确。秒级对分钟级，是容器在弹性扩缩场景的核心优势。",
+        "pitfalls": ["把启动快归因于镜像小：镜像小有帮助，根本原因是无需引导内核；", "以为容器不「开机」就不算隔离环境：隔离由 namespaces/cgroups 提供，与开机与否无关。"],
+        "kid": "套房要办入住：登记、通水电、布置全套家具，慢；隔间拎包入住，几秒钟搞定。因为大楼的「水电总闸」（内核）本来就是开着的，隔间只要挂上门牌、设定电表就行。"
+      }
+    },
+    {
+      "id": "os-12-e05",
+      "level": "medium",
+      "type": "choice",
+      "stem": "以下哪个场景最适合直接使用容器（而非虚拟机）？",
+      "options": ["A. 两家互不信任的公司要在一台机器上各跑核心系统", "B. 一个业务必须使用与宿主不同的旧版内核", "C. 同一团队的几十个微服务需要高密度部署、快速扩缩容", "D. 要在一台机器上同时运行 Windows 客户系统"],
+      "answer": "C",
+      "solution": {
+        "idea": "容器优势在密度与速度，前提是「内核无特殊要求、信任程度足够」。",
+        "steps": ["A、D 需要不同操作系统或强隔离 → 虚拟机；", "B 需要不同内核 → 容器离不开宿主内核，做不到；", "C 是典型容器场景：共享内核没有障碍，秒级扩缩、镜像一致、密度高。"],
+        "result": "C。同团队、无内核特殊要求、追求密度与弹性，选容器。",
+        "pitfalls": ["被「安全」驱使选 A：互不信任的租户应上 VM；", "忽略 B 的内核约束：容器不能自带内核。"],
+        "kid": "几十个小隔间给同一个团队的几十个小服务正好：大家共享大楼设施，随到随住，人多就多隔几间。可要跟陌生公司合住（互不信任）、或者非要用别的装修标准（不同内核），就得租独立套房。"
+      }
+    },
+    {
+      "id": "os-12-e06",
+      "level": "medium",
+      "type": "derive",
+      "stem": "同一台 8 核服务器上要承载两组业务，请分别为场景 A、B 选型（容器或虚拟机）并说明理由。场景 A：3 个普通 Web 服务，均基于同一发行版的默认内核，团队内部互信，希望部署密度最高、扩容最快。场景 B：1 个遗留系统，必须运行多年前的旧版内核，且与本地其他业务需要最强的安全隔离。",
+      "answer": "场景 A 选容器：内核要求一致、内部互信，正好发挥容器秒级启动、高密度、镜像一致部署的优势；场景 B 选虚拟机：只有 VM 能携带自己的 Guest OS（满足旧版内核要求），并提供内核级强隔离。",
+      "solution": {
+        "idea": "两个判据定生死：内核要求是否特殊、隔离要求是否内核级。",
+        "steps": ["场景 A 检查：无特殊内核需求 → 无需 Guest OS；互信 → 不需要硬件级边界；追求密度速度 → 容器胜出；", "场景 B 检查：旧版内核 → 容器无法自带内核，必须用 VM 的 Guest OS 满足；强隔离 → VM 内核级隔离更合适；", "混合方案提示：生产中也可「先 VM 再容器」——为 B 单独起一台 VM，A 部署在共享宿主的容器里。"],
+        "result": "A 用容器，B 用虚拟机；判据是「内核要求」与「隔离等级」。",
+        "pitfalls": ["全选虚拟机求稳：牺牲了 A 场景的密度与弹性，成本翻倍；", "全选容器求省：B 的旧内核与强隔离两个硬约束都无法满足。"],
+        "kid": "租房子先问两个问题：要不要特殊的「装修标准」（内核）？要不要跟别人彻底隔开（隔离）？答案都是否，就租便宜灵活的隔间（容器）；答案有「是」，就租自带装修的套房（虚拟机）。"
+      }
+    },
+    {
+      "id": "os-12-e07",
+      "level": "medium",
+      "type": "judge",
+      "stem": "利用 cgroups，可以为某个容器设置内存上限；当该容器内的进程试图超限使用内存时，内核会拒绝分配甚至终止相应进程。",
+      "answer": "正确",
+      "solution": {
+        "idea": "cgroups 的核心承诺：资源限额由内核强制执行，而不是靠君子协定。",
+        "steps": ["为容器的 cgroup 设定 memory 上限（如 2GB）；", "进程申请内存时内核检查其 cgroup 的当前用量；", "超限时的行为可配置：拒绝分配、回收、或触发 OOM 杀掉组内进程；", "因此单个容器失控不会吃光宿主机内存。"],
+        "result": "正确。限额强制生效是 cgroups 区别于「自觉节流」的关键。",
+        "pitfalls": ["以为超限只是「变慢」：内存不同于 CPU 份额，硬上限会被强制执行；", "以为上限由容器内应用自己遵守：限制在内核层完成，应用无法绕过。"],
+        "kid": "隔间的电表是供电局（内核）装的，不是住户自己报的数。用电超了，电闸自动跳，谁也没法赖账。这样即使一个住户疯狂开空调，整栋楼也不会被它拖垮。"
+      }
+    },
+    {
+      "id": "os-12-e08",
+      "level": "medium",
+      "type": "code",
+      "stem": "下面的 Python 代码模拟了 cgroups 的内存限额记账：limit 是上限（单位 MB），alloc 模拟进程申请内存，free_mem 模拟释放。运行后输出是什么？<pre class='code' data-lang='python'>limit = 100\nused = 0\n\ndef alloc(n):\n    global used\n    if used + n > limit:\n        return 'refused'\n    used += n\n    return 'ok'\n\ndef free_mem(n):\n    global used\n    used -= n\n\nprint(alloc(60))\nprint(alloc(50))\nfree_mem(60)\nprint(alloc(50))\nprint(used)</pre>",
+      "code": { "lang": "python", "code": "limit = 100\nused = 0\n\ndef alloc(n):\n    global used\n    if used + n > limit:\n        return 'refused'\n    used += n\n    return 'ok'\n\ndef free_mem(n):\n    global used\n    used -= n\n\nprint(alloc(60))\nprint(alloc(50))\nfree_mem(60)\nprint(alloc(50))\nprint(used)", "output": "ok\nrefused\nok\n50", "explain": "alloc(60)：60 ≤ 100，返回 ok，used=60。alloc(50)：60+50=110 超过 100，返回 refused（模拟 cgroups 拒绝超限申请）。free_mem(60) 后 used=0。alloc(50) 返回 ok，used=50。最后一行打印 50。" },
+      "answer": "输出四行：ok、refused、ok、50。第二次申请因超限被拒绝，释放后同额度申请成功。",
+      "solution": {
+        "idea": "跟踪 used 的变化即可：每次 alloc 检查 used+n 是否超过 limit。",
+        "steps": ["alloc(60)：0+60 ≤ 100 → ok，used=60；", "alloc(50)：60+50=110 > 100 → refused，used 不变；", "free_mem(60)：used=60−60=0；", "alloc(50)：0+50 ≤ 100 → ok，used=50；", "print(used) 输出 50。"],
+        "result": "输出 ok、refused、ok、50——限额在「用满」与「释放」之间正确拦截了超限申请。",
+        "pitfalls": ["以为第二次 alloc(50) 会成功：110 已超上限，必须拒绝；", "忘记 free_mem 改变全局变量：used 的变化贯穿后两行输出。"],
+        "kid": "电表容量 100 度。先用了 60 度（ok）；想再开 50 度的空调，加起来 110 度超过上限，电闸说不行（refused）；关掉 60 度的电器（释放）后再开 50 度，成功了（ok）。最后电表读数：50 度。"
+      }
+    },
+    {
+      "id": "os-12-e09",
+      "level": "hard",
+      "type": "derive",
+      "stem": "在宿主机上执行 ps 可见一个进程 PID 为 8712 的 nginx，同时有一个容器也运行着 nginx，容器内执行 ps 看到的它是 PID 1。（1）同一个 nginx 进程怎么会有两个 PID？（2）解释容器内进程为什么无法向宿主机上的其他进程发送 kill 信号。（3）这说明容器隔离的安全边界处于什么层级？与虚拟机的边界相比弱在哪里？",
+      "answer": "（1）两个 PID 来自两个不同的 PID namespace：宿主的编号空间里它是 8712，容器自己的编号空间里它被映射为 1；PID 是「每个视野各自编号」的结果。（2）信号同样受 namespace 边界约束：容器内进程只能对自己 PID namespace 中可见的进程发起信号，宿主其他进程不在其视野与权限范围内，kill 无从作用。（3）这说明容器隔离是进程级（共享内核之上的视野与权限隔离）；虚拟机边界在内核之下——Guest OS 与 hypervisor 之间隔着硬件辅助的特权级，Guest 的漏洞难以直接波及宿主；容器则依赖宿主内核自身的隔离实现，一旦内核出现可被利用的漏洞，就可能发生容器逃逸。因此对不可信负载应使用虚拟机。",
+      "solution": {
+        "idea": "抓住「PID 是 namespace 内的编号」这一核心，再推广到信号与安全边界。",
+        "steps": ["PID namespace 让每个视野维护独立编号：同一进程在不同空间号码不同；", "kill 的目标查找同样基于发送方所在 namespace 的可见进程集合；", "容器内 ps 只显示本 namespace 进程，编号从 1 开始（容器主进程常为 1）；", "安全边界对比：VM 在内核之下（硬件辅助特权级），容器在内核之上（内核机制本身），内核漏洞的风险面不同；", "结论：互信内部用容器，不可信租户上 VM。"],
+        "result": "开放推导题。要点：双 PID 是视野产物；信号被 namespace 约束；容器边界是进程级、弱于 VM 的内核级。",
+        "pitfalls": ["以为两个 PID 是两个进程：进程只有一个，编号随视野而变；", "以为 kill 只要拿到 PID 就能发：可见性与权限都受 namespace 约束；", "把「绝对安全」安在任何一种技术上：容器逃逸、VM 逃逸都曾被研究，只是风险面不同。"],
+        "kid": "同一栋楼里的同一个门卫：在大楼总名单上他是 8712 号员工，可在某一层的「小名单」上他是 1 号员工——两份名单各编各的号（两个 PID 空间）。小名单上的人只能给本层的人递纸条（kill 信号），递不到别的楼层。不过各层毕竟共用一堵承重墙（内核），墙若出问题大家都受影响；套房（虚拟机）则连墙都是自己的。"
+      }
+    },
+    {
+      "id": "os-12-e10",
+      "level": "hard",
+      "type": "open",
+      "stem": "云计算平台通常采用「虚拟机划分租户 + 租户内运行容器」的两层架构。请论述：（1）为什么不在租户之间直接用容器隔离？（2）为什么不在同一租户内部改用大量小型虚拟机？（3）这种分层如何同时满足安全、密度与弹性三个目标？请结合 namespaces/cgroups 与 hypervisor 的机制差异作答。",
+      "answer": "参考要点：（1）租户互不信任，安全边界必须达到内核级：容器共享宿主内核，隔离依赖内核自身机制，内核漏洞可能导致逃逸与跨租户影响；VM 的 Guest OS 与宿主之间隔着 hypervisor 与硬件辅助特权级，攻击面小得多，故用 VM 划分租户。（2）同租户内业务互信、无内核差异，用小型 VM 会为每个微服务背一份 Guest OS：内存 GB 级、启动分钟级，密度与弹性急剧下降；容器只带依赖库，秒级启动、单机可运行上百个，正好匹配微服务的扩缩需求。（3）分层把两种机制用在刀刃上：外层 hypervisor 提供不可逾越的安全边界（安全），内层 namespaces 提供独立视野、cgroups 提供资源限额、镜像提供环境一致性（密度与一致性），编排系统（如 Kubernetes）在容器层实现秒级弹性伸缩（弹性）。安全与效率各得其所，这是云原生架构成为主流的根本原因。",
+      "solution": {
+        "idea": "分别检验「只容器」「只 VM」两个反事实方案，再论证分层如何同时拿下三个目标。",
+        "steps": ["反事实一（租户间用容器）：安全边界降为进程级，内核漏洞即可穿透，商业上不可接受；", "反事实二（租户内全 VM）：每服务携带 Guest OS，密度与启动速度崩塌，微服务的弹性优势消失；", "机制差异：hypervisor 在内核之下提供硬件级边界；namespaces/cgroups 在内核之上提供轻量隔离与限额；", "分层映射：租户边界=VM（安全），应用单元=容器（密度），编排系统=弹性；", "总结：没有万能技术，只有正确的分层。"],
+        "result": "开放论述题。核心：VM 提供租户安全边界，容器提供应用密度与弹性，两层机制各司其职。",
+        "pitfalls": ["只答「VM 更安全」不展开机制：要落到共享内核与 hypervisor 边界的差异；", "认为容器可与 VM 相互替代：二者是互补的分层关系而非竞争关系。"],
+        "kid": "云大楼的租法：不同公司之间砌承重墙、各配独立水电总闸（虚拟机），谁也别想串门；每家公司自己楼层里，用轻巧的隔间快速扩位（容器），客人多了几分钟就加一排。墙保安全，隔间保效率——两种办法各管一层，大楼才能又安全又热闹。"
+      }
+    }
+  ]
+}

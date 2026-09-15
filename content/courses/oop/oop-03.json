@@ -1,0 +1,236 @@
+{
+  "id": "oop-03",
+  "courseId": "oop",
+  "title": "第3讲 封装：把细节藏起来",
+  "objectives": [
+    "说清封装的两层含义：打包（数据+行为）与信息隐藏（藏内部细节、只留公开接口）",
+    "理解不变式的概念：对象必须始终满足的规则，以及为什么公开属性守不住它",
+    "掌握 Python 的下划线约定：_x 表示内部使用、__x 触发名称改写，并知道它们都不是硬性封锁",
+    "会用 @property 实现 getter/setter，把合法性检查安在赋值的必经之路上",
+    "能为一个类划分「藏什么、露什么」，说明隐藏细节带来的修改自由"
+  ],
+  "keyPoints": [
+    "封装 = 打包（第1讲）+ 信息隐藏（本讲重心）：外部只通过公开接口使用对象",
+    "不变式是对象在生命周期内必须始终成立的规则（如分数在 0 到 100 之间）",
+    "只要属性对外可随意赋值，一次误写就能破坏不变式；守住规矩是类的职责",
+    "Python 约定：单下划线 _x 是「内部使用请勿直接碰」；双下划线 __x 会被改名为 _类名__x，是变形不是绝对私有",
+    "getter/setter 的意义：读写都经过方法才能检查与控制；Python 用 @property 保持「像属性一样用」的写法"
+  ],
+  "minutes": 40,
+  "difficulty": 2,
+  "prerequisites": ["已完成第1-2讲：会定义类、创建对象、写 __init__ 与实例方法"],
+  "keywords": ["封装", "信息隐藏", "访问控制", "不变式", "getter", "setter", "property"],
+  "demoRefs": [],
+  "refs": ["《代码整洁之道》第6章「对象与数据结构」（延伸阅读）"],
+  "pro": {
+    "intro": "上一讲结束时，我们的 Student 有个不大不小的隐患：任何人都能写 xm.score = -50，甚至 xm.score = '满分'，程序不会当场报错，脏数据却已混进系统。本讲讲面向对象的第二块基石——封装（Encapsulation）。它有两层含义：第一层「打包」我们在第1讲已经完成；第二层「信息隐藏」是本讲的重心：把内部细节藏起来，只留必要的公开入口，让对象自己守住规矩。",
+    "sections": [
+      {
+        "heading": "3.1 打包只是上半场",
+        "html": "<p>第1讲我们把数据和操作数据的方法装进了同一个对象，这是封装的第一层：打包。但一个把所有属性都敞开的类，就像一栋没有门墙、随便进出的房子：任何人都能走进去把「分数」改成 -50，把「姓名」改成空字符串，甚至塞进一个列表。调用者也许并非恶意——大多数时候只是<strong>不知道这里有规矩</strong>。</p><p>封装的第二层因此登场：<strong>信息隐藏</strong>（Information Hiding）——把不该被外部直接碰的细节藏起来，只留下一组精心设计的公开入口（接口，Interface）。外部想用对象，只能走这些门；门里做什么检查、内部数据怎么组织，统统是类的「家务事」。这一层带来的直接好处有二：一是<strong>防误用</strong>，不合法的数据进不来；二是<strong>改得动</strong>，只要门的用法不变，内部实现随便重构，外部代码一行都不用改。</p>"
+      },
+      {
+        "heading": "3.2 不变式：对象必须守住的规矩",
+        "html": "<p>先引入一个关键术语：<strong>不变式</strong>（Invariant）——对象在自己整个生命周期内必须始终成立的规则。它比「初始值正确」要求更高：</p><ul><li>学生分数必须始终在 0 到 100 之间；</li><li>银行账户余额在任何时刻都不能为负（按业务约定）；</li><li>日期对象的月份必须始终是 1 到 12 的整数。</li></ul><p><code>__init__</code> 里设了合法初值，只能保证对象<strong>出生时</strong>合法；只要属性对外敞开，随后任何一行 <code>obj.score = -1</code> 都能立即击穿不变式。一份被污染的数据不会在原地爆炸，而是顺着调用链扩散，最后在某个毫不相干的模块里引爆——这是最难排查的一类 bug。</p><figure><svg viewBox='0 0 640 240' role='img' aria-label='封装：墙、门与检查示意图'><text x='320' y='28' text-anchor='middle' font-size='14' fill='#2A2E33'>封装的墙：属性藏墙内，出入只走带检查的门</text><rect x='24' y='70' width='130' height='84' rx='10' fill='#FAF7F2' stroke='#7C9CBF' stroke-width='1.6'/><text x='89' y='102' text-anchor='middle' font-size='13' fill='#2A2E33'>外部代码</text><text x='89' y='128' text-anchor='middle' font-size='12' fill='#6C7078'>xm.score = 150</text><rect x='230' y='60' width='180' height='104' rx='10' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.8'/><text x='320' y='88' text-anchor='middle' font-size='13' fill='#2A2E33'>公开门（接口）</text><text x='320' y='110' text-anchor='middle' font-size='12' fill='#6C7078'>setter / @property</text><text x='320' y='132' text-anchor='middle' font-size='12' fill='#6C7078'>检查：0 到 100</text><text x='320' y='152' text-anchor='middle' font-size='12' fill='#C96A6A'>不合格：当场拒绝</text><rect x='486' y='70' width='130' height='84' rx='10' fill='#FAF7F2' stroke='#5E9E8F' stroke-width='1.6'/><text x='551' y='102' text-anchor='middle' font-size='13' fill='#2A2E33'>墙内：_score</text><text x='551' y='128' text-anchor='middle' font-size='12' fill='#6C7078'>真正的数据</text><line x1='154' y1='112' x2='230' y2='112' stroke='#C9A96A' stroke-width='2'/><line x1='410' y1='112' x2='486' y2='112' stroke='#6FA57E' stroke-width='2'/><text x='184' y='100' font-size='12' fill='#C9A96A'>必经</text><text x='432' y='100' font-size='12' fill='#6FA57E'>放行</text><path d='M 154 176 C 210 216 420 216 486 176' stroke='#C96A6A' stroke-width='1.6' stroke-dasharray='6 4' fill='none'/><text x='320' y='218' text-anchor='middle' font-size='12' fill='#C96A6A'>绕过门直接改属性：约定禁止（_x 勿碰，__x 已改名）</text></svg><figcaption>图 3-1 封装机制：外部只能通过带检查的公开门读写数据，绕行通道被堵住。</figcaption></figure><p>结论：守住不变式不能靠「大家小心」，要靠机制。<strong>把属性藏起来，让所有读写都经过类自己设的关卡</strong>——这就是封装作为机制的意义。下一节先看 Python 用什么记号标记「藏」，再给关卡装上门卫。</p>"
+      },
+      {
+        "heading": "3.3 Python 的访问约定：下划线不是铁闸门",
+        "html": "<p>Python 没有.public、private 这样的关键字，它用<strong>命名约定</strong>表达访问意图：</p><ul><li><strong>单下划线前缀 _score</strong>：意思是「内部使用，外部请勿直接碰」。这是君子协定——语法上你仍然可以访问它，编辑器与工具链也会把它当内部成员对待（例如 <code>from module import *</code> 不会导入它）。</li><li><strong>双下划线前缀 __secret</strong>：Python 会把它<strong>改名为 _类名__secret</strong>（这个过程叫<strong>名称改写</strong>，Name Mangling）。外部写 <code>xm.__secret</code> 会报 AttributeError，因为这个名字已经不存在了。注意：它并非绝对私有——写 <code>xm._Student__secret</code> 依然拿得到。名称改写的本意主要是避免子类无意中覆盖父类的同名属性，而不是提供保险柜。</li></ul><pre class='code' data-lang='python'>class Student:\n    def __init__(self, name, pin):\n        self.name = name           # 公开属性：外面随便用（本讲之后我们要收回来）\n        self._pin = pin            # 单下划线：约定内部使用\n        self.__secret = '日记本'   # 双下划线：触发名称改写\n\nxm = Student('小明', '1234')\nprint(xm._pin)                 # 1234：语法上能访问，只是按约定不该这么用\n# print(xm.__secret)           # AttributeError：外部已无 __secret 这个名字\nprint(xm._Student__secret)     # 日记本：改写后的全名，说明它并非绝对私有</pre><p>Python 的态度常被概括为「我们都是成年人」：语言不设铁闸，靠约定守住秩序。正因如此，下划线才更应被认真对待——它写进了团队契约，越线者要给出充分的理由。</p>"
+      },
+      {
+        "heading": "3.4 getter/setter 与 @property：把检查安在必经之路上",
+        "html": "<p>藏起属性之后，外部的读写需求要由<strong>公开方法</strong>承接：读值的叫 <strong>getter</strong>（访问器），写值的叫 <strong>setter</strong>（设置器）。它们的意义不在「多打几个字」，而在于<strong>读写从此必须经过一道关卡</strong>——检查、换算、记录日志、发通知，都装在关卡里。很多语言（如 Java）惯用 <code>getScore()</code>、<code>setScore(95)</code> 的写法；Python 提供了更优雅的 <code>@property</code>，让外部代码仍然「像属性一样用」，背后却悄悄走方法：</p><pre class='code' data-lang='python'>class Student:\n    def __init__(self, name, score):\n        self.name = name\n        self.score = score            # 赋值走 setter：出生时也检查\n\n    @property\n    def score(self):                  # getter：读 score 时自动调用\n        return self._score\n\n    @score.setter\n    def score(self, value):           # setter：写 score 时自动调用\n        if 0 <= value <= 100:\n            self._score = value\n        else:\n            raise ValueError('分数必须在 0 到 100 之间')\n\nxm = Student('小明', 80)\nxm.score = 95                        # 看起来像直接赋值，其实经过了检查\nprint(xm.score)                      # 95\n# xm.score = 150                     # ValueError：分数必须在 0 到 100 之间</pre><p>注意两个细节：数据真正存放在 <code>self._score</code>（单下划线，属于内部细节）；构造函数里的 <code>self.score = score</code> 也会走 setter，所以<strong>出生时的初值同样受检</strong>——不变式从出生那一刻起就被守住。划分「藏与露」的经验法则：<strong>藏住所有属性与实现细节，只露出门</strong>；getter 可以大胆提供（只读很安全），setter 则只在「确实允许外部改、且检查规则明确」时提供。</p>"
+      },
+      {
+        "heading": "3.5 小结与预告",
+        "html": "<p>本讲补全了封装的第二层含义：打包之后还要隐藏。我们认识了不变式——对象必须始终成立的规矩，以及守住它的三件工具：下划线约定标记内部成员、名称改写避免误碰、@property 把检查装进读写必经之路。一句口诀收尾：<strong>属性藏起来，门口设检查；不变式由类守，不靠外部自觉。</strong></p><p>到目前为止，每个类都是「从零画图纸」。但现实里大量类彼此相似：狗和猫都有名字、都要吃东西。下一讲「继承」登场：让新类站在旧类的肩膀上，复用已经写好的属性与方法——同时我们会严格检验继承的适用条件「is-a 关系」。</p>"
+      }
+    ]
+  },
+  "kid": {
+    "intro": "上讲结束时我们说过：现在任何人都能对着书包的分数口袋乱写，写个 -50 也没人拦。这一讲我们要给书包装上「小门卫」，还要学一门新本事——把最重要的东西藏好，只留几个按钮给别人用。生活中这种聪明办法到处都是，比如自动售货机。不信？往下看。",
+    "sections": [
+      {
+        "heading": "自动售货机只留按钮",
+        "html": "<p>你买过自动售货机里的饮料吗？你会伸手机扫码、按按钮、等饮料掉出来——但<strong>从来不会把手伸进机器内部</strong>去抓饮料。为什么？因为机器外面只留了几个按钮，里面的货道、弹簧、电线全都藏在铁壳子里。</p><p>这样做的好处有两个：第一，你<strong>想乱来也乱来不了</strong>，按钮按不出来第二瓶；第二，厂家明天想换个新货道，只要按钮还在老地方，你完全不用重新学习。程序里的「封装」就是给对象造铁壳：东西藏好，只留按钮（我们叫它「接口」）。</p>"
+      },
+      {
+        "heading": "存钱罐的规矩：钱不能变负数",
+        "html": "<p>想象班里有个电子存钱罐，记录着班费余额。规矩只有一条：<strong>余额永远不能是负数</strong>——这叫「不变式」，就是「什么时候都必须成立」的规则。要是存钱罐敞着口，谁都能伸手改数字，某个马虎的同学写了个 -50，班费账就全乱了，而且很难查出是谁干的。</p><p>聪明的做法是：把数字藏进存钱罐肚子里，只留两个按钮——「存入」和「取出」。取出按钮自己会检查：取得比剩的多？拒绝！这样，规矩由存钱罐<strong>自己</strong>守，谁也别想绕过去。对象守规矩，靠的就是这套办法。</p>"
+      },
+      {
+        "heading": "下划线是「请勿触碰」的贴纸",
+        "html": "<p>Python 里怎么标记「这个口袋是内部的、别碰」？在名字前面加下划线。一个下划线，像贴了张「<strong>员工专用，顾客止步</strong>」的贴纸：你硬要碰也碰得到（语法上不拦你），但大家会都觉得你没礼貌，出事了算你的。</p><p>两个下划线更厉害一点，像把口袋改了名，外面喊原来的名字它装听不见（程序里叫「名称改写」）。不过要诚实地说：它不是金库大门，改名后的全名还是能找到它。Python 相信大家都是讲道理的大孩子：贴纸和改名足够提醒人「别乱碰」，真正的保险，是我们下一节要装的「小门卫」。</p>"
+      },
+      {
+        "heading": "负责检查的小门卫",
+        "html": "<p>现在给分数口袋装个门卫。以后谁想读分数、改分数，都得跟门卫说，不许自己伸手：<code>xm.score = 95</code>，门卫接过 95，看一眼——0 到 100 之间，合格，放进里面的口袋；<code>xm.score = 150</code>？不合格，退回去，还大喊一声「分数必须在 0 到 100 之间」！</p><p>妙的是，外面的人几乎感觉不到门卫的存在——写法和以前一模一样。这就是 Python 的 <code>@property</code> 本领：<strong>用法不变，检查悄悄上岗</strong>。连书包刚出厂装第一个分数时，门卫也在岗，坏数字从出生那天就进不了门。</p>"
+      },
+      {
+        "heading": "小结与预告",
+        "html": "<p>今天记住两句话：<strong>把细节藏起来，只留按钮（接口）给别人用</strong>；<strong>规矩（不变式）由门卫把守，谁也别想绕过</strong>。下划线是「请勿触碰」的贴纸，@property 是那个看不见却很负责的小门卫。</p><p>下一讲有个更省事的大招：好多类长得都很像，狗和猫都有名字、都要吃饭——能不能只写一次，别的类直接借用？可以！这就叫「继承」，像孩子继承爸爸的本事。下讲见！</p>"
+      }
+    ]
+  },
+  "glossary": [
+    { "term": "封装（Encapsulation）", "def": "把数据和操作打包进对象，并把内部细节藏起来、只留公开入口的两层做法" },
+    { "term": "信息隐藏（Information Hiding）", "def": "把对象内部的属性和实现细节藏起来，外部只能通过公开接口使用对象" },
+    { "term": "接口（Interface）", "def": "类故意留给外部使用的公开方法，像售货机外面的按钮" },
+    { "term": "不变式（Invariant）", "def": "对象必须始终满足的规则，例如分数永远在 0 到 100 之间" },
+    { "term": "名称改写（Name Mangling）", "def": "Python 把双下划线属性改名为 _类名__属性名 的机制，避免外部和子类误碰" },
+    { "term": "getter 与 setter", "def": "读取和设置属性的公开方法；读写都要经过它们，检查才能装在必经之路上" },
+    { "term": "@property", "def": "Python 的写法：让外部像用属性一样读写，背后自动走 getter/setter 方法" }
+  ],
+  "exercises": [
+    {
+      "id": "oop-03-e01",
+      "level": "easy",
+      "type": "choice",
+      "stem": "封装的完整含义，最准确的描述是？",
+      "options": ["A. 把所有代码写进一个巨大的类里", "B. 打包数据与操作，并隐藏内部细节、只留公开接口", "C. 给每个属性都加上双下划线", "D. 用密码保护源代码文件"],
+      "answer": "B",
+      "solution": {
+        "idea": "封装 = 打包（第1讲）+ 信息隐藏（本讲），两层缺一不可。",
+        "steps": ["打包解决「数据和行为走散」；", "信息隐藏解决「外部随意改、内部改不动」；", "两者合起来才是封装的完整含义，选 B。"],
+        "result": "B。打包加隐藏，公开的只有接口。",
+        "pitfalls": ["以为「全塞进一个类」就是封装：那是大杂烩，不是分层隐藏；", "以为加了双下划线就完事：访问控制只是手段之一。"],
+        "kid": "自动售货机做好了两件事：把饮料和机器（东西和干活的部分）装进同一个铁壳，再把铁壳封起来只留按钮。两件事合在一起才叫封装。"
+      }
+    },
+    {
+      "id": "oop-03-e02",
+      "level": "easy",
+      "type": "judge",
+      "stem": "在 Python 中，对象属性前面加单下划线（如 <code>_score</code>）后，外部代码在语法上就完全无法访问它了。",
+      "answer": "错误",
+      "solution": {
+        "idea": "单下划线是约定，不是语法封锁。",
+        "steps": ["单下划线的含义是「内部使用，请勿直接碰」；", "语法上 xm._score 依然可以访问；", "所以「完全无法访问」的说法错误。"],
+        "result": "错误。单下划线只是君子协定，语法上仍可访问。",
+        "pitfalls": ["把 Python 的下划线约定当成 Java 的 private：Python 没有硬性私有；", "以为单双下划线效果相同：双下划线才有名称改写。"],
+        "kid": "单下划线像「员工专用」的贴纸：贴了纸的门，顾客硬推还是推得开，语法并不拦你。它是在提醒你「别碰」，而不是上了锁，所以别指望贴纸挡住坏人，它管的是自家人别乱伸手。"
+      }
+    },
+    {
+      "id": "oop-03-e03",
+      "level": "easy",
+      "type": "choice",
+      "stem": "下列哪一条<strong>最适合</strong>作为学生对象的不变式？",
+      "options": ["A. 学生的姓名必须由两个汉字组成", "B. 学生的分数必须始终在 0 到 100 之间", "C. 学生必须在周一穿校服", "D. 学生的爱好数量每年至少增加一个"],
+      "answer": "B",
+      "solution": {
+        "idea": "不变式要覆盖对象的全部合法取值范围，且与程序逻辑强相关。",
+        "steps": ["分数的合法域就是 0 到 100，超出即为非法数据；", "姓名长度、校服、爱好增长都不是数据合法性规则；", "姓名、校服、爱好与数据合法性无关，只有 B 是贯穿对象一生的数值规则，选 B。"],
+        "result": "B。分数必须在 0 到 100 之间是典型的数据不变式。",
+        "pitfalls": ["把业务习惯（穿校服）当成不变式：它约束的不是对象数据；", "把过窄的人为要求（两个汉字）当成规则：合法范围应与业务一致。"],
+        "kid": "存钱罐的规矩是「钱永远不能是负数」，分数的规矩就是「永远在 0 到 100 之间」。规矩管的是「数据合不合法」，不是「穿什么衣服」这类生活约定。"
+      }
+    },
+    {
+      "id": "oop-03-e04",
+      "level": "easy",
+      "type": "choice",
+      "stem": "在 Python 中使用 <code>@property</code> 的主要好处是？",
+      "options": ["A. 让属性运行速度提高十倍", "B. 外部代码仍像普通属性一样读写，但背后自动经过 getter/setter 检查", "C. 可以省略类的 __init__ 方法", "D. 让属性从内存中永久隐藏，任何人都读不到"],
+      "answer": "B",
+      "solution": {
+        "idea": "@property 的价值是「用法不变、检查在岗」，不是性能或加密。",
+        "steps": ["外部继续写 xm.score = 95、xm.score；", "赋值自动走 setter、读取自动走 getter；", "检查逻辑装在方法里，接口保持简洁，选 B。"],
+        "result": "B。像属性一样用，背后走检查方法。",
+        "pitfalls": ["误以为它提速：它的收益是安全与接口优雅；", "误以为数据被藏得读不到：读取仍走 getter 返回值。"],
+        "kid": "小门卫上岗了，但同学们完全感觉不到——还是照老样子「打开分数口袋」，只是递进来、递出去都经过门卫检查。用法没变，检查悄悄生效。"
+      }
+    },
+    {
+      "id": "oop-03-e05",
+      "level": "medium",
+      "type": "derive",
+      "stem": "运行下面的程序，输出是什么？\n<pre class='code' data-lang='python'>class Student:\n    def __init__(self, name):\n        self.name = name\n        self._score = 0\n\n    @property\n    def score(self):\n        return self._score\n\n    @score.setter\n    def score(self, value):\n        if 0 <= value <= 100:\n            self._score = value\n        else:\n            print('拒绝：分数必须在 0 到 100 之间')\n\nxm = Student('小明')\nxm.score = 90\nxm.score = 150\nprint(xm.score)</pre>",
+      "answer": "输出两行：第一行「拒绝：分数必须在 0 到 100 之间」，第二行「90」。150 被 setter 拦下未写入，_score 保持 90。",
+      "solution": {
+        "idea": "每次对 score 赋值都走 setter，按范围检查逐次判断。",
+        "steps": ["第1步：xm 出生，_score 初始为 0；", "第2步：xm.score = 90 通过检查，_score 变为 90；", "第3步：xm.score = 150 不在 0 到 100 之间，打印拒绝信息，_score 不变；", "第4步：print(xm.score) 走 getter，返回 90。"],
+        "result": "拒绝：分数必须在 0 到 100 之间，然后输出 90。",
+        "pitfalls": ["以为 150 会覆盖成 150：不合法的赋值被拒，原值保留；", "以为初始 _score 会打印 0：中间有合法赋值 90。"],
+        "kid": "门卫接到两件包裹：90 分，合格，放进柜子；150 分，超纲，当场退回还喊了一嗓子。最后你问柜子里是多少，柜子说的是没被换掉的那个 90。"
+      }
+    },
+    {
+      "id": "oop-03-e06",
+      "level": "medium",
+      "type": "design",
+      "stem": "为「银行账户」类 BankAccount 设计封装方案：列出至少 2 条不变式、应该隐藏哪些属性、应该公开哪些方法；并说明「取款」方法内部应做哪些检查。不必写完整代码，说清设计即可。",
+      "answer": "参考设计：不变式至少两条——余额始终不为负；货币数值必须为数字且保留合理精度（如元为单位的数值）。隐藏属性：_balance（余额）、_owner（户主）等全部内部状态。公开方法：deposit(amount) 存款、withdraw(amount) 取款、balance（用 @property 只读）。取款检查：金额必须为正数；amount 不大于当前余额，否则拒绝并给出提示；通过后才执行 _balance 减法，保证不变式在任何时刻都不被破坏。",
+      "solution": {
+        "idea": "先定不变式，再让所有会改变状态的路径都经过检查。",
+        "steps": ["第1步：写下「必须永远成立」的规则（余额不为负等）；", "第2步：把余额藏为 _balance，杜绝外部直接赋值；", "第3步：公开存款、取款、只读余额三个入口；", "第4步：在取款里检查金额为正且不超过余额，不合法就拒绝。"],
+        "result": "藏全部属性，公开少量受检方法，取款含正数与余额两项检查。",
+        "pitfalls": ["只检查余额不检查金额为负：负数取款会让余额不降反升；", "把 _balance 公开让大家改：不变式立刻失去保障。"],
+        "kid": "把钱罐子锁进柜子，柜子只留三个按钮：存钱、取钱、看余额。取钱按钮最忙：先看你取的是不是正数，再看你取的有没有超过柜子里的钱，两关都过才放钱出来——规矩永远不被破坏。"
+      }
+    },
+    {
+      "id": "oop-03-e07",
+      "level": "medium",
+      "type": "choice",
+      "stem": "某个类的 <code>__init__</code> 里写了 <code>self.__pin = '1234'</code>。在类的外部，访问这个属性实际需要写的名字是？",
+      "options": ["A. xm.__pin", "B. xm._pin", "C. xm._Student__pin", "D. xm.pin__"],
+      "answer": "C",
+      "solution": {
+        "idea": "双下划线触发名称改写：属性被改名为 _类名__原名。",
+        "steps": ["__pin 在 Student 类里被改写为 _Student__pin；", "xm.__pin 会报 AttributeError（该名字已不存在）；", "改写后的全名 xm._Student__pin 可以访问，选 C。"],
+        "result": "C。名称改写让 __pin 变成 _Student__pin。",
+        "pitfalls": ["以为 __pin 被彻底加密消失：它只是改了名字；", "记错改写格式：是单下划线加类名，不是双下划线包夹。"],
+        "kid": "口袋原来的名字被悄悄改成了「Student 家的 pin」，你按老名字喊它，它装听不见。名字换了而已，找到新名字还是能喊应——所以说双下划线也不是金库大门。"
+      }
+    },
+    {
+      "id": "oop-03-e08",
+      "level": "medium",
+      "type": "judge",
+      "stem": "只要在 <code>__init__</code> 里给属性设置了合法的初始值，就不需要再做任何访问控制，不变式自然永远成立。",
+      "answer": "错误",
+      "solution": {
+        "idea": "初始值只保证出生合法；后续赋值随时可能破坏不变式。",
+        "steps": ["__init__ 的检查只发生在创建对象那一刻；", "之后任何一行 obj.score = -1 都能写入非法值；", "守住不变式需要把检查放在所有写入路径上，故说法错误。"],
+        "result": "错误。出生合法不等于一生合法，读写关卡必须常设。",
+        "pitfalls": ["低估后续误写的概率：脏数据大多来自创建之后的赋值；", "以为加了初值检查就万事大吉： setter/门卫才是常设关卡。"],
+        "kid": "书包出厂时装的是 80 分，只能说明出厂那天没问题。之后谁都能伸手塞个 -50 进去——所以门卫不能只上一天班，得天天守在口袋口。"
+      }
+    },
+    {
+      "id": "oop-03-e09",
+      "level": "hard",
+      "type": "code",
+      "stem": "请实现一个 Volume（音量）类：音量用 @property 保护，合法范围 0 到 10；赋值超出范围时<strong>不报错</strong>，而是自动「夹」到最近的边界（例如 15 变成 10，-5 变成 0）。参考实现如下，请说明三次赋值后各打印什么，以及这种「夹紧」策略与「报错拒绝」策略各自的适用场景。",
+      "answer": "三次打印依次为 10、0、7。夹紧策略适合「越界值仍然有意义，取边界即可」的场景（如音量、亮度）；报错拒绝适合「越界意味着程序出错，必须暴露问题」的场景（如分数录错、金额为负）。",
+      "code": {
+        "lang": "python",
+        "code": "class Volume:\n    def __init__(self, level):\n        self.volume = level\n\n    @property\n    def volume(self):\n        return self._level\n\n    @volume.setter\n    def volume(self, value):\n        if value < 0:\n            self._level = 0\n        elif value > 10:\n            self._level = 10\n        else:\n            self._level = value\n\nv = Volume(15)\nprint(v.volume)\nv.volume = -5\nprint(v.volume)\nv.volume = 7\nprint(v.volume)",
+        "output": "10\n0\n7",
+        "explain": "构造时 15 走 setter 被夹到 10；-5 被夹到 0；7 在范围内直接写入。三次读取分别得到 10、0、7。检查逻辑全部位于 setter，出生与后续赋值都受同一套规则约束。"
+      },
+      "solution": {
+        "idea": "所有赋值（含 __init__）都走 setter；setter 用 if/elif 把值夹回边界。",
+        "steps": ["第1步：识别 __init__ 里的 self.volume = level 也触发 setter；", "第2步：15 超上限，写入 10；", "第3步：-5 低于下限，写入 0；", "第4步：7 合法，原样写入；对比两种策略的适用场景。"],
+        "result": "输出 10、0、7；夹紧用于越界仍有意义的连续量，拒绝用于越界即错误的严格数据。",
+        "pitfalls": ["以为 __init__ 的赋值绕过 setter：它同样走 @score.setter 这条路；", "把两种策略的适用场景说反：音量夹紧、分数报错。"],
+        "kid": "音量旋钮被门卫装了「挡板」：你想拧到 15，他帮你停在最响的 10；想拧到负数，他帮你停在最静的 0。分数可不能这么办——录错分数是大事，必须大喊一声退回去。"
+      }
+    },
+    {
+      "id": "oop-03-e10",
+      "level": "hard",
+      "type": "open",
+      "stem": "某团队的程序里 score 是公开属性。上线后，有人悄悄用 <code>score = -1</code> 表示「未参加考试」，结果统计平均分时这些 -1 被算进总和，数据全部出错。请用「不变式」与「封装」的观点分析这次事故的根因，并给出至少两条改造建议。",
+      "answer": "参考分析：根因是「不变式从未被机制守卫」——分数的合法域是 0 到 100，-1 属于非法数据，却因为属性公开、任何代码都能绕过规则直接赋值，于是哨兵值混进了合法数据流；统计代码又无从区分 -1 是「哨兵」还是「脏数据」。改造建议（至少两条）：① 用 @property 把 score 藏为 _score，setter 里做范围检查，非法赋值当场报错；② 「未参加考试」用显式状态表达，例如单独的 attended 布尔属性或 None 表示缺考，而不是借用 -1 这种魔法数字；③ 统计逻辑只信任类公开的接口，过滤缺考记录。核心结论：让非法数据在写入的那一刻就被拦截，而不是在读取端到处打补丁。",
+      "solution": {
+        "idea": "从事故倒推：脏数据能进来，说明写入路径没有关卡；哨兵值与合法数据混用，说明状态表达有歧义。",
+        "steps": ["第1步：指出不变式（0 到 100）存在但未被守卫；", "第2步：指出公开属性允许任意赋值，-1 轻松入库；", "第3步：给出封装改造——property 检查、显式表达缺考状态；", "第4步：总结「入口拦截优于出口打补丁」。"],
+        "result": "开放题。要点：根因是缺机制而非缺自觉；建议包含 property 校验与用显式状态替代魔法数字。",
+        "pitfalls": ["只批评写 -1 的人：问题在机制让违规成为可能；", "建议在统计时排除 -1：那是出口打补丁，治标不治本。"],
+        "kid": "存钱罐敞着口，有人往里塞了张「假币」(-1)，账目全乱。怪塞假币的人没错，但更要紧的是把罐口装上门卫：假币进门那一刻就被拦下。再给「没交钱」立个专门的牌子（比如贴张缺考条），别拿假币当记号。"
+      }
+    }
+  ]
+}

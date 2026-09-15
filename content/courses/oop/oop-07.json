@@ -1,0 +1,245 @@
+{
+  "id": "oop-07",
+  "courseId": "oop",
+  "title": "第7讲 SOLID 五大设计原则",
+  "objectives": [
+    "说出 SOLID 五条原则的名字与各自的核心一句话",
+    "用生活例子解释每条原则，并识别代码中违反原则的典型症状",
+    "掌握单一职责原则的「变化原因」判断法：列出谁会让这个类变化，多于一个就拆分",
+    "用里氏替换原则检验继承关系：子类必须能替换父类且不打折扣",
+    "说明依赖倒置原则如何让业务逻辑不再绑死在具体实现上"
+  ],
+  "keyPoints": [
+    "SOLID 是五条设计原则的合称：单一职责、开闭、里氏替换、接口隔离、依赖倒置，共同目标是让软件「好改、好测、好扩展」",
+    "单一职责原则（SRP）：一个类只应有一个引起它变化的原因；变化原因分开，职责就分开",
+    "开闭原则（OCP）：对扩展开放、对修改关闭；用抽象做扩展点，加功能靠新增代码而不是改老代码",
+    "里氏替换原则（LSP）：子类必须信守父类的承诺，替换后程序行为不被破坏；收窄承诺的子类不该继承",
+    "接口隔离原则（ISP）：接口要小而专，不强迫实现者依赖用不到的方法",
+    "依赖倒置原则（DIP）：高层与低层都依赖抽象，细节去实现抽象，业务逻辑不抓住具体实现"
+  ],
+  "minutes": 55,
+  "difficulty": 3,
+  "prerequisites": ["oop-06 抽象类与接口"],
+  "keywords": ["SOLID", "单一职责原则", "开闭原则", "里氏替换原则", "接口隔离原则", "依赖倒置原则", "设计原则"],
+  "demoRefs": [],
+  "refs": ["《敏捷软件开发：原则、模式与实践》（延伸阅读：SOLID 原则的原始论述）"],
+  "pro": {
+    "intro": "学到第 6 讲，你已经装备了封装、继承、多态、抽象类与接口这五件工具。工具在手里，新问题冒出来：类该怎么划分？继承该往哪连？接口该切成几块？「能运行」和「好改」是两回事——需求永远在变，三个月后总要加功能、换实现。这一讲我们学习前人反复验证过的设计路标：SOLID 五大设计原则，它决定了你改动代码时是「只动一小块、心里有底」，还是「牵一发动全身、越改越怕」。",
+    "sections": [
+      {
+        "heading": "7.1 「能跑」不等于「好改」：SOLID 总览",
+        "html": "<p>同样能运行的两段代码，差距藏在看不见的地方：一段加功能像插电源一样轻松，另一段动一处就牵扯十处。设计没有唯一的标准答案，但有经过大量项目验证的路标，其中最著名的一组叫 <strong>SOLID 五大设计原则</strong>（五条面向对象设计准则的合称，缩写连起来正好是 SOLID）。</p><p>五条原则各管一段路：</p><ul><li><strong>S——单一职责原则</strong>（Single Responsibility Principle）：一个类只该负责一类需求，只该有一个变化原因；</li><li><strong>O——开闭原则</strong>（Open-Closed Principle）：对扩展开放、对修改关闭，加功能靠新增代码；</li><li><strong>L——里氏替换原则</strong>（Liskov Substitution Principle）：子类必须能替换父类且不打折扣；</li><li><strong>I——接口隔离原则</strong>（Interface Segregation Principle）：接口要小而专，不塞用不到的方法；</li><li><strong>D——依赖倒置原则</strong>（Dependency Inversion Principle）：都依赖抽象，不抓住具体实现。</li></ul><p>它们共同的追求只有一句话：让软件好改。能跑只是及格线；设计原则不能替你写代码，但能决定你未来改动时的日子好不好过。先看总览图，记住每格的关键词，接下来五节逐条展开：每条原则配一个生活例子、一段反例代码，以及「违反之后具体会发生什么」。</p><figure><svg viewBox='0 0 640 250' role='img' aria-label='SOLID 五原则总览图'><text x='320' y='26' text-anchor='middle' font-size='15' fill='#2A2E33'>SOLID：五条让代码好改的设计原则</text><rect x='20' y='48' width='112' height='152' rx='10' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.6'/><text x='76' y='84' text-anchor='middle' font-size='20' fill='#5E9E8F'>S</text><text x='76' y='112' text-anchor='middle' font-size='13' fill='#2A2E33'>单一职责</text><text x='76' y='138' text-anchor='middle' font-size='12' fill='#6C7078'>一个类只背</text><text x='76' y='158' text-anchor='middle' font-size='12' fill='#6C7078'>一种变化原因</text><text x='76' y='178' text-anchor='middle' font-size='12' fill='#6C7078'>职责要拆开</text><rect x='142' y='48' width='112' height='152' rx='10' fill='#FFFFFF' stroke='#C9A96A' stroke-width='1.6'/><text x='198' y='84' text-anchor='middle' font-size='20' fill='#C9A96A'>O</text><text x='198' y='112' text-anchor='middle' font-size='13' fill='#2A2E33'>开闭原则</text><text x='198' y='138' text-anchor='middle' font-size='12' fill='#6C7078'>加功能靠</text><text x='198' y='158' text-anchor='middle' font-size='12' fill='#6C7078'>新增代码</text><text x='198' y='178' text-anchor='middle' font-size='12' fill='#6C7078'>不拆老墙</text><rect x='264' y='48' width='112' height='152' rx='10' fill='#FFFFFF' stroke='#7C9CBF' stroke-width='1.6'/><text x='320' y='84' text-anchor='middle' font-size='20' fill='#7C9CBF'>L</text><text x='320' y='112' text-anchor='middle' font-size='13' fill='#2A2E33'>里氏替换</text><text x='320' y='138' text-anchor='middle' font-size='12' fill='#6C7078'>子类换父类</text><text x='320' y='158' text-anchor='middle' font-size='12' fill='#6C7078'>承诺</text><text x='320' y='178' text-anchor='middle' font-size='12' fill='#6C7078'>不打折</text><rect x='386' y='48' width='112' height='152' rx='10' fill='#FFFFFF' stroke='#C96A6A' stroke-width='1.6'/><text x='442' y='84' text-anchor='middle' font-size='20' fill='#C96A6A'>I</text><text x='442' y='112' text-anchor='middle' font-size='13' fill='#2A2E33'>接口隔离</text><text x='442' y='138' text-anchor='middle' font-size='12' fill='#6C7078'>接口小而专</text><text x='442' y='158' text-anchor='middle' font-size='12' fill='#6C7078'>不塞</text><text x='442' y='178' text-anchor='middle' font-size='12' fill='#6C7078'>没用的方法</text><rect x='508' y='48' width='112' height='152' rx='10' fill='#FFFFFF' stroke='#6FA57E' stroke-width='1.6'/><text x='564' y='84' text-anchor='middle' font-size='20' fill='#6FA57E'>D</text><text x='564' y='112' text-anchor='middle' font-size='13' fill='#2A2E33'>依赖倒置</text><text x='564' y='138' text-anchor='middle' font-size='12' fill='#6C7078'>只对标准</text><text x='564' y='158' text-anchor='middle' font-size='12' fill='#6C7078'>接口说话</text><text x='564' y='178' text-anchor='middle' font-size='12' fill='#6C7078'>不抓实现</text><text x='320' y='234' text-anchor='middle' font-size='12' fill='#6C7078'>共同目标：加得进、改得动、测得完</text></svg><figcaption>图 7-1 SOLID 五原则总览：每格是一个名字加一句话记忆点。</figcaption></figure>"
+      },
+      {
+        "heading": "7.2 单一职责原则：一个类只该有一个变化原因",
+        "html": "<p>定义：<strong>单一职责原则</strong>（SRP）——一个类应该只有一个引起它变化的原因。注意，职责不是靠「这个类看起来在干什么」猜的，而是靠「谁会要求它改变」数的：一个类若会因为三拨人、三类需求而被修改，它就背了三份职责。</p><p>生活例子：想象一家小餐馆只雇了一个全能员工：点单是他、炒菜是他、收银还是他。菜谱改了他要学，价格改了他要重背，收款码升级他要重新登记——任何一摊变化都落到同一个人头上，忙中出错还容易停业整顿。正规餐馆把这三件事拆给服务员、厨师、收银员：菜谱变化只扰厨师，价格变化只管收银。人没变多，混乱却少了一大半——因为「变化的原因」被分开了。</p><p>代码里的全能员工长这样：</p><pre class='code' data-lang='python'>class OrderManager:\n    def place_order(self, items):\n        ...  # 1) 下单业务逻辑\n    def save_to_mysql(self):\n        ...  # 2) 数据库存取\n    def print_receipt(self):\n        ...  # 3) 打印小票</pre><p>三份职责意味着三个变化原因：业务规则变了要改它，数据库从 MySQL 换成别的要改它，小票格式改了还要改它。具体后果：① 改小票样式的同事和改存储代码的同事在同一个文件里互相踩脚，代码合并冲突不断；② 想给存储写测试，必须连带把下单逻辑一起跑起来；③ 一次手滑改坏无关方法，没测到的角落直接出事。</p><p>按 SRP 拆分，让每个类只回答一类需求：</p><pre class='code' data-lang='python'>class OrderService:\n    def __init__(self, repo, printer):\n        self.repo = repo\n        self.printer = printer\n    def place_order(self, items):\n        order = self.validate(items)\n        self.repo.save(order)\n        self.printer.print_ticket(order)\n\nclass MySqlOrderRepo:\n    def save(self, order):\n        ...  # 只负责存取\n\nclass TicketPrinter:\n    def print_ticket(self, order):\n        ...  # 只负责小票</pre><p>拆分后：小票格式变了只动 TicketPrinter；数据库换代只动 MySqlOrderRepo；OrderService 保持稳定。这就是 SRP 的红利——把变化关进各自的小盒子。自测口诀：列出「谁、因为什么需求、会来改这个类」，数出来多于一个，就该考虑做手术了。</p>"
+      },
+      {
+        "heading": "7.3 开闭原则：对扩展开放，对修改关闭",
+        "html": "<p>定义：<strong>开闭原则</strong>（OCP）——软件实体（类、模块、函数）应该对扩展开放、对修改关闭：增加新功能时以「新增代码」为主，尽量不改动已经稳定、已经测试过的老代码。听起来自相矛盾：不改老代码，功能怎么加？答案是留好<strong>扩展点</strong>——把会变化的部分做成抽象，让新功能以「新实现」的方式接进来。</p><p>生活例子：装修时，电工在墙上装了一排插线板。以后买电视、买台灯，直接插上就行——不需要砸墙，也不需要重新布线。插线板就是装修时留好的扩展点：位置固定（对修改关闭），但插什么电器都行（对扩展开放）。反过来想，如果每添一件电器都要重新凿墙拉线，这不是电器的问题，是当初没留插口的设计问题。</p><p>反例代码——用 if-else 判断类型来算面积：</p><pre class='code' data-lang='python'>def area(shape):\n    if shape['type'] == 'rect':\n        return shape['w'] * shape['h']\n    elif shape['type'] == 'circle':\n        return 3.14 * shape['r'] ** 2\n    # 每新增一种图形都要在这里加分支</pre><p>具体后果：每加一种图形（三角形、椭圆……），都要打开这个函数插一条分支；这段代码被反复修改，越改越容易碰坏别的分支；而且改完后所有分支的测试都得重跑。修改的时机恰恰是出错概率最高的时刻——「对修改关闭」要保护的就是这里。</p><p>按 OCP 重构——把算面积做成抽象，新图形走新类：</p><pre class='code' data-lang='python'>from abc import ABC, abstractmethod\n\nclass Shape(ABC):\n    @abstractmethod\n    def area(self): ...\n\nclass Rect(Shape):\n    def __init__(self, w, h):\n        self.w, self.h = w, h\n    def area(self):\n        return self.w * self.h\n\nclass Circle(Shape):\n    def __init__(self, r):\n        self.r = r\n    def area(self):\n        return 3.14 * self.r ** 2</pre><p>现在加三角形：新写一个 Triangle 类即可，一行老代码都不用碰——这就是「扩展」而不是「修改」。第 6 讲的抽象类与接口在这里正式上岗：它们就是事先预留的插口。一句话总结：找到会变化的部分，把它抽象成扩展点；新需求用新类实现，老代码保持纹丝不动，老测试继续有效，只需补测新写的类。</p>"
+      },
+      {
+        "heading": "7.4 里氏替换原则：子类要信守父类的承诺",
+        "html": "<p>定义：<strong>里氏替换原则</strong>（LSP，得名于计算机科学家 Barbara Liskov）——任何使用父类的地方，换成子类对象后，程序行为不应该被破坏。换句话说：子类既然认了父类的名分，就要完全信守父类对外的承诺。语法上「继承成功」不等于设计上「就该继承」。</p><p>生活例子：一家快递站挂牌承诺：「本站所有快递员都能送各类小件包裹。」某天来了位新快递员，接过文件袋却说：「抱歉，我只送大件，文件送不了。」一旦他算进快递员队伍，站牌的承诺就失效了：客户按站牌下单，碰到他就出问题。承诺（能不能送文件）和身份（是快递员）对不上号，就是替换失败的日常版本。</p><p>编程里的经典反例：正方形是一种长方形，于是让 Square 继承 Rectangle：</p><pre class='code' data-lang='python'>class Rectangle:\n    def __init__(self, w, h):\n        self.w, self.h = w, h\n    def set_width(self, w):\n        self.w = w\n    def set_height(self, h):\n        self.h = h\n    def area(self):\n        return self.w * self.h\n\nclass Square(Rectangle):\n    def set_width(self, w):\n        self.w = self.h = w    # 正方形四边相等\n    def set_height(self, h):\n        self.w = self.h = h</pre><p>调用方按长方形约定写代码：先把宽设成 5、再把高设成 4，期望面积是 20。传入 Square 后：<code>set_width(5)</code> 让边长变成 5，<code>set_height(4)</code> 又把边长全改成 4，算出面积 16——和承诺的 20 不符。具体后果：调用方被迫加特判（<code>if isinstance(x, Square)</code>）绕开子类，多态彻底失效；或者错误在很远的地方才暴露，排查极其困难。</p><p>那「正方形究竟是不是长方形」？数学上是的，但在程序契约里，长方形承诺了「宽和高可以独立变化」，正方形做不到——这是承诺的不兼容。修法有两种：让两者不构成父子关系，各自实现 Shape 算面积；或者改用不可变设计（宽高在创建时定死，不提供 set 方法，就不存在「改完之后不守约定」）。判断口诀：把子类塞进父类的位置，检查父类的每条承诺（对输入要求更宽松、对输出保证更可靠）子类是否都兑现；会收窄承诺的子类，不该继承。</p>"
+      },
+      {
+        "heading": "7.5 接口隔离原则：接口要小而专",
+        "html": "<p>定义：<strong>接口隔离原则</strong>（ISP）——不应该强迫客户端依赖它不使用的方法；接口应当小而专一，按使用场景切分。第 6 讲的接口是「能力证书」；这一条讲的是证书怎么发：与其发一张全能王证书，不如拆成几张专科证书，谁需要哪张就考哪张。</p><p>生活例子：某健身会所只卖一种「全能至尊年卡」：游泳、高尔夫、瑜伽、SPA 全包。问题是——你只想每天游泳，却要为高尔夫球场和 SPA 房买单；会所每加一个新项目，全员跟着涨一次价。隔壁会所把服务拆开卖：游泳卡、瑜伽卡、器械卡按需选。对大多数人来说，后者更合理：钱花在刀刃上，项目之间互不牵连。</p><p>代码反例——一张「万能设备接口」：</p><pre class='code' data-lang='python'>class MultiFunctionDevice:\n    def print(self, doc): ...\n    def scan(self, doc): ...\n    def fax(self, doc): ...</pre><p>现在来了老式打印机：它只会打印。它被迫实现 scan 和 fax——没有业务可写，只能写空方法或抛「暂不支持」异常。具体后果：① 实现类里充斥假实现，调用方看到 fax() 以为能传真，一调用就炸；② 接口哪天给 fax 加个参数，所有实现类（包括根本不用传真功能的）全体返工；③ 只会打印的机器想复用这套契约时特别别扭——它只做得到三分之一的事。</p><p>按 ISP 拆开，各考各的证：</p><pre class='code' data-lang='python'>class Printable:\n    def print(self, doc): ...\n\nclass Scannable:\n    def scan(self, doc): ...\n\nclass OldPrinter(Printable):\n    def print(self, doc):\n        ...  # 只考「打印证」\n\nclass OfficePro(Printable, Scannable):\n    ...  # 需要两张证就考两张</pre><p>老式打印机只考打印证，一体机按需多考一张。接口隔离的本质与第 6 讲的接口思维一脉相承：契约越小越专，组合越自由，改动的影响面越小。反面信号清单：实现类里经常出现空方法或「暂不支持」异常；调用方误以为小设备有高级功能；改一处接口，一堆无关类跟着返工——出现任意一条，就该考虑拆接口了。</p>"
+      },
+      {
+        "heading": "7.6 依赖倒置原则：对「标准接口」说话",
+        "html": "<p>定义：<strong>依赖倒置原则</strong>（DIP）——高层模块不应该依赖低层模块，二者都应该依赖抽象；抽象不应该依赖细节，细节应该依赖抽象。这里「高层」指业务逻辑、做决策的代码；「低层」指存储、网络、硬件等具体工具。原则要求业务逻辑不直接抓住某个具体实现，而是对着标准接口说话——依赖方向被「倒置」了：不是业务依赖工具，而是工具去实现业务需要的接口。</p><p>生活例子：笔记本电脑靠 USB 充电标准，而不是「只认某个牌子某个型号的充电器」。充电口与协议是抽象（标准），具体充电器是细节：换个牌子的头，只要符合标准照样能用。反过来，如果每台电脑都焊死专用充电头，换充电器就得连电脑一起换——这就是「依赖细节」的代价。生活里所有「标准化」都在做同一件事：把依赖对准标准，让细节自由更换。</p><p>代码反例——业务类直接抓住具体数据库：</p><pre class='code' data-lang='python'>class ReportService:\n    def __init__(self):\n        self.db = MySqlDatabase()   # 直接绑定具体实现\n    def monthly(self, month):\n        rows = self.db.query('...')\n        return sum(rows)</pre><p>具体后果：① 想换数据库（MySQL 换 PostgreSQL，或迁到云数据库），要改业务类的源码；② 想给 monthly 写单元测试，要么真连一个数据库，要么根本没法测；③ 别的项目想复用这个业务类，被迫把它的数据库依赖一起搬走。三个坑同一个根源：高层直接依赖了低层细节。</p><p>按 DIP 修正——业务只依赖「能查询」这个抽象：</p><pre class='code' data-lang='python'>class Queryable:                # 抽象：能执行查询\n    def query(self, sql): ...\n\nclass ReportService:\n    def __init__(self, db):     # 依赖抽象，由外部传入\n        self.db = db\n    def monthly(self, month):\n        return sum(self.db.query('...'))\n\nclass MySqlDatabase(Queryable):\n    def query(self, sql):\n        ...  # 具体细节\n\nclass FakeDb(Queryable):        # 测试用的假数据库\n    def query(self, sql):\n        return [10, 20]</pre><p>注意最后一步：是低层实现向（倒过来）依赖高层的抽象——这就是「倒置」二字的由来。真实项目里的「依赖注入」（Dependency Injection，把需要的部件从外面传进来，而不是自己 new）就是这条原则的落地手法，它和第 6 讲「组合优于继承」也是同一思路：装部件，而不是焊死实现。</p><p><strong>本讲小结</strong>：五条原则合起来是一句话——把变化关进小盒子（SRP），在盒子边上留好插口（OCP），盒子之间信守承诺（LSP），盒子上不焊没用的零件（ISP），盒子只对标准接口打交道（DIP）。它们不是五条孤立规矩，而是一套让代码好改的连续动作。设计原则有了，做设计还要每次从零推导吗？前人早把常见问题的解法总结成了「套路」——下一讲的四种设计模式，就是这样的套路。</p>"
+      }
+    ]
+  },
+  "kid": {
+    "intro": "前几讲我们学会了好几种让程序变厉害的工具，可工具多了也容易乱用：就像做菜的家伙什堆满灶台，反而做不快。这一讲我们来学五位「整理大师」留下的规矩——用五条简单的生活道理，把程序收拾得清清爽爽，将来改起来谁也不折腾谁。",
+    "sections": [
+      {
+        "heading": "五条规矩，让程序「好收拾」",
+        "html": "<p>你有没有见过这样的玩具柜：想找一样东西，得把所有东西先倒出来？收拾柜子有条规矩：积木放一格、画笔放一格、拼图放一格——以后不管拿什么、放什么，都只动一格，不会把整个柜子搅乱。写程序也是一样：代码写完了还要不停添新功能、改小毛病。如果所有事都挤在一个地方，改一处就可能碰坏另一处。下面五节，每条规矩配一个你熟悉的场景，一次记住一条。</p>"
+      },
+      {
+        "heading": "一个厨房，别只有一个大厨",
+        "html": "<p>小饭馆如果只有一个全能员工：门口点菜是他，后厨炒菜是他，收银还是他。菜单换了，他要学新菜；价格改了，他要重新算；客人一多，全乱套。大饭馆把这摊活拆成三份：服务员管点菜，厨师管炒菜，收银员管收钱。菜谱变了只通知厨师，别人照旧干活。这就是第一条规矩——<strong>一件事交给一个人管</strong>。程序里的「一个人」就是类：一个类只负责一件事，将来它要改，也只为这一件事而改，不会牵动别人。</p>"
+      },
+      {
+        "heading": "插线板：加新东西，不用砸老墙",
+        "html": "<p>装修好的房子想在卧室加一盏台灯，要砸墙重新拉电线吗？不用——因为墙上早就装好了一排插线板。插线板就是「提前留好的口子」：房子本身不用动（对修改关闭），想插什么新电器都可以（对扩展开放）。好程序也这样设计：加新功能时，尽量写新代码挂上去，不去改已经好好的老代码。要是每加一盏灯就砸一次墙，房子迟早被凿穿——所以第二条规矩叫<strong>开闭原则</strong>：加功能要像插插头，而不是像拆墙。</p>"
+      },
+      {
+        "heading": "说好的事，不许赖账",
+        "html": "<p>小区快递站挂着牌子：「本站所有快递员，都会送文件和小包裹。」大家才放心把文件交给他们。如果新来的快递员说「我只送大箱子，文件送不了」，他一上岗，这牌子就成了骗人的。程序里有条类似的规矩：子类认了父类的名分，就得把父类答应过的事全部做到，一样不许打折。它叫<strong>里氏替换原则</strong>。比如「长方形」答应过「宽和高可以分开改」，正方形就做不到——为了保持四边相等，改宽就会连高一起变。所以正方形不该冒充长方形。记住：<strong>接了这个名分，就要守这个承诺</strong>，不然用它的人迟早踩坑。</p>"
+      },
+      {
+        "heading": "报名表别写太满",
+        "html": "<p>学校兴趣班报名表上如果写着：「合唱团团员：必须会唱歌、会弹钢琴、会画画、会跳舞。」你只想唱歌，却要为另外三样本事白忙一场，多亏呀。聪明的报名表会把要求拆开：合唱团只要「会唱歌」一张小纸条，美术组只要「会画画」一张小纸条。程序里的接口就是这张报名表——要求写得又小又准，谁做得到什么，就领哪张纸条，没人被逼着学用不上的本事。这条规矩叫<strong>接口隔离原则</strong>：大要求拆成小要求，谁用得上谁领。</p>"
+      },
+      {
+        "heading": "USB 口：只认标准，不认牌子",
+        "html": "<p>你的台灯、爸爸的手机、家里的音箱，充电线居然能互相借着用，为什么？因为它们都照着「USB 标准」做——插座不挑剔你是哪个牌子，只认这个标准口。要是每个牌子都要自己的专用充电头，家里早就堆满线啦。程序里的最后一招也一样：一个模块不要绑死「非某某不可」，而是对着大家约好的标准接口说话，这样想换就换、想测就测。这条叫<strong>依赖倒置原则</strong>。</p><p>小结一下，五条规矩就是：一件事一个类管、加功能不拆墙、承诺不打折、要求拆成小纸条、只认标准口。下面这张图里藏着其中两条，下次插充电器时想一想它背后的道理。</p><figure><svg viewBox='0 0 560 200' role='img' aria-label='插线板与USB口示意图'><rect x='20' y='28' width='250' height='146' rx='12' fill='#FAF7F2' stroke='#5E9E8F' stroke-width='1.6'/><text x='145' y='56' text-anchor='middle' font-size='13' fill='#2A2E33'>插线板：加东西不砸墙</text><rect x='44' y='74' width='90' height='34' rx='6' fill='#FFFFFF' stroke='#E4DCCF'/><text x='89' y='96' text-anchor='middle' font-size='12' fill='#2A2E33'>新台灯</text><rect x='160' y='74' width='90' height='34' rx='6' fill='#FFFFFF' stroke='#E4DCCF'/><text x='205' y='96' text-anchor='middle' font-size='12' fill='#2A2E33'>新电视</text><text x='145' y='136' text-anchor='middle' font-size='12' fill='#6C7078'>插上就能用，</text><text x='145' y='156' text-anchor='middle' font-size='12' fill='#6C7078'>老墙不用动</text><rect x='290' y='28' width='250' height='146' rx='12' fill='#FAF7F2' stroke='#C9A96A' stroke-width='1.6'/><text x='415' y='56' text-anchor='middle' font-size='13' fill='#2A2E33'>USB 口：认标准不认牌</text><rect x='314' y='74' width='90' height='34' rx='6' fill='#FFFFFF' stroke='#E4DCCF'/><text x='359' y='96' text-anchor='middle' font-size='12' fill='#2A2E33'>爸爸的手机</text><rect x='422' y='74' width='90' height='34' rx='6' fill='#FFFFFF' stroke='#E4DCCF'/><text x='467' y='96' text-anchor='middle' font-size='12' fill='#2A2E33'>你的台灯</text><text x='415' y='136' text-anchor='middle' font-size='12' fill='#6C7078'>换来换去都能用，</text><text x='415' y='156' text-anchor='middle' font-size='12' fill='#6C7078'>因为只认标准口</text></svg><figcaption>图 7-2 插线板对应「加功能不改老代码」，USB 口对应「只对标准接口说话」。</figcaption></figure><p>下一讲，我们去看前人用这些规矩总结出来的四个「经典套路」——设计模式。</p>"
+      }
+    ]
+  },
+  "glossary": [
+    { "term": "SOLID", "def": "五条面向对象设计原则的合称：单一职责、开闭、里氏替换、接口隔离、依赖倒置" },
+    { "term": "单一职责原则（SRP）", "def": "一个类只应有一个引起它变化的原因，也就是只负责一类需求" },
+    { "term": "开闭原则（OCP）", "def": "对扩展开放、对修改关闭：加功能靠新增代码，少动已经稳定的老代码" },
+    { "term": "里氏替换原则（LSP）", "def": "子类必须能替换父类，且不破坏父类承诺过的行为" },
+    { "term": "接口隔离原则（ISP）", "def": "接口要小而专，不强迫使用者依赖它用不到的方法" },
+    { "term": "依赖倒置原则（DIP）", "def": "高层与低层都依赖抽象，细节去实现抽象，而不是让业务绑定具体实现" },
+    { "term": "变化原因", "def": "迫使一个类被修改的需求来源；数一数有几个，就能判断职责是否单一" }
+  ],
+  "exercises": [
+    {
+      "id": "oop-07-e01",
+      "level": "easy",
+      "type": "choice",
+      "stem": "单一职责原则（SRP）的核心含义是？",
+      "options": ["A. 一个类最多只能有一个属性", "B. 一个类应该只有一个引起它变化的原因", "C. 一个类只能被一个文件使用", "D. 一个方法只能写一行代码"],
+      "answer": "B",
+      "solution": {
+        "idea": "SRP 的职责是按「变化原因」数的，不是按代码行数或属性个数。",
+        "steps": ["找出谁会要求这个类改变：如果有多拨人、多类需求，职责就不单一；", "把变化原因拆开，每个类只背一个。", "B 与定义完全一致。"],
+        "result": "B。一个类只有一个变化原因，职责要按变化原因拆分。",
+        "pitfalls": ["选 A：属性数量与职责无关，两个属性也可能背三份职责；", "选 D：行数是代码风格问题，不是设计原则。"],
+        "kid": "小饭馆里点菜、炒菜、收银全是一个人，菜单一换、价格一改，他全要跟着忙。SRP 说：一件事交给一个人管，别的变化就波及不到他。所以答案是「一个类只有一个变化原因」。"
+      }
+    },
+    {
+      "id": "oop-07-e02",
+      "level": "easy",
+      "type": "judge",
+      "stem": "开闭原则的含义是：软件对扩展开放、对修改关闭——增加新功能时应优先新增代码（扩展），而不去改动已经稳定的老代码（修改）。",
+      "answer": "正确",
+      "solution": {
+        "idea": "开闭原则的关键词是「扩展开放、修改关闭」，靠抽象留下扩展点。",
+        "steps": ["新功能用新类、新实现来提供，即「扩展」；", "稳定老代码尽量不动，老测试继续有效，即「对修改关闭」；", "两句话拼起来正是开闭原则。"],
+        "result": "正确。加功能靠新增代码，老代码尽量纹丝不动。",
+        "pitfalls": ["以为「对修改关闭」= 永远不许改任何代码：是「尽量不改稳定部分」，不是绝对禁令。"],
+        "kid": "装修好的房子想加台灯，直接插插线板就行，不用砸墙重布线。程序也一样：新功能写新代码挂上去，老代码稳稳不动。这正是开闭原则说的意思。"
+      }
+    },
+    {
+      "id": "oop-07-e03",
+      "level": "easy",
+      "type": "choice",
+      "stem": "SOLID 原则中，强调「子类必须能够替换父类而不破坏程序行为」的是？",
+      "options": ["A. 开闭原则（OCP）", "B. 里氏替换原则（LSP）", "C. 接口隔离原则（ISP）", "D. 依赖倒置原则（DIP）"],
+      "answer": "B",
+      "solution": {
+        "idea": "「替换」二字直接指向里氏替换原则。",
+        "steps": ["LSP 得名于 Barbara Liskov，讲的就是父类位置换成子类后行为不被破坏；", "其余三条分别讲扩展点、接口切分与依赖方向。", "故选 B。"],
+        "result": "B。子类要能完全替换父类，承诺不打折。",
+        "pitfalls": ["把 LSP 与 OCP 混淆：OCP 讲「怎么加功能」，LSP 讲「继承是否站得住」。"],
+        "kid": "快递站挂牌说所有快递员都能送文件，新来的人就必须也能送，不能挑活。子类认了父类的名分，就得守父类的承诺——这条规矩的名字就叫里氏替换原则。"
+      }
+    },
+    {
+      "id": "oop-07-e04",
+      "level": "easy",
+      "type": "judge",
+      "stem": "依赖倒置原则主张：高层业务模块应当直接依赖具体的低层实现，这样更直接、更省事。",
+      "answer": "错误",
+      "solution": {
+        "idea": "依赖倒置恰恰要求「都依赖抽象」，而不是让业务抓住具体实现。",
+        "steps": ["正确的说法：高层与低层都依赖抽象，细节实现抽象；", "题干把方向说反了——那是要极力避免的「业务绑定具体实现」。", "故题干错误。"],
+        "result": "错误。高层业务应依赖抽象，而不是直接依赖具体低层实现。",
+        "pitfalls": ["觉得「直接依赖更省事」：短期省事，换实现和写测试时全要还债。"],
+        "kid": "电脑充电不挑充电器牌子，只认 USB 标准口，所以换充电器随便换。要是每台电脑焊死一个专用充电头，换一次就要连电脑一起换。依赖倒置要的正是「都认标准」，不是「抓住一个具体实现不放」。"
+      }
+    },
+    {
+      "id": "oop-07-e05",
+      "level": "medium",
+      "type": "choice",
+      "stem": "某程序用一长串 if-elif 判断订单类型来算运费，每新增一种订单类型都要进去加一条分支，经常改出新毛病。这最直接违反了 SOLID 中的哪一条？应该怎样改？",
+      "options": ["A. 违反 SRP，应把 if 拆成三个独立函数", "B. 违反 OCP，应把运费算法做成抽象，每种订单类型一个实现", "C. 违反 LSP，应让新类型继承旧类型即可", "D. 违反 ISP，应减少函数的参数个数"],
+      "answer": "B",
+      "solution": {
+        "idea": "症状「每加新类型都要改老函数」正是开闭原则要治的病。",
+        "steps": ["分析症状：扩展新类型必须修改现有函数，违反「对修改关闭」；", "修法：把「算运费」做成抽象（接口/抽象类），每种订单类型独立实现；", "新增类型 = 新实现类，老代码不动，符合「对扩展开放」。", "故选 B。"],
+        "result": "B。把运费算法抽象化，每种订单类型一个实现，新增靠扩展。",
+        "pitfalls": ["选 A：拆函数改善了一点职责，但「加类型仍要改代码」的核心矛盾没解决；", "选 C：盲目让新类型继承旧类型，可能引入里氏替换问题。"],
+        "kid": "一长串 if-elif 像一间没留插口的屋子：每添一样电器都要凿墙。治法是学插线板——把「算运费」做成接口留好口子，新订单类型自己实现一份，老代码不用动。这就是开闭原则的用法。"
+      }
+    },
+    {
+      "id": "oop-07-e06",
+      "level": "medium",
+      "type": "code",
+      "stem": "阅读下面的 Python 代码，写出两次调用的输出；并指出：如果要新增「儿童票」，这段代码暴露出违反了什么原则？",
+      "code": {
+        "lang": "python",
+        "code": "def ticket_price(kind):\n    if kind == 'student':\n        return 5\n    elif kind == 'adult':\n        return 10\n    else:\n        return 0\n\nprint(ticket_price('adult'))\nprint(ticket_price('child'))",
+        "output": "10\n0",
+        "explain": "第一行输出 10：adult 命中第二个分支。第二行输出 0：child 不在任何分支里，落到 else 返回 0——新类型被悄悄当成 0 元处理。要新增儿童票必须修改这个函数，违反开闭原则（扩展时还得改老代码）。"
+      },
+      "answer": "输出：10 和 0。新增儿童票需要修改这个函数本身，违反开闭原则（对修改不封闭）。",
+      "solution": {
+        "idea": "先逐分支模拟调用，再从「加类型要不要改老代码」看原则。",
+        "steps": ["ticket_price('adult') 命中 adult 分支，返回 10；", "ticket_price('child') 未命中任何分支，走 else 返回 0；", "新增儿童票必须打开函数加分支——扩展要改老代码，违反 OCP。"],
+        "result": "输出 10、0；违反开闭原则，应把票种做成独立实现（多态/策略）来扩展。",
+        "pitfalls": ["把 child 输出当成报错：不，它静默返回 0，这种「悄悄给错值」更危险；", "把毛病归给缩进或命名：真正的病是每次扩展都要改老代码。"],
+        "kid": "大人票走到第二个门口，拿到 10；「儿童」没人管，被挤到最后一扇门，拿到 0——不是报错，是悄悄给错钱。而且以后加儿童票，还得回到这个函数里凿墙。所以它违反的是开闭原则。"
+      }
+    },
+    {
+      "id": "oop-07-e07",
+      "level": "medium",
+      "type": "choice",
+      "stem": "下面哪种继承最可能违反里氏替换原则？",
+      "options": ["A. 学生类继承人类，补全学习方法", "B. 正方形类继承长方形类，并把 set_width/set_height 改成同时修改两条边", "C. 圆形类继承图形抽象类，实现 area()", "D. 猫类继承动物抽象类，实现叫声方法"],
+      "answer": "B",
+      "solution": {
+        "idea": "LSP 的判据：子类替换父类后，父类承诺是否还成立。",
+        "steps": ["长方形承诺宽高可独立修改；", "正方形为保证四边相等，改一条边会连带改另一条——承诺被打折；", "调用方按宽高独立的约定算面积，结果对不上。", "故选 B。"],
+        "result": "B。正方形收窄了长方形「宽高独立变化」的承诺，替换即破坏行为。",
+        "pitfalls": ["凭「正方形是长方形」的数学直觉判断：程序看的是契约，不是几何定义；", "认为继承没报错就没问题：LSP 看的正是「运行结果悄悄不对」。"],
+        "kid": "长方形答应过「宽和高分开改」，正方形一改宽就要连高一起改，等于没守承诺。没守承诺的子类混进父类的位置，用的人就会算错。所以这种继承最容易违反里氏替换原则。"
+      }
+    },
+    {
+      "id": "oop-07-e08",
+      "level": "medium",
+      "type": "design",
+      "stem": "某智能家居平台的设备接口声明了 open()、close()、set_temperature()、play_music() 四个方法。现在要接入「只能开关的智能插座」。请按接口隔离原则改造：拆成哪些小接口？插座与智能音箱各应实现哪些？",
+      "answer": "拆成三个小接口：Switchable（open/close）、TemperatureControllable（set_temperature）、MusicPlayable（play_music）。智能插座只实现 Switchable；智能音箱实现 Switchable 与 MusicPlayable（若其支持调温再实现 TemperatureControllable）。这样插座不必为调温、放音乐写空壳或被强制抛异常，改任何一个能力接口也不会波及无关设备。",
+      "solution": {
+        "idea": "按「能力」把大接口切小，让每个设备只考自己用得到的证书。",
+        "steps": ["列出四种方法各自代表的能力：开关、控温、播放音乐；", "按能力拆成三个小接口；", "插座只需开关能力：只实现 Switchable；", "音箱需要开关与音乐：实现 Switchable 和 MusicPlayable，按需增补。"],
+        "result": "三个小接口按能力拆分，设备只实现自己具备的能力，不写假实现。",
+        "pitfalls": ["让插座实现全部四个、把用不到的写成空方法：正是 ISP 要消除的假实现；", "把接口拆得过碎、每个方法一个接口：隔离要有度，通常按能力聚合。"],
+        "kid": "报名表别要求合唱团成员又会弹琴又会画画。把「开关」「调温」「放音乐」拆成三张小纸条：插座只领「开关」一张，音箱领「开关」和「音乐」两张。没人被逼着领用不上的纸条，这就是接口隔离原则。"
+      }
+    },
+    {
+      "id": "oop-07-e09",
+      "level": "hard",
+      "type": "design",
+      "stem": "教材常把「正方形继承长方形」作为里氏替换原则的经典反例。请结合代码说明：为什么 Square extends Rectangle 会出问题？调用方如何察觉到异常？再给出两种修复方案。",
+      "answer": "问题根源：Rectangle 承诺「宽和高可独立设置」，调用方可先 set_width(5) 再 set_height(4)，期望面积 20；Square 为维持四边相等，set_width(5) 与 set_height(4) 会互相覆盖，最终面积 16，承诺被打破。调用方的察觉方式：函数按 Rectangle 契约编写并测试通过，传入 Square 后结果不一致；或被迫写 isinstance 特判来绕行。修复方案一：断开继承——Square 与 Rectangle 各自实现 Shape 接口的 area()；方案二：改为不可变对象——宽高只在构造时确定、不提供 set 方法，从根上消除「改完之后不守约」的可能。",
+      "solution": {
+        "idea": "从「契约一致性」而非「数学分类」判断继承是否成立。",
+        "steps": ["写出调用路径：set_width(5) 后 set_height(4)，Rectangle 面积 5×4=20；", "Square 中两个 set 方法互相覆盖，面积变为 4×4=16；", "同一段代码换对象后结果不同，多态被破坏，调用方被迫特判；", "修复：断开父子关系各实现 Shape，或做成不可变对象。"],
+        "result": "违背「宽高独立」契约的子类不该继承；修复靠拆继承或不可变化。",
+        "pitfalls": ["以为给 Square 改个方法名就能继承：承诺冲突在父类契约层面，改名不解决；", "觉得是调用方写法刁钻：调用方恰恰按父类承诺写的，责任在继承关系本身。"],
+        "kid": "长方形答应你「宽和高各管各的」，正方形却做不到——一改宽，高也跟着变。用「长方形」名字办事的人，本来能算对 20，换成正方形就变成 16 了。修法：要么别让它俩认父子，要么把宽高一次定死、不让中途再改。"
+      }
+    },
+    {
+      "id": "oop-07-e10",
+      "level": "hard",
+      "type": "open",
+      "stem": "有同学说：「我的业务代码直接 new 具体数据库类，用了两年也没出过问题，依赖倒置是不是多此一举？」请评析：指出这种写法至少三种会让人吃苦头的具体场景，并说明依赖倒置如何解决。",
+      "answer": "短期没问题不代表设计没问题——「不疼」只是因为还没换过。吃苦头的场景：① 换实现：数据库从 MySQL 迁到 PostgreSQL 或加缓存层，业务类源码要逐处修改；② 写测试：业务逻辑与真数据库绑死，单元测试无法用假对象跑，只能连库、变慢且不稳定；③ 多人协作/复用：别的项目想复用这个业务类，被迫连它的数据库依赖一起搬；④ 灰度与多实现：想同时支持两套存储做切换时，绑死的代码无从下手。依赖倒置的解法：抽出「能查询」这样的抽象接口，业务类只依赖接口并从外部接收实现（依赖注入），数据库细节去实现接口；换库、写假实现测试、复用业务逻辑都只需替换部件，业务代码一行不改。",
+      "solution": {
+        "idea": "评析结构：先承认「暂时没疼」，再逐场景推演疼痛，最后给对症解法。",
+        "steps": ["识别疼痛来源：变化（换库）、测试、复用、多实现对冲；", "每个场景都指向同一病根——高层抓住了具体低层实现；", "解法：定义抽象接口 + 外部注入实现，让细节去实现抽象；", "结论：不是多此一举，而是把「将来必然发生的替换」成本提前降到零。"],
+        "result": "直接 new 具体实现是「延迟爆发的债务」；依赖倒置用抽象 + 注入把替换成本降到最低。",
+        "pitfalls": ["把「两年没出事」当反例证据：只是替换场景还没出现；", "只把 new 挪个位置却不引入抽象：依赖方向没变，问题依旧。"],
+        "kid": "旧灯泡焊死在灯座上，两年没坏也没事——可一旦想换灯泡，就要连灯座一起换。依赖倒置就是在装一个标准螺口：平时看不出好处，想换灯泡、想试试新灯泡的时候，一转就好。写测试、换数据库，都靠这个标准口省大事。"
+      }
+    }
+  ]
+}

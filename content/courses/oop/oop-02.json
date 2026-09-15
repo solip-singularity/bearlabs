@@ -1,0 +1,240 @@
+{
+  "id": "oop-02",
+  "courseId": "oop",
+  "title": "第2讲 类与对象",
+  "objectives": [
+    "会用 Python 写出一个完整的类：class 语句、__init__、实例属性与实例方法",
+    "说清实例化的构造过程：先创建实例，再由 __init__ 填入初始属性",
+    "理解 self 的含义：方法被哪个对象调用，self 就指向哪个对象",
+    "会为已创建的对象补充属性，并理解为什么初始属性应该在 __init__ 里定义",
+    "能独立写出并运行一个「类 + 对象 + 方法调用」的最小程序"
+  ],
+  "keyPoints": [
+    "类定义用 class 语句，类名习惯用大驼峰命名（如 Student）",
+    "实例化分两步：创建实例（__new__）→ 初始化属性（__init__），日常只需写 __init__",
+    "self 代表当前实例：xm.add_points(5) 相当于把 xm 传给方法的 self 参数",
+    "实例属性在 __init__ 中以 self.属性名 = 初值 的方式定义，方法第一个参数固定是 self",
+    "对象出生即拥有完整初始状态，这是后面封装与不变式讨论的基础"
+  ],
+  "minutes": 45,
+  "difficulty": 2,
+  "prerequisites": ["已完成第1讲：理解对象=属性+方法、类是模板对象是实例"],
+  "keywords": ["类", "对象", "实例化", "构造过程", "__init__", "self", "Python"],
+  "demoRefs": ["oop-model"],
+  "refs": ["《Python编程：从入门到实践》第9章「类」（延伸阅读）"],
+  "pro": {
+    "intro": "第1讲我们用伪代码建立了直觉：类是图纸，对象是产品。本讲正式动手，把那张「Student 图纸」翻译成能真实运行的 Python 代码。要讲清三件事：类怎么写（class、__init__、self）；对象怎么造出来（实例化的两步构造过程）；以及初学者最容易迷糊的 self 到底是谁。学完本讲，你就能独立定义自己的类、创建对象并指挥它干活。",
+    "sections": [
+      {
+        "heading": "2.1 从伪代码到真代码：第一份类图纸",
+        "html": "<p>把第1讲的伪代码翻译成 Python，核心只有一个 <code>class</code> 语句：</p><pre class='code' data-lang='python'>class Student:\n    def __init__(self, name, score):\n        self.name = name\n        self.score = score\n\n    def add_points(self, n):\n        self.score = self.score + n\n\n    def print_info(self):\n        print(self.name + ' 的成绩是 ' + str(self.score))\n\nxm = Student('小明', 80)   # 实例化：按图纸造出一个对象\nxm.add_points(5)\nxm.print_info()            # 输出：小明 的成绩是 85</pre><p>逐行拆解：<code>class Student:</code> 定义名为 Student 的类，类名按惯例用<strong>大驼峰命名</strong>（每个单词首字母大写）；<code>def __init__(self, name, score)</code> 是一个特殊方法，创建对象时会被自动调用，负责收下参数；<code>self.name = name</code> 的意思是「把传入的值存到当前对象自己身上」，这样 <code>name</code> 就成了这个对象的<strong>实例属性</strong>；<code>add_points</code>、<code>print_info</code> 是普通的<strong>实例方法</strong>，第一个参数固定写 <code>self</code>。</p><p>注意缩进：方法写在类的内部，方法体又缩一层——Python 用缩进表达「谁属于谁」，这正是把属性和方法装进同一个盒子的语法形式。</p>"
+      },
+      {
+        "heading": "2.2 self：方法与对象之间的桥",
+        "html": "<p><strong>self 代表「当前对象自己」</strong>。执行 <code>xm.add_points(5)</code> 时，Python 实际做的是把方法当成函数来调用：<code>Student.add_points(xm, 5)</code>——对象 xm 被传进 <code>self</code> 参数，5 传给 <code>n</code>。于是方法体里的 <code>self.score</code> 就精确地落在 xm 身上。</p><p>由此得出一条重要规则：<strong>谁调用方法，self 就指向谁</strong>。再创建一个 <code>xh = Student('小红', 95)</code> 并执行 <code>xh.add_points(3)</code>，这次 self 指向 xh，加的是小红的分。两个对象共用同一份方法定义，却操作各自的数据，互不干扰——第1讲「图纸共享、数据独立」的直觉，在 self 机制里得到了落实。</p><p>self 这个名字只是约定俗成（换成别的名字也能跑），但几乎所有 Python 程序员都写 self，请保持这个习惯。另外它必须出现在参数列表第一位，这是语言规则，不是可选项。</p>"
+      },
+      {
+        "heading": "2.3 实例化与构造过程：对象是怎么出生的",
+        "html": "<p>执行 <code>Student('小明', 80)</code> 这一行时，Python 在幕后分两步走：<strong>第一步，创建实例</strong>——为这个新对象分配内存、造出一个空壳（这一步由特殊方法 <code>__new__</code> 完成，日常几乎不用自己写）；<strong>第二步，初始化</strong>——自动调用 <code>__init__</code>，把 '小明' 和 80 通过 self 存为新对象的属性。两步完成后，这个「出生即合法」的对象才被交回给你。</p><p>所以严格地说，<code>__init__</code> 是<strong>初始化方法</strong>而不是构造函数本身：对象已经被构造出来了，它负责的是把对象「填满、点亮」。不过社区里顺口把它叫构造方法也无妨，关键是心里要有「两步」这幅图：</p><figure><svg viewBox='0 0 640 230' role='img' aria-label='实例化两步构造过程示意图'><text x='320' y='30' text-anchor='middle' font-size='14' fill='#2A2E33'>实例化两步走：先造空壳，再填属性</text><rect x='20' y='70' width='128' height='76' rx='10' fill='#FAF7F2' stroke='#5E9E8F' stroke-width='1.6'/><text x='84' y='100' text-anchor='middle' font-size='13' fill='#2A2E33'>类 Student</text><text x='84' y='124' text-anchor='middle' font-size='12' fill='#6C7078'>图纸：__init__ 等</text><polygon points='148,108 176,108 168,100 168,104 156,104 156,100' fill='#C9A96A'/><rect x='180' y='70' width='128' height='76' rx='10' fill='#FFFFFF' stroke='#E4DCCF'/><text x='244' y='100' text-anchor='middle' font-size='13' fill='#2A2E33'>第一步</text><text x='244' y='124' text-anchor='middle' font-size='12' fill='#6C7078'>__new__ 造出空实例</text><polygon points='308,108 336,108 328,100 328,104 316,104 316,100' fill='#C9A96A'/><rect x='340' y='70' width='128' height='76' rx='10' fill='#FFFFFF' stroke='#E4DCCF'/><text x='404' y='100' text-anchor='middle' font-size='13' fill='#2A2E33'>第二步</text><text x='404' y='124' text-anchor='middle' font-size='12' fill='#6C7078'>__init__ 填入属性</text><polygon points='468,108 496,108 488,100 488,104 476,104 476,100' fill='#C9A96A'/><rect x='500' y='70' width='120' height='76' rx='10' fill='#FAF7F2' stroke='#7C9CBF' stroke-width='1.6'/><text x='560' y='100' text-anchor='middle' font-size='13' fill='#2A2E33'>成品对象 xm</text><text x='560' y='124' text-anchor='middle' font-size='12' fill='#6C7078'>name=小明 score=80</text><text x='320' y='185' text-anchor='middle' font-size='12' fill='#C9A96A'>Student('小明', 80) 一行代码，幕后完成两步；对象出生即拥有合法初始状态。</text></svg><figcaption>图 2-1 实例化的两步构造过程：__new__ 创建实例，__init__ 初始化属性。</figcaption></figure><p>参数还可以带默认值，让对象「缺省也能出生」：<code>def __init__(self, name, score=0)</code>，这样 <code>Student('阿亮')</code> 也能创建成功，分数自动为 0。</p>"
+      },
+      {
+        "heading": "2.4 出生之后：补属性与方法的作用范围",
+        "html": "<p>Python 相当宽容：对象创建之后，还能随时给它补属性。<code>xm.hobby = '篮球'</code> 完全合法，xm 从此多了一个其他对象没有的属性。但在工程上这通常<strong>不被鼓励</strong>：读代码的人无法从类定义得知一个对象到底有哪些数据；如果某个属性只在部分对象身上存在，访问它就可能踩到 <code>AttributeError</code>。更好的做法是把所有属性都在 <code>__init__</code> 里定义出来，让每个实例「形状一致」。</p><p>方法则不同：方法定义在类里，<strong>所有实例共享同一份方法定义</strong>，并不是每个对象复制一份代码。这就是「图纸共享」的另一半含义——数据每人一份，行为全类一套。也正因如此，改类里的方法，会影响之后所有用这个类的对象，这是后文维护与修改话题的伏笔。</p>"
+      },
+      {
+        "heading": "2.5 小结与预告",
+        "html": "<p>本讲你掌握了真正的 OOP 基本功：<code>class</code> 写图纸、<code>__init__</code> 管初始化、<code>self</code> 指当前对象、实例化分「创建 + 初始化」两步。现在回头看第1讲的公式「对象 = 属性 + 方法」，它已经从比喻变成了你能亲手写出的代码。</p><p>但隐患也随之显形：对象的属性对外完全敞开，任何人都能写 <code>xm.score = -50</code>，甚至 <code>xm.score = '满分'</code>。程序并不会当场报错，脏数据却悄悄流进了系统。下一讲「封装」就来解决这个问题：把细节藏起来，给属性装上门卫，让规矩由类自己守住。</p>"
+      }
+    ]
+  },
+  "kid": {
+    "intro": "上一讲我们认识了「小书包」：对象就是装着东西还会干活的盒子，类是画图纸。今天我们要玩真格的——用 Python 亲手画出第一张图纸，做出第一只会干活的书包，还要弄明白一个神奇的小词：self，它就像书包会说的「我自己」。准备好了吗？我们开工。",
+    "sections": [
+      {
+        "heading": "画第一张真图纸",
+        "html": "<p>上次我们只画了「想象中的图纸」，这次把它写进计算机。Python 里画图纸用 <code>class</code> 这个词，就像在纸上写「图纸名称：Student」：</p><pre class='code' data-lang='python'>class Student:\n    def __init__(self, name, score):\n        self.name = name\n        self.score = score\n\n    def add_points(self, n):\n        self.score = self.score + n\n\nxm = Student('小明', 80)\nxm.add_points(5)\nprint(xm.score)            # 输出：85</pre><p>看，我们真的让计算机造出了一个叫 xm 的学生书包，还让它自己加了 5 分！<code>__init__</code> 这行看起来很复杂，其实特别好懂——下一节就揭开它的秘密。</p>"
+      },
+      {
+        "heading": "「我自己」是谁——self",
+        "html": "<p>书包怎么会知道该给谁加分呢？秘密就是 <code>self</code>。你可以把 self 想成每个书包都会说的一个词：「<strong>我自己</strong>」。当你喊「xm，加 5 分」时，xm 就站到前面说：「加在我自己身上！」于是分数真的加到了 xm 的口袋里。</p><p>如果再来一个书包 xh，喊「xh，加 3 分」，这次说「我自己」的就是 xh，加的是小红的分。<strong>谁被喊到，谁就是 self。</strong>同一张图纸上的方法，被好多书包共用，但「我自己」这个词，每次都指向正在干活的那一个书包。是不是很聪明？</p>"
+      },
+      {
+        "heading": "书包诞生记：两步走",
+        "html": "<p>现在回答上一节的悬念：<code>Student('小明', 80)</code> 到底发生了什么？答案是<strong>两步走</strong>。第一步，计算机先照图纸做出一个空书包——口袋都缝好了，但里面什么都没有；第二步，<code>__init__</code> 立刻跑过来，把「小明」写进姓名口袋，把 80 放进分数口袋。两步都做完，一只装好东西的新书包才交到你手上。</p><p>所以 <code>__init__</code> 就像书包厂里的「装袋员」：每做出一只新书包，它都自动来上班，往口袋里放东西。有了它，每只书包一出厂就是装好东西的，不会是一只空包漏东西。</p>"
+      },
+      {
+        "heading": "书包做好后还能贴贴纸",
+        "html": "<p>书包做好之后，还可以临时往上贴贴纸：<code>xm.hobby = '篮球'</code>，等于给 xm 单独加了一个「爱好」口袋。这样不违规，计算机会乖乖照办。</p><p>但是想一想：如果小红的书包没有这个口袋，你问「小红的爱好是什么」，计算机就会找不到、报错。所以更稳的办法是：画图纸的时候就把「爱好」口袋设计进去，让<strong>每只书包的口袋一模一样</strong>，只是里面装的东西不同。口袋统一，找东西才不会乱。</p>"
+      },
+      {
+        "heading": "小结与预告",
+        "html": "<p>今天你完成了三件大事：用 class 画出真图纸；搞懂了 self 就是「我自己」；知道了书包出厂要走「先做空包、再装东西」两步。现在你已经能自己定义类、创建对象、让它干活了——这是真正的程序员本领！</p><p>不过还有个小尾巴：现在任何人都能对着 xm 的分数口袋乱写，写个 -50 也没人拦。下一讲我们给书包装上「小门卫」，谁想改分数都得先过检查——那就是「封装」的本事。下讲见！</p>"
+      }
+    ]
+  },
+  "glossary": [
+    { "term": "类定义（class）", "def": "用 class 语句写出一份「图纸」，说明这类对象有哪些属性和方法" },
+    { "term": "实例化（Instantiation）", "def": "按照类创建出具体对象的过程，例如 Student('小明', 80)" },
+    { "term": "初始化方法（__init__）", "def": "对象创建时自动执行的方法，负责给对象填上初始属性值" },
+    { "term": "self", "def": "方法里的「当前对象自己」；谁调用方法，self 就指向谁" },
+    { "term": "实例属性（Instance Attribute）", "def": "存在对象自己身上的数据，在 __init__ 里用 self.属性名 = 初值 来建立" },
+    { "term": "实例方法（Instance Method）", "def": "定义在类里、第一个参数是 self 的函数，描述对象会做的事" }
+  ],
+  "exercises": [
+    {
+      "id": "oop-02-e01",
+      "level": "easy",
+      "type": "choice",
+      "stem": "在 Python 中创建对象时，类里会被自动调用来完成属性初始化的方法是？",
+      "options": ["A. def start", "B. def __init__", "C. def self", "D. def create"],
+      "answer": "B",
+      "solution": {
+        "idea": "回忆实例化两步走：创建实例之后，Python 会自动调用初始化方法填属性。",
+        "steps": ["对象创建时自动执行的特殊方法以双下划线命名；", "其中负责设置初始属性的是 __init__；", "start、create 都不是 Python 的特殊方法名。"],
+        "result": "B。__init__ 在对象创建时被自动调用，负责初始化属性。",
+        "pitfalls": ["误选 self：self 是方法里代表当前对象的参数名，不是自动调用的方法；", "以为要手动写 Student.__init__()：不需要，实例化时自动执行。"],
+        "kid": "造新书包时，厂里有个「装袋员」会自动跑来往口袋里放东西，它的名字就叫 __init__。你不用喊它，新书包一出生它就来上班啦。"
+      }
+    },
+    {
+      "id": "oop-02-e02",
+      "level": "easy",
+      "type": "choice",
+      "stem": "关于实例方法里的 self，下列说法正确的是？",
+      "options": ["A. self 永远指向程序里第一个创建的对象", "B. self 代表调用当前方法的那个对象", "C. self 是一个全局变量，所有方法共享", "D. self 可以省略不写，程序照样运行"],
+      "answer": "B",
+      "solution": {
+        "idea": "self 的规则是「谁调用，self 指向谁」。",
+        "steps": ["xm.add_points(5) 会把 xm 传给 self；", "xh.add_points(3) 会把 xh 传给 self；", "所以 self 始终代表当前调用方法的对象，B 正确。"],
+        "result": "B。self 代表调用当前方法的那个对象。",
+        "pitfalls": ["以为 self 固定指向某个对象：它随调用者变化；", "省略 self：实例方法第一个参数必须写 self，这是语言规则。"],
+        "kid": "self 就像书包会说的「我自己」：xm 被喊到时说「我自己是 xm」，xh 被喊到时说「我自己是 xh」。它不是固定的某一只书包，而是「正在干活的那一只」。"
+      }
+    },
+    {
+      "id": "oop-02-e03",
+      "level": "easy",
+      "type": "judge",
+      "stem": "执行 <code>Student('小明', 80)</code> 时，<code>__init__</code> 会被 Python 自动调用。",
+      "answer": "正确",
+      "solution": {
+        "idea": "实例化第二步就是自动执行 __init__ 完成初始化。",
+        "steps": ["Student('小明', 80) 先创建一个空实例；", "随后 Python 自动调用 __init__，把参数存为属性；", "整个过程不需要程序员手动调用 __init__，判断正确。"],
+        "result": "正确。实例化会自动触发 __init__。",
+        "pitfalls": ["误以为要手动写 Student.__init__(xm, ...)：自动调用正是它和普通方法的区别。"],
+        "kid": "新书包一出厂，装袋员 __init__ 就自动跑来装东西，不用你跑去喊他，也不用你给他发工资，他自己就知道该上班了。这就是「自动调用」的意思：只要你说要造书包（写 Student('小明', 80)），装袋员立刻出现，把名字和分数一样样放进新书包的口袋里。"
+      }
+    },
+    {
+      "id": "oop-02-e04",
+      "level": "easy",
+      "type": "judge",
+      "stem": "同一个类创建的两个对象，修改其中一个对象的实例属性，另一个对象的数据会跟着变。",
+      "answer": "错误",
+      "solution": {
+        "idea": "实例属性存在各对象自己身上，数据各自独立。",
+        "steps": ["xm 和 xh 各自拥有独立的 name、score；", "修改 xm.score 只落在 xm 身上；", "xh 的数据不受影响，所以该说法错误。"],
+        "result": "错误。实例属性按对象各自保存，互不影响。",
+        "pitfalls": ["把「共享图纸」误解为「共享数据」：共享的是方法定义，数据每人一份。"],
+        "kid": "同款书包买两只：给小明的书包里塞一张卡片，小红的书包不会凭空长出同款卡片来。它们虽然照着同一张图纸做、长得一模一样，但口袋里的东西各是各的，谁也影响不了谁，这样才不会互相添乱。"
+      }
+    },
+    {
+      "id": "oop-02-e05",
+      "level": "medium",
+      "type": "choice",
+      "stem": "执行 <code>xm = Student('小明', 80)</code> 之后，调用 <code>xm.add_points(5)</code> 在效果上等价于下面哪个调用？",
+      "options": ["A. Student.add_points(5, xm)", "B. Student.add_points(xm, 5)", "C. xm.add_points(xm, 5)", "D. add_points(xm, 5)"],
+      "answer": "B",
+      "solution": {
+        "idea": "点号调用会把对象本身作为第一个参数 self 传入。",
+        "steps": ["add_points 的参数表是 (self, n)；", "xm.add_points(5) 等价于把 xm 给 self、5 给 n；", "即 Student.add_points(xm, 5)，选 B。"],
+        "result": "B。对象方法调用等价于把调用者传给 self 参数。",
+        "pitfalls": ["把参数顺序记反：self 在前、n 在后；", "以为对象会作为第三个参数重复传入：self 就是 xm，不会传两次。"],
+        "kid": "喊「xm 加 5 分」，在计算机听来就是：「add_points 先生，这位是 xm（请接住 self），要加 5 分」。对象永远排在第一位。"
+      }
+    },
+    {
+      "id": "oop-02-e06",
+      "level": "medium",
+      "type": "derive",
+      "stem": "运行下面的程序，输出的内容是什么？\n<pre class='code' data-lang='python'>class Student:\n    def __init__(self, name, score):\n        self.name = name\n        self.score = score\n\n    def add_points(self, n):\n        self.score = self.score + n\n\nxm = Student('小明', 80)\nxm.add_points(5)\nxh = Student('小红', 95)\nprint(xm.score, xh.score)</pre>",
+      "answer": "输出：85 95。小明加了 5 分变成 85；小红从未被加分，保持 95。",
+      "solution": {
+        "idea": "逐行模拟：每个对象只受自己身上方法调用的影响。",
+        "steps": ["第1步：xm 出生，score=80；", "第2步：xm.add_points(5) 让 self 指向 xm，xm.score 变为 85；", "第3步：xh 出生，score=95，没有人给它加分；", "第4步：print 先打印 xm.score 再打印 xh.score。"],
+        "result": "85 95。加分只影响被调用的对象。",
+        "pitfalls": ["以为 add_points(5) 会给所有学生加分：方法只作用于 self 指向的那一个对象；", "把 print 顺序看反：先 xm 后 xh。"],
+        "kid": "给小明的书包加分时，装袋员只打开小明那一只书包，把 5 分放进去就拍拍手走人——小红的书包原封不动。所以最后清点：小明的口袋里是 85 分，小红还是 95 分，各数各的账，谁也不会替谁加分。"
+      }
+    },
+    {
+      "id": "oop-02-e07",
+      "level": "medium",
+      "type": "design",
+      "stem": "请为「宠物狗」设计一个 Python 类 PetDog：写出 __init__ 需要哪些参数、建立哪些实例属性，再设计两个有实际意义的方法（说明各自做什么）。并用「两步构造」说明：对象出生时 __init__ 替它准备好了什么。",
+      "answer": "参考设计：__init__(self, name, age) 建立 self.name（名字）与 self.age（年龄）两个实例属性；方法 bark(self) 打印名字与叫声、birthday(self) 把 age 加一。两步构造的角度：创建对象时 Python 先造出空实例，__init__ 自动把 name、age 存到对象身上，保证 PetDog 一出生就带着名字和年龄，之后任何方法都能放心使用这两个属性。",
+      "solution": {
+        "idea": "先从「宠物狗」里挑出需要记住的状态（属性）和会做的动作（方法），再把状态放进了 __init__。",
+        "steps": ["第1步：找状态——名字、年龄是需要记住的，选作属性；", "第2步：找动作——叫、长大一岁是会做的事，设计为方法；", "第3步：把属性初始化写进 __init__，方法第一个参数写 self；", "第4步：用两步构造解释——__new__ 造空壳，__init__ 填属性，出生即合法。"],
+        "result": "一个属性齐备、方法有意义的类设计，并能说明 __init__ 在构造过程中的作用。",
+        "pitfalls": ["把「吃饭」当成属性：吃饭是动作，应是方法；", "属性定义在方法里而不是 __init__ 里：对象出生时拿不到，容易 AttributeError。"],
+        "kid": "给宠物狗画图纸：先想好它的「口袋」装什么——名字、年龄；再想好它会干两件事——汪汪叫、过生日长大一岁。口袋由装袋员 __init__ 在出厂时统一装好，这样每只小狗一出生就有名有岁啦。"
+      }
+    },
+    {
+      "id": "oop-02-e08",
+      "level": "medium",
+      "type": "code",
+      "stem": "请定义一个 Dog 类：__init__ 接收 name；方法 bark(self) 返回「名字：汪汪」的字符串；创建名为旺财的对象并打印它的 bark 结果。写出完整程序。",
+      "answer": "程序输出：旺财: 汪汪",
+      "code": {
+        "lang": "python",
+        "code": "class Dog:\n    def __init__(self, name):\n        self.name = name\n\n    def bark(self):\n        return self.name + ': 汪汪'\n\nd = Dog('旺财')\nprint(d.bark())",
+        "output": "旺财: 汪汪",
+        "explain": "Dog('旺财') 触发两步构造：先创建实例，__init__ 把 '旺财' 存为 self.name；d.bark() 调用时 self 指向 d，返回 self.name + ': 汪汪'，即「旺财: 汪汪」。"
+      },
+      "solution": {
+        "idea": "类里先写 __init__ 建立属性，再写普通实例方法使用 self.name。",
+        "steps": ["第1步：class Dog: 定义类，类名大驼峰；", "第2步：__init__(self, name) 里执行 self.name = name；", "第3步：bark(self) 返回拼接好的字符串；", "第4步：创建对象 d 并打印 d.bark()。"],
+        "result": "程序打印：旺财: 汪汪。",
+        "pitfalls": ["方法里写成 name + ': 汪汪'：必须通过 self.name 访问对象属性；", "忘了在 __init__ 里建立 self.name：bark 执行时会报 AttributeError。"],
+        "kid": "先画图纸（class Dog），装袋员把名字「旺财」放进 self.name 口袋；然后喊它「叫一声」，它就从自己的口袋里掏出名字，回答「旺财: 汪汪」。"
+      }
+    },
+    {
+      "id": "oop-02-e09",
+      "level": "hard",
+      "type": "code",
+      "stem": "阅读下面的程序：为什么第三行打印是 1 而不是 3？请结合实例属性的归属解释。\n<pre class='code' data-lang='python'>class Counter:\n    def __init__(self):\n        self.count = 0\n\n    def hit(self):\n        self.count = self.count + 1\n        return self.count\n\na = Counter()\nb = Counter()\nprint(a.hit())\nprint(a.hit())\nprint(b.hit())\nprint(a.count)</pre>",
+      "answer": "输出依次为 1、2、1、2。a 和 b 是两个独立对象，各自有一份 self.count；b.hit() 操作的是 b 自己的计数器（从 0 加到 1），与 a 已经数到 2 无关。",
+      "code": {
+        "lang": "python",
+        "code": "class Counter:\n    def __init__(self):\n        self.count = 0\n\n    def hit(self):\n        self.count = self.count + 1\n        return self.count\n\na = Counter()\nb = Counter()\nprint(a.hit())\nprint(a.hit())\nprint(b.hit())\nprint(a.count)",
+        "output": "1\n2\n1\n2",
+        "explain": "a、b 各自在构造时被 __init__ 设了 self.count = 0。前两次 a.hit() 把 a 的 count 加到 2；b.hit() 时 self 指向 b，b 的 count 从 0 加到 1；最后 print(a.count) 显示 a 仍是 2。self 决定了方法操作哪个对象的数据。"
+      },
+      "solution": {
+        "idea": "抓住「方法只作用于 self 指向的对象」这条规则逐步推演。",
+        "steps": ["第1步：a、b 构造后各有一份 count=0；", "第2步：a.hit() 两次，a.count 依次为 1、2；", "第3步：b.hit() 时 self 是 b，b.count 从 0 变 1，所以打印 1；", "第4步：a.count 未被 b 影响，仍为 2。"],
+        "result": "输出 1、2、1、2；关键在于每个对象拥有独立的实例属性。",
+        "pitfalls": ["以为 count 是全程序共用的一个数：它存在各对象身上；", "忽略 print(a.count) 这一行：它再次确认 a 的值是 2 而不是 3。"],
+        "kid": "a 和 b 是两只计步器，各数各的步数。a 已经走了 2 步，b 才走第 1 步——b 的计数器不会把 a 的步数也算进去，因为每只计步器只看「我自己」（self）走了几步。"
+      }
+    },
+    {
+      "id": "oop-02-e10",
+      "level": "hard",
+      "type": "open",
+      "stem": "用自己的话完整描述 <code>Student('小明', 80)</code> 从「一行代码」到「一个可用对象」的全过程；并回答：如果 __init__ 里忘了写 <code>self.score = score</code>，随后访问 <code>xm.score</code> 会发生什么？为什么？",
+      "answer": "参考思路：第一步 Python 为新对象分配内存、创建空实例（由 __new__ 完成）；第二步自动调用 __init__，self 指向新对象，把 '小明' 存为 self.name、80 存为 self.score；两步完成后对象交回程序使用。若忘了 self.score = score，实例上根本没有 score 这个属性，访问 xm.score 会抛出 AttributeError——因为属性是在 __init__ 里被「放到对象身上」的，没放就没有；这也说明把属性初始化集中写在 __init__ 里的重要性。",
+      "solution": {
+        "idea": "按两步构造的框架复述出生过程，再从「属性必须被赋到 self 上才存在」推出报错原因。",
+        "steps": ["第1步：说明 __new__ 创建空实例；", "第2步：说明 __init__ 被自动调用、self 指向新对象、参数被存为实例属性；", "第3步：推演缺失 self.score 时的情形——实例上无此属性；", "第4步：得出 AttributeError 及教训：初始属性要写全。"],
+        "result": "开放题。要点：两步构造 + 属性必须显式挂到 self 上，否则访问时报 AttributeError。",
+        "pitfalls": ["只答「会报错」不说原因：要指出属性从未被建立；", "把报错说成 TypeError 或 NameError：访问对象上不存在的属性是 AttributeError。"],
+        "kid": "造书包分两步：先缝出空书包，再由装袋员把名字和分数装进口袋。如果装袋员忘了把「分数」装进去，你打开书包找分数时就会发现——根本没有这个口袋，程序会大喊「找不到 score」（AttributeError）。所以装袋员的清单（__init__）一条都不能漏。"
+      }
+    }
+  ]
+}

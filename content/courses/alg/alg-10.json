@@ -1,0 +1,236 @@
+{
+  "id": "alg-10",
+  "courseId": "alg",
+  "title": "第10讲 查找的艺术",
+  "objectives": [
+    "说出线性查找的适用条件与 O(n) 代价，知道它是唯一不挑数据形态的查找",
+    "掌握二分查找的两个前提：序列有序、支持随机访问，能手动模拟折半过程",
+    "写出边界正确、不会死循环也不越界的二分查找，说清 mid、区间收缩与循环条件的配合",
+    "把查找需求映射到合适的数据结构：无序数组、有序数组、哈希表、二叉搜索树各自擅长什么",
+    "用「排序一次、多次查找」的均摊视角评估查找方案的总成本"
+  ],
+  "keyPoints": [
+    "线性查找：从头扫到尾，无序也能用，O(n)；数据量小或只查一次时反而最划算",
+    "二分查找每次比较排除一半剩余元素，n 个元素至多 O(log n) 次比较",
+    "二分前提：有序 + 随机访问；链表上不能直接二分",
+    "闭区间写法：left <= right、mid = left + (right - left) / 2、left = mid + 1、right = mid - 1，区间必然收缩",
+    "死循环与越界的根源：区间不收缩、mid 计算溢出、变体中 left = mid 不加一",
+    "数据结构决定查找上限：无序数组 O(n)、有序数组二分 O(log n)、哈希表平均 O(1)、平衡 BST O(log n) 且支持范围查询"
+  ],
+  "minutes": 45,
+  "difficulty": 2,
+  "prerequisites": ["第8讲 基础排序三兄弟"],
+  "keywords": ["查找", "线性查找", "二分查找", "边界", "死循环", "哈希表", "二叉搜索树"],
+  "demoRefs": ["searching"],
+  "refs": ["《算法导论》第2章与第12章（延伸阅读）"],
+  "pro": {
+    "intro": "查找是程序世界里发生频率最高的操作：登录时查账号、导航时查路况、编译时查符号表。查找有多快，取决于两件事——数据有没有「排好」，以及存储结构允不允许「跳跃访问」。本讲从最朴素的线性查找出发，重点打磨二分查找：它思路简单，边界却极易出错，是面试与工程里著名的坑区；最后把学过的结构串成一张「查找选型地图」，让你面对真实问题时知道该掏哪件工具。",
+    "sections": [
+      {
+        "heading": "10.1 查找问题与线性查找",
+        "html": "<p><strong>查找</strong>（Searching，在一批数据中定位目标元素或其位置）的形式化描述：给定集合与目标值 x，返回 x 的位置或「不存在」。最直接的办法是<strong>线性查找</strong>（Linear Search，从头到尾逐个比较）：从下标 0 开始扫，命中即返回，扫完未中返回不存在。它对数据<strong>零要求</strong>——无序、链式存储、甚至数据正在流式到达都没关系；代价是最坏与平均都要 O(n) 次。</p><p>不要小看它：数据只有几十条、或者整个生命周期只查一两次时，先花 O(n log n) 排序再 O(log n) 查找纯属浪费，直接线性扫反而最快。工程上「够用且最简单」常常就是最优解。但当数据量到百万、查找要重复千万次，O(n) 就成了瓶颈——这时就必须请出有序的力量。</p>"
+      },
+      {
+        "heading": "10.2 二分查找：每次砍一半",
+        "html": "<p><strong>二分查找</strong>（Binary Search，在有序序列上每次与中点比较、排除一半剩余元素的查找算法）依赖两个前提：<strong>序列有序</strong>（否则中点比较不能排除任何一侧），<strong>支持随机访问</strong>（必须 O(1) 跳到任意下标，链表做不到）。以有序数组 [2, 5, 8, 12, 16, 23, 38, 56, 72, 91] 查 23：中点下标 4 的值 16 小于 23，目标必在右半，抛弃左半；新中点下标 7 的值 56 大于 23，抛弃右半；再取中点下标 5，命中 23。10 个元素只比较了 3 次。</p><figure><svg viewBox='0 0 640 240' role='img' aria-label='二分查找逐步收缩区间示意图'><rect x='100' y='36' width='48' height='36' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='152' y='36' width='48' height='36' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='204' y='36' width='48' height='36' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='256' y='36' width='48' height='36' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='308' y='36' width='48' height='36' fill='#C9A96A' stroke='#C9A96A'/><rect x='360' y='36' width='48' height='36' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.6'/><rect x='412' y='36' width='48' height='36' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.6'/><rect x='464' y='36' width='48' height='36' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.6'/><rect x='516' y='36' width='48' height='36' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.6'/><rect x='568' y='36' width='48' height='36' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.6'/><text x='124' y='59' text-anchor='middle' font-size='12' fill='#B0A99A'>2</text><text x='176' y='59' text-anchor='middle' font-size='12' fill='#B0A99A'>5</text><text x='228' y='59' text-anchor='middle' font-size='12' fill='#B0A99A'>8</text><text x='280' y='59' text-anchor='middle' font-size='12' fill='#B0A99A'>12</text><text x='332' y='59' text-anchor='middle' font-size='12' fill='#2A2E33'>16</text><text x='384' y='59' text-anchor='middle' font-size='12' fill='#2A2E33'>23</text><text x='436' y='59' text-anchor='middle' font-size='12' fill='#2A2E33'>38</text><text x='488' y='59' text-anchor='middle' font-size='12' fill='#2A2E33'>56</text><text x='540' y='59' text-anchor='middle' font-size='12' fill='#2A2E33'>72</text><text x='592' y='59' text-anchor='middle' font-size='12' fill='#2A2E33'>91</text><text x='12' y='59' font-size='11' fill='#6C7078'>第1次 mid=4</text><text x='12' y='76' font-size='11' fill='#C96A6A'>16 小于 23</text><rect x='100' y='106' width='48' height='36' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='152' y='106' width='48' height='36' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='204' y='106' width='48' height='36' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='256' y='106' width='48' height='36' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='308' y='106' width='48' height='36' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='360' y='106' width='48' height='36' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.6'/><rect x='412' y='106' width='48' height='36' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.6'/><rect x='464' y='106' width='48' height='36' fill='#C9A96A' stroke='#C9A96A'/><rect x='516' y='106' width='48' height='36' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.6'/><rect x='568' y='106' width='48' height='36' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.6'/><text x='124' y='129' text-anchor='middle' font-size='12' fill='#B0A99A'>2</text><text x='176' y='129' text-anchor='middle' font-size='12' fill='#B0A99A'>5</text><text x='228' y='129' text-anchor='middle' font-size='12' fill='#B0A99A'>8</text><text x='280' y='129' text-anchor='middle' font-size='12' fill='#B0A99A'>12</text><text x='332' y='129' text-anchor='middle' font-size='12' fill='#B0A99A'>16</text><text x='384' y='129' text-anchor='middle' font-size='12' fill='#2A2E33'>23</text><text x='436' y='129' text-anchor='middle' font-size='12' fill='#2A2E33'>38</text><text x='488' y='129' text-anchor='middle' font-size='12' fill='#2A2E33'>56</text><text x='540' y='129' text-anchor='middle' font-size='12' fill='#2A2E33'>72</text><text x='592' y='129' text-anchor='middle' font-size='12' fill='#2A2E33'>91</text><text x='12' y='129' font-size='11' fill='#6C7078'>第2次 mid=7</text><text x='12' y='146' font-size='11' fill='#C96A6A'>56 大于 23</text><rect x='100' y='176' width='48' height='36' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='152' y='176' width='48' height='36' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='204' y='176' width='48' height='36' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='256' y='176' width='48' height='36' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='308' y='176' width='48' height='36' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='360' y='176' width='48' height='36' fill='#6FA57E' stroke='#5E9E8F'/><rect x='412' y='176' width='48' height='36' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='464' y='176' width='48' height='36' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='516' y='176' width='48' height='36' fill='#FAF7F2' stroke='#E4DCCF'/><rect x='568' y='176' width='48' height='36' fill='#FAF7F2' stroke='#E4DCCF'/><text x='124' y='199' text-anchor='middle' font-size='12' fill='#B0A99A'>2</text><text x='176' y='199' text-anchor='middle' font-size='12' fill='#B0A99A'>5</text><text x='228' y='199' text-anchor='middle' font-size='12' fill='#B0A99A'>8</text><text x='280' y='199' text-anchor='middle' font-size='12' fill='#B0A99A'>12</text><text x='332' y='199' text-anchor='middle' font-size='12' fill='#B0A99A'>16</text><text x='384' y='199' text-anchor='middle' font-size='12' fill='#FAF7F2'>23</text><text x='384' y='199' text-anchor='middle' font-size='12' fill='#FFFFFF'>23</text><text x='436' y='199' text-anchor='middle' font-size='12' fill='#B0A99A'>38</text><text x='488' y='199' text-anchor='middle' font-size='12' fill='#B0A99A'>56</text><text x='540' y='199' text-anchor='middle' font-size='12' fill='#B0A99A'>72</text><text x='592' y='199' text-anchor='middle' font-size='12' fill='#B0A99A'>91</text><text x='12' y='199' font-size='11' fill='#6C7078'>第3次 mid=5</text><text x='12' y='216' font-size='11' fill='#6FA57E'>命中 23</text></svg><figcaption>图 10-1 二分查找 23 的三步：金色为中点，白框为当前搜索区间，灰格为已排除区域。每次比较，区间长度减半。</figcaption></figure><p>代价一目了然：区间每次减半，n 个元素至多比较 ⌈log₂(n+1)⌉ 次——100 万元素最多 20 次。代价同样明确：想用二分，先得维持有序；而有序数组的插入是 O(n)。二分的快，是「有序」这位前置投资人带来的。</p>"
+      },
+      {
+        "heading": "10.3 边界与死循环：二分的三个坑",
+        "html": "<p>二分思路五分钟就能懂，写对却需要三处小心。<strong>坑一：mid 的计算</strong>。<code>mid = (left + right) / 2</code> 在整数定长语言里，left + right 可能超出类型上限而溢出为负，安全写法是 <code>mid = left + (right - left) / 2</code>，数学上等价、永不溢出。</p><p><strong>坑二：区间必须收缩</strong>。推荐闭区间 [left, right] 写法：循环条件 <code>while (left &lt;= right)</code>；<code>a[mid] &lt; x</code> 时 <code>left = mid + 1</code>，<code>a[mid] &gt; x</code> 时 <code>right = mid - 1</code>。每轮区间严格变小至少 1，循环必然终止。若把更新写成 <code>left = mid</code>，配合 <code>while (left &lt; right)</code> 时可能区间原地踏步——这就是二分死循环的标准成因。</p><p><strong>坑三：变体的边界语义</strong>。工程中更常用的是「找第一个大于等于 x 的位置」（lower_bound，即在有序数组中定位 x 应插入的点）：用左闭右开区间 [left, right) 与 <code>while (left &lt; right)</code>、<code>a[mid] &gt;= x</code> 时 <code>right = mid</code>（mid 可能就是答案，不能丢）、否则 <code>left = mid + 1</code>，结束时 left 即为答案。精确查找与边界查找的区别在于：<strong>命中后要不要继续向左压</strong>。数组有重复元素时，前者可能返回任意一个命中位置，后者才保证是第一个。写二分时先回答三个问题：区间开闭？mid 丢了还是留着？循环何时停？三问答清，边界自然就对。</p>"
+      },
+      {
+        "heading": "10.4 查找与数据结构：一张选型地图",
+        "html": "<p>查找速度的上限由数据结构决定。把常见结构排在同一张表里：</p><table><thead><tr><th>结构</th><th>精确查找</th><th>插入/删除</th><th>范围查询</th><th>前提</th></tr></thead><tbody><tr><td>无序数组</td><td>O(n)</td><td>O(1) 追加</td><td>不支持</td><td>无</td></tr><tr><td>有序数组</td><td>O(log n) 二分</td><td>O(n)</td><td>支持（二分定位端点）</td><td>保持有序</td></tr><tr><td>哈希表</td><td>平均 O(1)</td><td>平均 O(1)</td><td>不支持</td><td>哈希函数均匀</td></tr><tr><td>平衡 BST</td><td>O(log n)</td><td>O(log n)</td><td>支持（中序有序）</td><td>动态平衡</td></tr></tbody></table><p>四行对应四类场景：数据静态且要反复查——排序一次 O(n log n)，此后每次查找 O(log n)，查询次数越多越划算，这是典型的<strong>均摊视角</strong>；数据频繁增删且只做精确查找——哈希表；既要快又要有序、要范围（如「列出分数在 80 到 90 之间的所有记录」）——平衡 BST 或跳表；数据量小或只查一次——别折腾，线性查找。第 5、7 两讲的树与哈希表，正是这张地图的两根支柱。</p>"
+      },
+      {
+        "heading": "10.5 小结：像工程师一样选查找",
+        "html": "<p>把本讲压缩成一段决策流程：拿到查找需求，先问<strong>查多少次</strong>——一两次，线性查找收工；再问<strong>数据动不动</strong>——静态就排序后二分，动态就看<strong>要不要有序</strong>：不要有序用哈希表，要有序用平衡搜索树。最后记住二分的三个铁律：前提是有序且可随机访问；区间必须每轮收缩；变体先想清边界语义再动手。</p><p>至此，「排序与查找」单元收官。你会发现排序从来不是目的：它把数据整理成「可二分」的形态，为查找铺路；查找又几乎是一切系统的入口操作。下一讲进入图的世界，数据的关系从「线性排队」升级为「网状相连」，新的遍历艺术即将开始。</p>"
+      }
+    ]
+  },
+  "kid": {
+    "intro": "妈妈让你在一本没排序的通讯录里找「王一博」，你只能一页一页翻；可要是在一本按拼音排好的通讯录里找，你会「啪」地直接翻到中间，看该往前还是往后，几步就到——这背后的秘密就是「二分查找」。这一讲我们学两种查找办法，还要回答一个关键问题：为什么字典、通讯录都要排好序？因为排好序的名单，查起来快得不可思议。",
+    "sections": [
+      {
+        "heading": "笨办法：一页一页翻",
+        "html": "<p><strong>线性查找</strong>就是「从第一页开始，一页一页翻，看到目标就喊停」。它有个大优点：<strong>不挑食</strong>。名单乱七八糟也行、只印在一根长纸条上也行，反正一页页看就是了。缺点也明显：名单越长，翻得越久——100 页要翻 100 页，1 万页要翻 1 万页。</p><p>什么时候用它？名单只有十来页，或者你就查这一次。这时动脑筋排序反而更费劲，直接翻最省事。可要是名单上千页、天天要查，就必须想聪明的办法了。</p>"
+      },
+      {
+        "heading": "聪明的办法：翻一半，扔一半",
+        "html": "<p><strong>二分查找</strong>像玩「猜数字」：我心里想一个 1 到 100 的数，你猜 50，我说「大了」，你立刻扔掉 50 到 100，再猜 25……每猜一次，候选数字<strong>砍掉一半</strong>。猜 1 到 100 只需最多 7 次！查字典也一样：翻到中间，看目标在前面还是后面，扔掉不要的那一半。</p><p>但玩这个游戏有两个前提：<strong>名单必须排好序</strong>（不然翻到中间也不知道该往前还是往后）；<strong>要能「啪」地一下翻到任何一页</strong>（书可以，珠子串成的链子不行，因为摸到中间得从头数）。两个前提都满足时，100 万页的名单也只要翻 20 次左右——这就是排好序的威力。</p>"
+      },
+      {
+        "heading": "小心边界：二分最容易翻车的地方",
+        "html": "<p>二分听起来简单，写起来有个著名的「翻车点」：<strong>扔一半的时候，边界数字要扔对</strong>。已经查过的中间那格要「一起扔掉」（比如下次从 mid + 1 开始），不然左右范围可能原地踏步，程序就在两三个数字之间来回转圈，永远停不下来——这叫<strong>死循环</strong>。还有一个隐蔽的小坑：计算中间位置时先「加后除」，数特别大时可能超出计算机能存的上限，出错；聪明的写法是「先算距离再加起点」。</p><p>记住检查三件事：<strong>范围每一步都变小了吗？中间格扔掉了吗？起点终点会不会交叉？</strong>三件事都答「是」，你的二分才靠谱。练熟这三个检查，二分就从「易错题」变成「送分题」。</p>"
+      },
+      {
+        "heading": "查得快不快，看它住什么房子",
+        "html": "<p>同样的名字，住在不同的「房子」里，查找速度完全不同：住在<strong>乱糟糟的盒子</strong>里（无序数组），只能从头翻，O(n)；住在<strong>排好序的书</strong>里（有序数组），可以二分，O(log n)，可惜插一个新名字要把后面全部挪位；住在<strong>神奇的柜子</strong>里（哈希表），报出名字「啪」地直达，平均 O(1)，但柜子是乱序的，想「按字母列出所有人」不行；住在<strong>会自动理枝的树</strong>上（二叉搜索树），每层扔一半，O(log n)，插删方便还能按顺序输出，是「又要快又要有序」的全能选手。</p><p>所以先问两个问题：<strong>数据经常增删吗？需要保持顺序吗？</strong>答案不同，该住的房子就不同。选对房子，比苦练翻找技巧管用得多。</p>"
+      },
+      {
+        "heading": "小结：先排序，后查找",
+        "html": "<p>这一讲最重要的洞见是：<strong>排序不是终点，而是为查找修路</strong>。花一次工夫把 1 万条记录排好序（比一万次线性查找便宜得多），以后每一次查找都只要十几次比较——查得越多，这笔「修路费」就越划算。这叫「排序一次、多次查找」的算账方式。</p><p>选型口诀送上：只查一次，直接翻；查无数次，先排序再二分；天天增删只精确查，用哈希柜；又增删又要按顺序，请搜索树。下一讲，我们要跳出「排队」的世界，走进「关系网」——图的天地，那里连「找路」都要重新学一遍。</p>"
+      }
+    ]
+  },
+  "glossary": [
+    { "term": "线性查找（Linear Search）", "def": "从头到尾逐个比较的查找方式，无序数据也能用，代价 O(n)" },
+    { "term": "二分查找（Binary Search）", "def": "在有序序列上每次与中点比较、排除一半的查找算法，至多 O(log n) 次" },
+    { "term": "随机访问（Random Access）", "def": "能以 O(1) 直接跳到任意下标读取数据的能力，数组有、链表没有" },
+    { "term": "闭区间写法", "def": "二分的一种边界约定：区间含左右端点，用 left <= right，收缩时 left = mid + 1、right = mid - 1" },
+    { "term": "死循环", "def": "区间不收缩导致查找永不终止的错误，典型成因是更新时写成 left = mid" },
+    { "term": "lower_bound（下界查找）", "def": "在有序数组中找第一个大于等于 x 的位置，是插入定位与范围查询的基础变体" },
+    { "term": "均摊视角", "def": "把一次性的排序成本摊到后续多次查找上来评估总代价的思考方式" }
+  ],
+  "exercises": [
+    {
+      "id": "alg-10-e01",
+      "level": "easy",
+      "type": "choice",
+      "stem": "对数组使用二分查找，必须满足的前提条件是？",
+      "options": ["A. 数组长度为偶数", "B. 数组有序且支持随机访问", "C. 数组元素互不相同", "D. 数组必须用链表存储"],
+      "answer": "B",
+      "solution": {
+        "idea": "二分的两个支柱：中点比较要能排除一侧、跳跃访问要 O(1)。",
+        "steps": ["中点比较能排除一半，依赖序列有序；", "跳到任意 mid 位置必须 O(1)，只有数组这类随机访问结构满足；", "元素重复不影响二分的正确性，链表恰恰不能随机访问。"],
+        "result": "B。有序 + 随机访问缺一不可。",
+        "pitfalls": ["以为元素必须互不相同：重复元素只是让命中位置不唯一；", "在链表上做二分：定位中点本身就要 O(n)，失去意义。"],
+        "kid": "玩「猜数字砍一半」有两个规矩：数字要从小到大排好（不然猜中间没法判断往哪边砍）；还得能一下子翻到任何一页。乱序的名单、串在绳子上的珠子，都玩不了这个游戏。"
+      }
+    },
+    {
+      "id": "alg-10-e02",
+      "level": "easy",
+      "type": "choice",
+      "stem": "在含有 1000 个元素的有序数组中做二分查找，最坏情况下的比较次数约为？",
+      "options": ["A. 10 次", "B. 100 次", "C. 500 次", "D. 1000 次"],
+      "answer": "A",
+      "solution": {
+        "idea": "二分最坏比较次数为 ⌈log₂(n+1)⌉。",
+        "steps": ["每次比较区间减半；", "2 的 10 次方是 1024，已覆盖 1000 个位置；", "因此最坏约 10 次。"],
+        "result": "A。约 10 次，这正是 O(log n) 的威力。",
+        "pitfalls": ["按比例直觉选 100：那是 O(√n) 的量级，不是对数；", "把线性查找的 1000 次与二分混淆。"],
+        "kid": "1000 页的名单，翻一半剩 500，再翻剩 250、125、63、32、16、8、4、2、1——数一数正好十次左右就把范围砍到一个人。每翻一次砍一半，砍十刀就是一千多页。"
+      }
+    },
+    {
+      "id": "alg-10-e03",
+      "level": "easy",
+      "type": "judge",
+      "stem": "线性查找要求数据必须先排好序才能进行。",
+      "answer": "错误",
+      "solution": {
+        "idea": "线性查找不利用任何顺序信息。",
+        "steps": ["线性查找逐个比较直到命中，与排列顺序无关；", "有序与否只影响「能不能用更快的方法」，不影响线性查找本身；", "所以该说法错误。"],
+        "result": "错误。线性查找对数据零要求，这正是它的适用价值。",
+        "pitfalls": ["把二分查找的前提安到线性查找头上：两者条件与代价完全不同。"],
+        "kid": "一页一页翻书不挑名单乱不乱——看到目标就停，跟顺序没关系。就算是刚搬完家、东西全堆在一起的乱屋子，一个个翻也能找到。要求先排序的是「翻一半扔一半」的聪明办法，笨办法从来不挑食。"
+      }
+    },
+    {
+      "id": "alg-10-e04",
+      "level": "easy",
+      "type": "derive",
+      "stem": "在有序数组 [3, 7, 11, 15, 19, 23]（下标 0 到 5）中用闭区间二分查找 15。请写出每一步的 left、right、mid 与比较结果，并给出总比较次数。",
+      "answer": "第一步：left=0，right=5，mid=2，a[2]=11 小于 15，left=3；第二步：left=3，right=5，mid=4，a[4]=19 大于 15，right=3；第三步：left=3，right=3，mid=3，a[3]=15 命中，返回下标 3。总比较 3 次。",
+      "solution": {
+        "idea": "闭区间写法：mid = (left + right) / 2，比较后收缩一侧。",
+        "steps": ["left=0、right=5，mid=2：11 < 15，目标在右半，left = mid + 1 = 3；", "left=3、right=5，mid=4：19 > 15，目标在左半，right = mid - 1 = 3；", "left=3、right=3，mid=3：a[3] = 15，命中。"],
+        "result": "15 位于下标 3；共比较 3 次。",
+        "pitfalls": ["mid 取整方向记错：向下取整即可，关键是更新用 mid±1 保证收缩；", "第二步误把 right 写成 mid：闭区间写法中 mid 已比较过、应丢弃。"],
+        "kid": "六个数字排队：先看中间第 3 位（11），比 15 小，扔掉左半；再看剩下的中间（19），比 15 大，扔掉右半；最后只剩一个 15——就是它！三步搞定。"
+      }
+    },
+    {
+      "id": "alg-10-e05",
+      "level": "medium",
+      "type": "choice",
+      "stem": "下列二分查找的写法中，<strong>能保证</strong>循环终止且边界正确的是？",
+      "options": ["A. 循环条件 while (left &lt; right)，命中偏小时更新 left = mid", "B. 闭区间 [left, right]，循环条件 left &lt;= right，更新为 left = mid + 1 或 right = mid - 1", "C. mid 一律用 (left + right) * 2 / 2 计算以避免误差", "D. 循环条件 while (left &lt; right)，比较后同时更新 left = mid 且 right = mid"],
+      "answer": "B",
+      "solution": {
+        "idea": "循环终止的充分条件：每轮区间严格收缩至少 1。",
+        "steps": ["A：a[mid] &lt; x 时更新 left = mid，区间可能原地不动，死循环；", "B：闭区间 + mid ± 1 更新，每轮至少去掉 mid 一个元素，必然终止，边界正确；", "C：(left + right) * 2 / 2 数值上等于 left + right，反而更易溢出，写法无意义；", "D：left = mid 且 right = mid，区间不收缩，死循环。"],
+        "result": "B。闭区间加 mid ± 1 是最不容易出错的二分模板。",
+        "pitfalls": ["以为 while (left &lt; right) 一定安全：是否安全取决于更新方式；", "忽略溢出问题：mid 应写 left + (right - left) / 2 更稳。"],
+        "kid": "砍一半游戏必须保证「每猜一次，游戏范围真的变小」。要是猜完还把已猜过的数留在范围里，范围就会卡住不动，游戏永远玩不完。B 的做法是每次把中间那个数彻底请出去，范围步步缩小，必然能玩完。"
+      }
+    },
+    {
+      "id": "alg-10-e06",
+      "level": "medium",
+      "type": "derive",
+      "stem": "在有序数组 [1, 3, 3, 3, 7] 中查找「第一个大于等于 3 的位置」（lower_bound 变体）。采用左闭右开区间 [left, right)：初始 left=0、right=5，循环条件 left &lt; right，规则为 a[mid] &gt;= x 时 right = mid、否则 left = mid + 1。请逐步写出执行过程与最终返回值。",
+      "answer": "第一步：left=0、right=5，mid=2，a[2]=3 大于等于 3，right=2；第二步：left=0、right=2，mid=1，a[1]=3 大于等于 3，right=1；第三步：left=0、right=1，mid=0，a[0]=1 小于 3，left=1；此时 left = right = 1，循环结束，返回 1。即第一个大于等于 3 的元素在下标 1。",
+      "solution": {
+        "idea": "lower_bound 的核心：a[mid] &gt;= x 时 mid 可能就是答案，只能收缩右端到 mid，不能丢。",
+        "steps": ["mid=2：a[2]=3 满足条件，答案在 mid 或其左侧，right = 2；", "mid=1：a[1]=3 仍满足，right = 1；", "mid=0：a[0]=1 不满足，答案在右侧，left = 1；", "left = right = 1，区间为空，left 即第一个满足条件的位置。"],
+        "result": "返回下标 1；共 3 轮迭代。",
+        "pitfalls": ["把 right 更新写成 mid - 1：会把可能的答案扔掉，得到错误下标 4；", "用 left <= right 套这个变体：左闭右开区间的终止条件应是 left < right；", "重复元素下精确查找的任意命中与「第一个」混淆：后者必须继续向左压。"],
+        "kid": "三个 3 排在一起，要找「最前面那个 3 的门牌号」。规则是：翻到中间只要不小于 3，就记住「答案可能在它或它左边」，把右边界缩到它脚下（不能越过它）；比 3 小才往右走。一路往左压，最后停在最前面那个 3 上。"
+      }
+    },
+    {
+      "id": "alg-10-e07",
+      "level": "medium",
+      "type": "code",
+      "stem": "下面的 Python 程序实现了闭区间二分查找。运行程序写出输出，并说明第二次调用返回 -1 的执行路径。",
+      "code": {
+        "lang": "python",
+        "code": "def binary_search(a, x):\n    left, right = 0, len(a) - 1\n    while left <= right:\n        mid = left + (right - left) // 2\n        if a[mid] == x:\n            return mid\n        if a[mid] < x:\n            left = mid + 1\n        else:\n            right = mid - 1\n    return -1\n\na = [2, 5, 8, 12, 16, 23]\nprint(binary_search(a, 16))\nprint(binary_search(a, 7))",
+        "output": "4\n-1",
+        "explain": "查 16：mid=2（8<16）→ left=3；mid=4（16==16）命中，输出 4。查 7：mid=2（8>7）→ right=1；mid=0（2<7）→ left=1；mid=1（5<7）→ left=2；此时 left=2 > right=1，区间为空，循环结束返回 -1。left 越过 right（区间收缩为空）是「元素不存在」的标准信号。"
+      },
+      "answer": "输出 4 和 -1；查 7 时区间从 [0,5] 收缩到 [2,5]、[2,1]，left 越过 right 后返回 -1。",
+      "solution": {
+        "idea": "跟踪 left/right 的每一步变化。",
+        "steps": ["查 16：mid=2 值 8 小于 16，left=3；mid=4 值 16 命中，返回 4；", "查 7：mid=2 值 8 大于 7，right=1；mid=0 值 2 小于 7，left=1；", "mid=1 值 5 小于 7，left=2；left=2 大于 right=1，区间为空，返回 -1；", "mid 用 left + (right - left) // 2，防止大数相加溢出。"],
+        "result": "输出 4 与 -1；-1 表示目标不存在，触发条件是 left 越过 right。",
+        "pitfalls": ["以为返回 -1 是出错：它是「不存在」的约定返回值；", "手动模拟时忘记 mid 比较过后要移出区间（mid±1）。"],
+        "kid": "找 7 这个数：中间是 8，比 7 大，扔掉右半；再看中间是 2，比 7 小，扔掉左半；剩下 5，还是小，再扔——范围空了！没这个数，程序举手报告「-1」，意思是「找遍全场也没有」。"
+      }
+    },
+    {
+      "id": "alg-10-e08",
+      "level": "medium",
+      "type": "judge",
+      "stem": "数据会被频繁插入和删除时，「有序数组 + 二分查找」通常仍是维护查找功能的最优选择。",
+      "answer": "错误",
+      "solution": {
+        "idea": "查找快不等于整体最优，还要算维护成本。",
+        "steps": ["有序数组二分查找确实 O(log n)；", "但插入/删除要保持有序，平均要挪动一半元素，代价 O(n)；", "频繁增删场景下维护成本压倒查找收益，更优选择是哈希表（精确查找）或平衡 BST（还需有序/范围时）。"],
+        "result": "错误。动态数据宜用哈希表或平衡搜索树；有序数组适合静态数据。",
+        "pitfalls": ["只看查找复杂度不看维护复杂度：单点快不等于全程快；", "忽略第 10.4 节选型地图中「插入/删除」一列。"],
+        "kid": "排好序的队伍里找人是快，可每来一个新同学，他身后所有人都要往后挪一格让位——来一个挪一串，太累了。同学进进出出频繁时，聪明做法是换一种「房子」住：哈希柜或会自动理枝的树。"
+      }
+    },
+    {
+      "id": "alg-10-e09",
+      "level": "hard",
+      "type": "derive",
+      "stem": "同学小李写了一个二分查找：<code>while (left &lt; right)</code>，循环内 <code>mid = (left + right) / 2</code>，若 <code>a[mid] &lt; x</code> 则 <code>left = mid</code>，若 <code>a[mid] &gt; x</code> 则 <code>right = mid - 1</code>，相等则返回。请用数组 [1, 3, 5] 查找 4 手动执行该程序，指出它会发生什么问题、根源是什么，并给出最小修复方案。",
+      "answer": "执行过程：left=0、right=2，mid=1，a[1]=3 小于 4，执行 left = mid = 1；left=1、right=2，mid=1，a[1]=3 仍小于 4，left 仍等于 1——left 与 mid 永远停在 1，区间不再收缩，程序陷入死循环。根源：当 a[mid] < x 时，mid 及其左侧其实都已排除，但 left = mid 没有把已比较过的 mid 移出区间，导致区间可以原地踏步（while 条件 left < right 一直成立）。最小修复：把该分支改为 left = mid + 1（或将循环条件与更新配套改为标准闭区间写法 while (left <= right) 配 left = mid + 1、right = mid - 1）。修复后查 4：mid=1（3<4）→ left=2；mid=2（5>4）→ right=1；left > right 返回不存在。",
+      "solution": {
+        "idea": "死循环的判定标准：是否存在某轮迭代区间不收缩。",
+        "steps": ["代入 left=0、right=2 起步，mid=1，比较 3 与 4 走 left = mid 分支；", "观察 left 停在 1、mid 重算仍为 1，区间 [1, 2] 原地踏步；", "确认根源：mid 未被移出区间，left = mid 不保证收缩；", "修复：a[mid] < x 时改用 left = mid + 1，或整体换成闭区间标准模板。"],
+        "result": "原程序死循环；把 left = mid 改为 left = mid + 1 即可修复。",
+        "pitfalls": ["只答「会出错」不指出死循环：本题要求具体执行轨迹；", "误判为越界：该写法不会越界，而是卡死；", "修复时只改循环条件不改更新：两者必须配套，区间收缩才是本质。"],
+        "kid": "小李的程序猜中间数猜小了，却没把「猜过的数」扔掉，下一轮还在同一个数上打转——像卡在原地打圈的陀螺，永远停不下来。修好它只要加一个「+1」：猜过就请出去，范围才会一步步缩小，游戏才能结束。"
+      }
+    },
+    {
+      "id": "alg-10-e10",
+      "level": "hard",
+      "type": "design",
+      "stem": "手机通讯录存有 5000 个联系人，姓名已按拼音序存放。需求：(1) 精确查找某个姓名；(2) 列出所有以「W」开头的联系人；(3) 用户会不定期新增联系人。请为需求 (1)(2) 选择查找算法并说明执行步骤；再回答：需求 (3) 的频率变高后，方案要不要换、换成什么，并说明取舍。",
+      "answer": "(1) 用二分查找：有序数组 + 随机访问，5000 条最多约 13 次比较（2 的 13 次方 8192 覆盖 5000），精确命中或判定不存在。(2) 用 lower_bound 变体：先二分找到第一个大于等于「W」的位置，再从该位置向后线性扫描、输出所有以 W 开头的姓名，直到遇到第一个大于「W」前缀区间的名字（即大于等于「X」）停止；排序保证所有 W 开头的名字连续，扫描段就是答案。执行成本低：定位一次 O(log n)，输出段长度正比于结果数。(3) 若新增频繁，有序数组的插入需要 O(n) 挪动，应改用平衡二叉搜索树（或跳表）：插入删除 O(log n)，精确查找 O(log n)，前缀功能可用「找第一个 ≥ W 的节点 + 中序遍历直到 ≥ X」实现；若只关心精确查找而不需要有序输出，也可用哈希表（平均 O(1)），但前缀列举需另行维护有序索引。取舍核心：读多写少维持有序数组最简单，写多则用动态有序结构。",
+      "solution": {
+        "idea": "按「静态读 → 二分系；动态写 → 动态有序结构」的选型地图作答，前缀需求依赖有序性。",
+        "steps": ["需求 (1)：数据静态有序，二分查找 O(log n) 最合适；", "需求 (2)：前缀列举本质是「两个边界之间的范围查询」，lower_bound 定左端、再扫到超界；", "需求 (3)：写入频率上升后，O(n) 插入成为瓶颈，切换平衡 BST/跳表保持有序与动态性；", "补充对比：哈希表精确查找最快但不保序，前缀功能需要额外有序索引。"],
+        "result": "静态阶段：二分 + lower_bound；动态阶段：平衡 BST（或哈希表 + 有序索引），按读写比例取舍。",
+        "pitfalls": ["对需求 (2) 用逐条线性扫描：能跑但没利用「已排序」的性质；", "换哈希表后宣称还能按前缀列出：哈希表无序，前缀列举必须另建有序结构；", "忽略读写比例：方案选择不是绝对的，取决于查找与新增的频率对比。"],
+        "kid": "通讯录像一本按拼音排好的字典：找一个名字，二分三两下翻到；找所有姓 W 的，先翻到 W 的第一页，往后哗啦啦读过去，翻到 X 开头就停。要是天天都有新朋友要加进本子，每次都要把后半本往后挪，太累了——那就换一本「会自己排队的魔法本子」（搜索树），添名字、找名字都快。"
+      }
+    }
+  ]
+}

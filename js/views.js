@@ -191,7 +191,7 @@ var Views = (function () {
     kidDet.appendChild(el('div', { class: 'sol-part' }, [el('div', {}), el('div', { class: 'kidbox', html: sanitize(ex.solution.kid) })]));
     sol.appendChild(kidDet);
     solWrap.appendChild(sol);
-    item.appendChild(sol);
+    item.appendChild(solWrap);
 
     /* 作答区 */
     const actions = el('div', { class: 'quiz-actions' });
@@ -863,7 +863,9 @@ var Views = (function () {
     async function loadFromChapters(chIds) {
       listWrap.innerHTML = '';
       status.textContent = '正在加载题目…';
-      const files = await Promise.all(chIds.map((cid2) => Data.chapter(cid2.replace(/-\d+$/, ''), cid2)));
+      const results = await Promise.allSettled(chIds.map((cid2) => Data.chapter(cid2.replace(/-\d+$/, ''), cid2)));
+      const files = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);
+      const skipped = results.length - files.length;
       let exs = [];
       files.forEach((f) => { exs = exs.concat(f.exercises || []); });
       const lv = levelSel.value;
@@ -871,6 +873,7 @@ var Views = (function () {
       const counts = { shown: filtered.length, easy: filtered.filter((e) => e.level === 'easy').length, medium: filtered.filter((e) => e.level === 'medium').length, hard: filtered.filter((e) => e.level === 'hard').length };
       filtered.forEach((ex) => listWrap.appendChild(renderExercise(ex, { onChange: () => refreshStatus(counts) })));
       refreshStatus(counts);
+      if (skipped > 0) status.textContent += ' · 有 ' + skipped + ' 章内容暂不可用已跳过';
     }
 
     runBtn.addEventListener('click', () => {
@@ -886,10 +889,10 @@ var Views = (function () {
       const chIds = Array.from(new Set(wrong.map((w) => w.id.replace(/-e\d+$/, ''))));
       const wrongSet = new Set(wrong.map((w) => w.id));
       status.textContent = '正在加载错题（' + wrongSet.size + ' 题）…';
-      Promise.all(chIds.map((cid2) => Data.chapter(cid2.replace(/-\d+$/, ''), cid2))).then((files) => {
+      Promise.allSettled(chIds.map((cid2) => Data.chapter(cid2.replace(/-\d+$/, ''), cid2))).then((results) => {
         listWrap.innerHTML = '';
         let exs = [];
-        files.forEach((f) => { exs = exs.concat(f.exercises || []); });
+        results.filter((r) => r.status === 'fulfilled').forEach((r) => { exs = exs.concat(r.value.exercises || []); });
         const filtered = exs.filter((e) => wrongSet.has(e.id));
         const counts = { shown: filtered.length, easy: filtered.filter((e) => e.level === 'easy').length, medium: filtered.filter((e) => e.level === 'medium').length, hard: filtered.filter((e) => e.level === 'hard').length };
         filtered.forEach((ex) => listWrap.appendChild(renderExercise(ex, { onChange: () => refreshStatus(counts) })));

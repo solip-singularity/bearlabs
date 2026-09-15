@@ -1,0 +1,235 @@
+{
+  "id": "alg-12",
+  "courseId": "alg",
+  "title": "第12讲 最短路径与最小生成树",
+  "objectives": [
+    "说出带权图中「最短路径」与「最小生成树」两类问题的区别与典型应用场景",
+    "按步骤执行 Dijkstra 算法：每轮选出距离最小的未定型顶点，写清每条边的松弛更新，给出最终距离表",
+    "说出 Dijkstra 的前提条件（边权非负）与负权边导致失效的原因，知道替代方案的存在",
+    "描述 Prim 与 Kruskal 的构造过程与差异，能按图的疏密与问题形态选择算法"
+  ],
+  "keyPoints": [
+    "带权图给每条边标注权重；最短路径问「两点之间怎么走总代价最小」，最小生成树问「全部连通用最小总代价」",
+    "Dijkstra 每轮从未定型顶点中挑距离最小者宣布定型，再对其出边松弛：dist[v] = min(dist[v], dist[u] + w)",
+    "松弛的含义：检查「借道 u」能否让到 v 的已知距离更短；能就更新",
+    "Dijkstra 依赖边权非负；有负边时「定型即最终」的保证失效，应改用 Bellman-Ford 等算法",
+    "Prim 从单点出发滚雪球：每步选连接「树内—树外」的最小边；Kruskal 按边权排序逐条加边，用并查集防环",
+    "生成树含 n 个顶点、n-1 条边；最小生成树的总权重唯一，但存在等权边时树的形状可能不唯一"
+  ],
+  "minutes": 55,
+  "difficulty": 3,
+  "prerequisites": ["第11讲 图与图的遍历"],
+  "keywords": ["带权图", "最短路径", "Dijkstra", "松弛", "最小生成树", "Prim", "Kruskal"],
+  "demoRefs": ["graphtravel"],
+  "refs": ["《算法导论》第23章、第24章（延伸阅读）"],
+  "pro": {
+    "intro": "上一讲我们把关系抽象成点线，这一讲给线加上「长度」——距离、用时、费用，统称权重（Weight）。于是两个经典问题浮出水面：其一，从 A 到 B 怎么走最省，即最短路径（Shortest Path）；其二，怎样用总长最小的线把所有点连成一张网，即最小生成树（Minimum Spanning Tree，MST）。前者是导航软件的内核，后者是电网、公路与通信线路规划的教科书答案。这一讲你将亲手执行 Dijkstra、Prim、Kruskal 三套流程，看清它们每一步贪心选择的依据。",
+    "sections": [
+      {
+        "heading": "12.1 带权图：当每条线有了长度",
+        "html": "<p>给图 11-1 的每条边标上一个数字——城市间公路的里程、网络链路的时延、机票的价格——就得到<strong>带权图</strong>（Weighted Graph，每条边上带有一个数值的图），这个数值叫<strong>权重</strong>（Weight）。带权之后，两件事变得特别值得问：</p><p>第一件是<strong>最短路径</strong>（Shortest Path）：从起点到终点的所有路径中，边权之和最小的那条。注意「最短」不一定是距离，也可能是最快、最便宜——含义由权重的意义决定。第二件是<strong>最小生成树</strong>（Minimum Spanning Tree，包含全部顶点、总权重最小的连通无环子图）：它不关心任意两点之间怎么走，只要求所有点连成一片、总代价最小。给 n 个村庄拉电线、修公路网，都是它。</p><p>两者的输出形态截然不同：最短路是一条「线」（起点到终点的一条路径），最小生成树是一张「网」（n 个顶点、恰好 n-1 条边组成的树）。先把这张表记牢，做题时先分清问的是哪一个，再谈算法。</p><table><thead><tr><th>问题</th><th>要回答什么</th><th>输出</th><th>典型应用</th></tr></thead><tbody><tr><td>最短路径</td><td>两点之间怎么走总代价最小</td><td>一条路径</td><td>导航、网络路由</td></tr><tr><td>最小生成树</td><td>全部点连成网、总代价最小</td><td>一棵树（n-1 条边）</td><td>电网、公路、通信布线</td></tr></tbody></table><figure><svg viewBox='0 0 640 260' role='img' aria-label='六个顶点的带权无向图'><line x1='120' y1='130' x2='260' y2='60' stroke='#7C9CBF' stroke-width='2'/><line x1='120' y1='130' x2='260' y2='200' stroke='#7C9CBF' stroke-width='2'/><line x1='260' y1='200' x2='260' y2='60' stroke='#7C9CBF' stroke-width='2'/><line x1='260' y1='60' x2='420' y2='60' stroke='#7C9CBF' stroke-width='2'/><line x1='260' y1='200' x2='420' y2='60' stroke='#7C9CBF' stroke-width='2'/><line x1='260' y1='200' x2='420' y2='200' stroke='#7C9CBF' stroke-width='2'/><line x1='420' y1='60' x2='420' y2='200' stroke='#7C9CBF' stroke-width='2'/><line x1='420' y1='60' x2='560' y2='130' stroke='#7C9CBF' stroke-width='2'/><line x1='420' y1='200' x2='560' y2='130' stroke='#7C9CBF' stroke-width='2'/><circle cx='120' cy='130' r='18' fill='#5E9E8F'/><circle cx='260' cy='60' r='18' fill='#5E9E8F'/><circle cx='260' cy='200' r='18' fill='#5E9E8F'/><circle cx='420' cy='60' r='18' fill='#5E9E8F'/><circle cx='420' cy='200' r='18' fill='#5E9E8F'/><circle cx='560' cy='130' r='18' fill='#5E9E8F'/><text x='120' y='135' text-anchor='middle' font-size='14' fill='#FFFFFF'>A</text><text x='260' y='65' text-anchor='middle' font-size='14' fill='#FFFFFF'>B</text><text x='260' y='205' text-anchor='middle' font-size='14' fill='#FFFFFF'>C</text><text x='420' y='65' text-anchor='middle' font-size='14' fill='#FFFFFF'>D</text><text x='420' y='205' text-anchor='middle' font-size='14' fill='#FFFFFF'>E</text><text x='560' y='135' text-anchor='middle' font-size='14' fill='#FFFFFF'>F</text><text x='172' y='88' text-anchor='end' font-size='13' fill='#C9A96A'>4</text><text x='172' y='174' text-anchor='end' font-size='13' fill='#C9A96A'>2</text><text x='248' y='126' text-anchor='end' font-size='13' fill='#C9A96A'>1</text><text x='340' y='50' text-anchor='middle' font-size='13' fill='#C9A96A'>5</text><text x='350' y='144' text-anchor='start' font-size='13' fill='#C9A96A'>8</text><text x='340' y='216' text-anchor='middle' font-size='13' fill='#C9A96A'>10</text><text x='432' y='134' text-anchor='start' font-size='13' fill='#C9A96A'>2</text><text x='500' y='86' text-anchor='start' font-size='13' fill='#C9A96A'>6</text><text x='500' y='174' text-anchor='start' font-size='13' fill='#C9A96A'>3</text></svg><figcaption>图 12-1 一张带权无向图：边上的数字是权重（可理解为时间或造价）。本讲的全部计算都在它上面进行。</figcaption></figure>"
+      },
+      {
+        "heading": "12.2 Dijkstra：一圈圈扩展的贪心",
+        "html": "<p><strong>Dijkstra 算法</strong>（读作「迪杰斯特拉」，求单源最短路径的经典算法）解决的是：给定起点，求它到其余所有顶点的最短距离。它维护一张「当前已知最短距离」表 dist——起点记 0，其余先记无穷大——然后重复下面的动作：</p><ol><li>在所有「尚未定型」的顶点中，选出 dist 最小的顶点 u，宣布它的最短距离就此确定（定型）；</li><li>对 u 的每条出边 (u, v) 做<strong>松弛</strong>（Relaxation，检查「借道 u」能否让到 v 的距离更短）：若 dist[u] + w(u, v) 小于 dist[v]，就把 dist[v] 更新为这个更小的值；</li><li>重复以上步骤，直到所有顶点定型。</li></ol><p>为什么「选出最小者就可以定型」？直觉是水淹模型：从起点放水，水总先到达离得最近的地方；一个顶点若还能被更短的路到达，那条路的前半段必然更短，早就该被水淹到了。下面用图 12-1 从 A 出发完整算一遍：</p><ul><li>初始：dist 为 A=0，B、C、D、E、F 全是 ∞。</li><li>第 1 轮：未定型中最小的是 A（0），定型 A。松弛 A-B：0+4=4，B 记为 4；松弛 A-C：0+2=2，C 记为 2。</li><li>第 2 轮：最小的是 C（2），定型 C。松弛 C-B：2+1=3，比 4 小，B 更新为 3；松弛 C-D：2+8=10，D 记为 10；松弛 C-E：2+10=12，E 记为 12。</li><li>第 3 轮：最小的是 B（3），定型 B。松弛 B-D：3+5=8，比 10 小，D 更新为 8。</li><li>第 4 轮：最小的是 D（8），定型 D。松弛 D-E：8+2=10，比 12 小，E 更新为 10；松弛 D-F：8+6=14，F 记为 14。</li><li>第 5 轮：最小的是 E（10），定型 E。松弛 E-F：10+3=13，比 14 小，F 更新为 13。</li><li>第 6 轮：最小的是 F（13），定型 F，全部顶点定型，算法结束。</li></ul><p>最终距离表：A 0、C 2、B 3、D 8、E 10、F 13。以 F 为例，最短路是 A-C-B-D-E-F，长度 2+1+5+2+3=13——它用了 5 条边；而边数最少的走法 A-C-E-F 只需 3 条边，长度却是 2+10+3=15。可见「段数少」不等于「总长最短」，这正是带权图必须用 Dijkstra、而不能直接套 BFS 的原因。实现上，逐轮扫描找最小约 O(V²)；改用优先队列（堆）维护待定型顶点，可降到 O((V+E)log V)。</p>"
+      },
+      {
+        "heading": "12.3 前提与边界：为什么不能有负权",
+        "html": "<p>Dijkstra 的「选出最小者即定型」有一个隐含前提：<strong>已经被定型的最小距离不可能再变小</strong>。这个前提成立的条件是——所有边权非负。道理：定型 u 时，其余未定型顶点的 dist 都不小于 dist[u]；想再改进 u 的记录，只能走一条「先绕到远处再回来」的路线，多走的边若全非负，总长只会更大，不可能翻盘。</p><p>一旦出现<strong>负权边</strong>，翻盘就可能发生：例如 A→B 权重 2、A→C 权重 3、C→B 权重 -2。Dijkstra 第 2 轮会先定型 B（距离 2），宣布「A 到 B 最短是 2」；但真实最短路是 A→C→B，长度 3 + (-2) = 1，比 2 更小——先定型反而定错了。所以负权图要换工具：Bellman-Ford 算法反复松弛 V-1 轮，支持负权，还能检测「负环」（绕着走可以无限变小的环）。</p><p>把第 11、12 讲串起来看：如果所有边权都相等（比如全是 1），Dijkstra 每轮「选距离最小」就等价于 BFS 的「按层扩散」——BFS 正是 Dijkstra 的特例；反过来，Dijkstra 是 BFS 在带权世界中的推广。两条知识线在这里合龙。</p>"
+      },
+      {
+        "heading": "12.4 最小生成树：Prim 与 Kruskal",
+        "html": "<p><strong>最小生成树</strong>（MST）的场景：n 个地点要用线连成一张互通网（电力、通信、公路），目标是总造价最小。先记住一个数学性质：n 个顶点的连通图，生成树恰好含 <strong>n-1 条边</strong>且无环——边再多一定成环，再少一定不连通。两种经典算法登场，仍以图 12-1 为例。</p><p><strong>Prim 算法</strong>（从顶点出发，滚雪球式长大）：任选 A 为起点，树集合先为 {A}；每步在所有「一端在树内、一端在树外」的边里选权重最小的一条，把外侧顶点拉进树，直到选满 n-1 条边。</p><ul><li>树 {A}：候选 A-B(4)、A-C(2)，选 A-C；</li><li>树 {A, C}：候选 A-B(4)、C-B(1)、C-D(8)、C-E(10)，选 C-B；</li><li>树 {A, C, B}：候选 B-D(5)、C-D(8)、C-E(10)，选 B-D；</li><li>树 {A, C, B, D}：候选 C-E(10)、D-E(2)、D-F(6)，选 D-E；</li><li>树 {A, C, B, D, E}：候选 D-F(6)、E-F(3)，选 E-F。</li></ul><p>选满 5 条边（=6-1），总权重 2+1+5+2+3=13。</p><p><strong>Kruskal 算法</strong>（从边出发，捡最短的小线）：把所有边按权重从小到大排队，依次考察——若这条边连接的两个顶点「当前还没有连通」就选入，否则跳过（加入它会形成环）。在本图上的执行：(1) C-B 入选；(2) A-C 入选；(2) D-E 入选；(3) E-F 入选——此时 A、B、C 一组，D、E、F 一组；(4) A-B 跳过，因为 A、B 已连通，加入会成环；(5) B-D 入选，两组并成一组。已选 5 条边，结束，总权重 1+2+2+3+5=13。</p><p>两个算法都完整地体现了贪心：每一步都选「当前看得到的最小边」，且保证不产生环；区别只在看问题的入口。Kruskal 里「两个顶点当前是否连通、会不会成环」需要高效判定——这正是并查集（Union-Find，管理元素分组的结构）的拿手好戏。图 12-2 把同一张图上的最小生成树高亮了出来。</p><figure><svg viewBox='0 0 640 260' role='img' aria-label='最小生成树高亮示意图'><line x1='120' y1='130' x2='260' y2='60' stroke='#B0A99A' stroke-width='1.6' stroke-dasharray='5 4'/><line x1='260' y1='200' x2='260' y2='60' stroke='#6FA57E' stroke-width='3.5'/><line x1='120' y1='130' x2='260' y2='200' stroke='#6FA57E' stroke-width='3.5'/><line x1='260' y1='60' x2='420' y2='60' stroke='#6FA57E' stroke-width='3.5'/><line x1='260' y1='200' x2='420' y2='60' stroke='#B0A99A' stroke-width='1.6' stroke-dasharray='5 4'/><line x1='260' y1='200' x2='420' y2='200' stroke='#B0A99A' stroke-width='1.6' stroke-dasharray='5 4'/><line x1='420' y1='60' x2='420' y2='200' stroke='#6FA57E' stroke-width='3.5'/><line x1='420' y1='60' x2='560' y2='130' stroke='#B0A99A' stroke-width='1.6' stroke-dasharray='5 4'/><line x1='420' y1='200' x2='560' y2='130' stroke='#6FA57E' stroke-width='3.5'/><circle cx='120' cy='130' r='18' fill='#5E9E8F'/><circle cx='260' cy='60' r='18' fill='#5E9E8F'/><circle cx='260' cy='200' r='18' fill='#5E9E8F'/><circle cx='420' cy='60' r='18' fill='#5E9E8F'/><circle cx='420' cy='200' r='18' fill='#5E9E8F'/><circle cx='560' cy='130' r='18' fill='#5E9E8F'/><text x='120' y='135' text-anchor='middle' font-size='14' fill='#FFFFFF'>A</text><text x='260' y='65' text-anchor='middle' font-size='14' fill='#FFFFFF'>B</text><text x='260' y='205' text-anchor='middle' font-size='14' fill='#FFFFFF'>C</text><text x='420' y='65' text-anchor='middle' font-size='14' fill='#FFFFFF'>D</text><text x='420' y='205' text-anchor='middle' font-size='14' fill='#FFFFFF'>E</text><text x='560' y='135' text-anchor='middle' font-size='14' fill='#FFFFFF'>F</text><text x='172' y='88' text-anchor='end' font-size='13' fill='#C9A96A'>4</text><text x='172' y='174' text-anchor='end' font-size='13' fill='#C9A96A'>2</text><text x='248' y='126' text-anchor='end' font-size='13' fill='#C9A96A'>1</text><text x='340' y='50' text-anchor='middle' font-size='13' fill='#C9A96A'>5</text><text x='350' y='144' text-anchor='start' font-size='13' fill='#C9A96A'>8</text><text x='340' y='216' text-anchor='middle' font-size='13' fill='#C9A96A'>10</text><text x='432' y='134' text-anchor='start' font-size='13' fill='#C9A96A'>2</text><text x='500' y='86' text-anchor='start' font-size='13' fill='#C9A96A'>6</text><text x='500' y='174' text-anchor='start' font-size='13' fill='#C9A96A'>3</text></svg><figcaption>图 12-2 最小生成树（绿色实线）：C-B 1、A-C 2、D-E 2、E-F 3、B-D 5，总权重 13；灰色虚线为未入选的边。</figcaption></figure>"
+      },
+      {
+        "heading": "12.5 两种视角怎么选；别搞混两类问题",
+        "html": "<p>两个 MST 算法都对，差别在「看问题的视角」，选型参考下表：</p><table><thead><tr><th>维度</th><th>Prim</th><th>Kruskal</th></tr></thead><tbody><tr><td>核心视角</td><td>顶点集合滚雪球：每步选连接「树内—树外」的最小边</td><td>边按权重排队：依次加边，成环则跳过</td></tr><tr><td>关键工具</td><td>优先队列（维护候选边）</td><td>并查集（判成环、合并分组）</td></tr><tr><td>复杂度</td><td>O(V²) 朴素；加堆后 O((V+E)log V)</td><td>O(E log E)，排序主导</td></tr><tr><td>擅长</td><td>稠密图（边多）</td><td>稀疏图（边少）</td></tr></tbody></table><p>口诀：<strong>稠密靠点（Prim），稀疏靠边（Kruskal）</strong>。工程里两者都常见；Kruskal 因为「排序 + 并查集」实现直白，在稀疏图上尤其受欢迎。</p><p>最后再敲一遍黑板，三类问题别再混淆：<strong>Dijkstra 管「从一个点到其余各点的最短路」；Prim 与 Kruskal 管「全局连通的最小总代价」</strong>。特别提醒：最小生成树只保证总长度最小，<strong>树中任意两点间的路径不一定是最短路径</strong>——把 MST 当导航路线用，就可能走弯路。下一讲进入算法设计的大套路：分治、贪心与动态规划——你会在那里回看这一讲，发现 Dijkstra、Prim、Kruskal 都是「贪心」的化身，也会搞清贪心什么时候对、什么时候错。</p>"
+      }
+    ]
+  },
+  "kid": {
+    "intro": "上一讲我们认识了「关系网」，这一讲给网里的每条线标上数字——公里数、花费、时间。数字一标上，两类问题马上冒了出来：怎么走最省钱（像地图导航），怎么用最少的线把所有点连起来（像给村子拉电线）。我们请出三位「贪心小管家」：Dijkstra、Prim 和 Kruskal，看它们怎么一步步做出聪明的选择。",
+    "sections": [
+      {
+        "heading": "给马路标上长度",
+        "html": "<p>给关系网的每条线标上数字——比如两座城市之间的公里数，或两户人家之间铺电线的花费——就得到一张<strong>带权图</strong>，数字就是这条线的「重量」（权重）。</p><p>有了长度，大家开始问两个完全不同的问题。第一个：<strong>从我家到你家，怎么走总长度最短？</strong>这是我俩之间的事，答案是一条路线。第二个：<strong>怎样用最短的线，把所有人家都连进同一张网？</strong>这是全局的事——哪怕某两家之间要绕远路也没关系，只要总花费最少、而且谁都别掉队。找路用 Dijkstra，连网用最小生成树，可别把两件事搞混啦。</p>"
+      },
+      {
+        "heading": "Dijkstra：像水慢慢淹过来",
+        "html": "<p>Dijkstra 的绝招像「缓慢涨水」：从出发点放水，水总是先淹到最近的地方；远的、贵的地方，水后到。<strong>每淹到一个新地方，就顺手检查一遍：经这里去别处，会不会比原来记的近？会就改记新的数。</strong></p><p>比如从 A 出发：先淹到 C（2 分钟）；一查「经 C 去 B 只要 2+1=3」，比原来记的 4 近，改！于是 B 的新纪录是 3；接着水陆续淹到 D（8）、E（10）、F（13）。最终每个地方门口都挂着一块牌子，写着「从 A 来的最短时间」。这个「先淹到谁，就先给谁结账」的顺序，就是它又准又快的原因。</p>"
+      },
+      {
+        "heading": "为什么路上不能有「倒贴」的路？",
+        "html": "<p>仔细想想：水先淹到的地方，凭什么敢说「这就是最短」？因为默认每条路都要花时间、花力气——往远处绕一圈再回来，只会更贵。可要是路上出现了<strong>「倒贴」的怪路</strong>（负的长度，走一段反而让总时间变少），这个默认就被打破了。</p><p>举个例子：直接走 A 到 B 要 2 分钟；绕道 A 到 C 再走一条「倒贴 2 分钟」的怪路到 B，总共只要 3-2=1 分钟！Dijkstra 先淹到 B 时自信地说「最少 2 分钟」，其实答案早就是 1 了，它却先「结账」错了。所以 Dijkstra 的规矩是：路长不能为负；真遇到「倒贴路」，得换一种算法。</p>"
+      },
+      {
+        "heading": "最小生成树：把电线铺进每个村子",
+        "html": "<p>另一个问题：要给图 12-3 的四个村子拉电线，怎么最省钱？<strong>先把所有可能铺的电线按造价从便宜到贵排好队，然后从最便宜的开始发</strong>：只要这条线不会把村子绕成一个「圈」，就铺它；会绕圈的就跳过。铺到「村子数减一」条时，所有村子就都连通了——这就是 Kruskal 算法，像不断捡起最短的线，但绝不浪费。</p><p>还有另一种造法叫 Prim：从一个村子开始，每次从「已经拉上线的村子」向外伸，挑最短的一根线接上一个新村子，像雪球越滚越大，直到所有村子都进网。两种造法手法不同，省下的钱（总造价）可是一样的多。</p><figure><svg viewBox='0 0 640 220' role='img' aria-label='四个村子拉电线的示意图'><line x1='120' y1='120' x2='300' y2='60' stroke='#7C9CBF' stroke-width='2'/><line x1='120' y1='120' x2='300' y2='180' stroke='#7C9CBF' stroke-width='2'/><line x1='300' y1='60' x2='480' y2='120' stroke='#7C9CBF' stroke-width='2'/><line x1='300' y1='180' x2='480' y2='120' stroke='#7C9CBF' stroke-width='2'/><circle cx='120' cy='120' r='18' fill='#5E9E8F'/><circle cx='300' cy='60' r='18' fill='#5E9E8F'/><circle cx='300' cy='180' r='18' fill='#5E9E8F'/><circle cx='480' cy='120' r='18' fill='#5E9E8F'/><text x='120' y='125' text-anchor='middle' font-size='13' fill='#FFFFFF'>甲村</text><text x='300' y='65' text-anchor='middle' font-size='13' fill='#FFFFFF'>乙村</text><text x='300' y='185' text-anchor='middle' font-size='13' fill='#FFFFFF'>丙村</text><text x='480' y='125' text-anchor='middle' font-size='13' fill='#FFFFFF'>丁村</text><text x='196' y='84' text-anchor='end' font-size='13' fill='#C9A96A'>2</text><text x='196' y='156' text-anchor='end' font-size='13' fill='#C9A96A'>3</text><text x='404' y='84' text-anchor='start' font-size='13' fill='#C9A96A'>4</text><text x='404' y='156' text-anchor='start' font-size='13' fill='#C9A96A'>5</text></svg><figcaption>图 12-3 四个村子拉电线：线上的数字是造价。哪三段线最省钱？答案是甲乙 2、甲丙 3、乙丁 4，总造价 2+3+4=9。</figcaption></figure>"
+      },
+      {
+        "heading": "两种造法与两个提醒",
+        "html": "<p>什么时候用哪种造法？口诀是：<strong>稠密靠点（Prim），稀疏靠边（Kruskal）</strong>——到处都有线的密网，从一个点滚雪球更方便；线不多的稀疏网，把线排好队一根根捡更轻松。工程师两种办法都会备着，看情况挑。</p><p>最后一个大大的提醒：连网和找路是两码事！连网求的是「所有点连起来总花费最少」，可没说任意两个点之间能走最短路线。就像最省的电网，从东村到西村的线路也可能绕远——因为那根远线是「连通全局」所必需的。分清问题、再选算法，你就已经比很多人专业了。下一讲，还有分治、贪心、动态规划的大世界等着你！</p>"
+      }
+    ]
+  },
+  "glossary": [
+    { "term": "带权图（Weighted Graph）", "def": "每条边带有一个数值（权重）的图，权重可以表示距离、时间、费用等" },
+    { "term": "最短路径（Shortest Path）", "def": "两点之间边权之和最小的路径；不一定是边数最少的那条" },
+    { "term": "松弛（Relaxation）", "def": "检查「借道 u 到 v」能否比已知距离更短，能则更新 dist[v]" },
+    { "term": "定型（Finalize）", "def": "Dijkstra 中宣布某顶点的最短距离已确定、不再更新的那一步" },
+    { "term": "最小生成树（MST）", "def": "包含全部顶点、总权重最小的连通无环子图，恰有 n-1 条边" },
+    { "term": "Prim 算法", "def": "从顶点出发滚雪球：每步选连接树内树外的最小边，适合稠密图" },
+    { "term": "Kruskal 算法", "def": "把边按权重排序依次加入、用并查集防环，适合稀疏图" }
+  ],
+  "exercises": [
+    {
+      "id": "alg-12-e01",
+      "level": "easy",
+      "type": "choice",
+      "stem": "在 Dijkstra 算法中，对边 (u, v)（权重为 w）执行「松弛」（Relaxation）操作的含义是？",
+      "options": ["A. 检查并更新 dist[v]，令 dist[v] = min(dist[v], dist[u] + w)", "B. 直接把 dist[v] 设为 w", "C. 从图中删除边 (u, v)", "D. 交换 dist[u] 与 dist[v] 的值"],
+      "answer": "A",
+      "solution": {
+        "idea": "松弛就是「比一比：走老路近，还是借道 u 近」。",
+        "steps": ["dist[u] 是起点到 u 的当前最短距离，w 是 u 到 v 这条边的权重；", "借道 u 到达 v 的长度是 dist[u] + w；", "与既有记录 dist[v] 比较，取更小者，即 dist[v] = min(dist[v], dist[u] + w)。"],
+        "result": "A。松弛 = 用「dist[u] + w」挑战 dist[v]。",
+        "pitfalls": ["把松弛理解为「必须更新」：只有更小才更新，否则保持不动；", "漏掉 dist[u] 项，直接把边权赋给 v（错，忽略前面已走的路）。"],
+        "kid": "「松弛」就是查账：本子上原本记着「到 v 要 100 分钟」，现在发现「先到 u 再走一段只要 30 分钟」，就红笔一改记上 30。每次都比一比「老账」与「新路线」，谁省就用谁。"
+      }
+    },
+    {
+      "id": "alg-12-e02",
+      "level": "easy",
+      "type": "choice",
+      "stem": "一个有 n 个顶点的连通带权图，它的最小生成树包含多少条边？",
+      "options": ["A. n", "B. n - 1", "C. n + 1", "D. n 的平方"],
+      "answer": "B",
+      "solution": {
+        "idea": "生成树是「用最少的边把 n 个顶点连成一体」的子图。",
+        "steps": ["n 个顶点连通至少需要 n-1 条边（每加一条边最多合并两组）；", "边数超过 n-1 必有环，与「树」的定义矛盾；", "故生成树（含最小生成树）恰有 n-1 条边。"],
+        "result": "B。6 个顶点的图，生成树有 5 条边。",
+        "pitfalls": ["把「最小」误解为边要尽量少：n-1 是最少也是唯一可能，少一条就不连通；", "与最短路径的边数要求混淆：MST 不限制两点间步数。"],
+        "kid": "要把 n 个村子连成一串，需要几段电线？数一数：2 个村需要 1 段，3 个村需要 2 段……规律总是「村子数减一」。连多了会绕出圈圈白花钱，连少了又总有人掉队。"
+      }
+    },
+    {
+      "id": "alg-12-e03",
+      "level": "easy",
+      "type": "judge",
+      "stem": "Dijkstra 算法可以正确处理含有负权边的图。",
+      "answer": "错误",
+      "solution": {
+        "idea": "Dijkstra 的「定型即最终」依赖边权非负。",
+        "steps": ["算法每轮把 dist 最小的未定型顶点宣布定型；", "该结论成立的前提是「绕远路不会更便宜」，即所有边权非负；", "出现负权边时，已定型顶点的距离可能被更晚的松弛改小，结论失效；", "故说法错误，负权图应改用 Bellman-Ford 等算法。"],
+        "result": "错误。Dijkstra 要求边权非负；负权场景需要替代算法。",
+        "pitfalls": ["认为「只是慢一点，结果仍对」：结果会直接出错，不只是效率问题；", "把负权与「权重为 0」混淆：零权边不影响，负权才致命。"],
+        "kid": "先说清 Dijkstra 的规矩：先「结账」的人必须真的最近。要是路上存在「倒贴钱」的怪路，先结账的人后来可能才发现还有更便宜走法——账就乱了。所以它不许路长为负，遇到这种地图得换别的算法来算。"
+      }
+    },
+    {
+      "id": "alg-12-e04",
+      "level": "easy",
+      "type": "derive",
+      "stem": "用 Kruskal 算法求本讲图（边权：A-B 4、A-C 2、C-B 1、B-D 5、C-D 8、C-E 10、D-E 2、D-F 6、E-F 3）的最小生成树。请依次写出：被选中的边、被跳过的边（及原因）、总权重。",
+      "answer": "按权重从小到大考察：C-B(1) 选中、A-C(2) 选中、D-E(2) 选中、E-F(3) 选中、A-B(4) 跳过（A 与 B 已连通，加入会成环）、B-D(5) 选中。此时已选 5 条边（=6-1），算法结束。总权重 1+2+2+3+5=13。",
+      "solution": {
+        "idea": "Kruskal 三步：排序、逐条加边、用「是否成环」过滤。",
+        "steps": ["排序：C-B 1、A-C 2、D-E 2、E-F 3、A-B 4、B-D 5、D-F 6、C-D 8、C-E 10；", "C-B 入选（组 {C,B}）；A-C 入选（组 {A,C,B}）；D-E 入选（组 {D,E}）；E-F 入选（组 {D,E,F}）；", "A-B 跳过：A、B 已连通，加入会成环；", "B-D 入选：两块合并，全部顶点连通；已选 5 条边，结束。"],
+        "result": "选中 C-B、A-C、D-E、E-F、B-D；跳过 A-B（成环）；总权重 13。",
+        "pitfalls": ["只盯着「最短」忘了防环：A-B 权重 4 小于后面几条，但会成环必须跳过；", "选够 n-1 条后继续加边：多选的边只会成环。"],
+        "kid": "像发钥匙串：先把所有电线从便宜到贵排好队，从最便宜的往下发，只要不会绕成一个圈就发出去。1、2、2、3 块的四根先发完，轮到 4 块那根——会绕圈，跳过去；再发 5 块的那根，全村通网！总花费 13 块钱。"
+      }
+    },
+    {
+      "id": "alg-12-e05",
+      "level": "medium",
+      "type": "choice",
+      "stem": "关于 Prim 与 Kruskal 两种最小生成树算法，下列说法正确的是？",
+      "options": ["A. Prim 维护一个不断长大的顶点集合，每步选「连接集合内外」的最小边；Kruskal 把边按权重从小到大考察，借助并查集判断加边是否成环", "B. Prim 必须先把所有边排序，Kruskal 不需要考虑边的顺序", "C. Prim 可以从任意一条边开始，Kruskal 必须从指定起点顶点开始", "D. 两者都只能用于有向图"],
+      "answer": "A",
+      "solution": {
+        "idea": "一个「以点为主滚雪球」，一个「以边为主排队加」，各自配套的关键工具不同。",
+        "steps": ["Prim：从起点出发维护树集合，候选边是「树内—树外」的边，每步取最小者扩树；", "Kruskal：全局边排序，逐条考察，用并查集判断两端是否已连通（成环则跳过）；", "B 把两者的排序需求说反了；C 说反了起点要求；D 与「最小生成树用于无向连通图」常识矛盾；", "故选 A。"],
+        "result": "A。Prim 滚雪球配优先队列；Kruskal 排队加边配并查集。",
+        "pitfalls": ["记混两者工具：排序是 Kruskal 的招牌，不是 Prim 的；", "认为两算法各有禁区：其实都可用于任何连通无向图，只是擅长场景不同。"],
+        "kid": "造雪球法（Prim）：从一个村子开始，每次从「已连上的地方」伸出最短的一根线接上新村子，雪球越滚越大。捡线法（Kruskal）：把所有线从短到长排好，一根根捡，会绕圈的不要。两种都能做到最省，看网的疏密挑着用。"
+      }
+    },
+    {
+      "id": "alg-12-e06",
+      "level": "medium",
+      "type": "derive",
+      "stem": "对图 12-1 的带权图（边权：A-B 4、A-C 2、C-B 1、B-D 5、C-D 8、C-E 10、D-E 2、D-F 6、E-F 3），用 Dijkstra 算法求从 A 到各顶点的最短距离。请写出每一轮被定型（确定最终距离）的顶点、该轮发生的松弛更新，以及最终的距离表。",
+      "answer": "第 1 轮定型 A：B=4、C=2；第 2 轮定型 C（2）：B 更新为 3、D=10、E=12；第 3 轮定型 B（3）：D 更新为 8；第 4 轮定型 D（8）：E 更新为 10、F=14；第 5 轮定型 E（10）：F 更新为 13；第 6 轮定型 F（13）。最终：A=0、B=3、C=2、D=8、E=10、F=13。",
+      "solution": {
+        "idea": "严格按「选最小 → 定型 → 松弛出边」循环执行，每轮记录数字变化。",
+        "steps": ["第 1 轮：定型 A（0）；A-B 得 4、A-C 得 2；", "第 2 轮：定型 C（2）；C-B 得 3（比 4 小，更新）、C-D 得 10、C-E 得 12；", "第 3 轮：定型 B（3）；B-D 得 8（比 10 小，更新）；", "第 4 轮：定型 D（8）；D-E 得 10（比 12 小，更新）、D-F 得 14；", "第 5 轮：定型 E（10）；E-F 得 13（比 14 小，更新）；", "第 6 轮：定型 F（13），全部定型。最终表：A 0、B 3、C 2、D 8、E 10、F 13。"],
+        "result": "定型顺序 A、C、B、D、E、F；最终距离 A0、B3、C2、D8、E10、F13（到 F 的最短路 A-C-B-D-E-F，总长 13）。",
+        "pitfalls": ["忘记「更新要比较」：C-B 算出 3 时要与旧值 4 比较后再改；", "提前定型：未定型中最小者才定型，顺序不能乱（例如第 3 轮不能先定型 D）；", "把本次更新的值当作最终值：后续轮次仍可能被更小的松弛再次更新。"],
+        "kid": "水从 A 村慢慢淹：先到 C（2 分钟）；从 C 一查，去 B 只要 2+1=3，比原来记的 4 近，改账；下一站 B（3）；接着 D（8）、E（10）、F（13）。每到一处都顺手检查「经这里去别处会不会更近」，最后每村门口都挂着最短时间的牌子。"
+      }
+    },
+    {
+      "id": "alg-12-e07",
+      "level": "medium",
+      "type": "code",
+      "stem": "下面的 Python 程序用邻接表存储图 12-1 并运行 Dijkstra 算法。请写出程序输出，并指出输出中「B 3」对应的最短路径。",
+      "code": {
+        "lang": "python",
+        "code": "import heapq\n\ngraph = {\n    'A': [('B', 4), ('C', 2)],\n    'B': [('A', 4), ('D', 5)],\n    'C': [('A', 2), ('B', 1), ('D', 8), ('E', 10)],\n    'D': [('B', 5), ('C', 8), ('E', 2), ('F', 6)],\n    'E': [('C', 10), ('D', 2), ('F', 3)],\n    'F': [('D', 6), ('E', 3)],\n}\n\ndef dijkstra(src):\n    dist = {v: float('inf') for v in graph}\n    dist[src] = 0\n    pq = [(0, src)]\n    while pq:\n        d, u = heapq.heappop(pq)\n        if d > dist[u]:\n            continue\n        for v, w in graph[u]:\n            nd = d + w\n            if nd < dist[v]:\n                dist[v] = nd\n                heapq.heappush(pq, (nd, v))\n    return dist\n\nresult = dijkstra('A')\nfor v in sorted(result):\n    print(v, result[v])",
+        "output": "A 0\nB 3\nC 2\nD 8\nE 10\nF 13",
+        "explain": "程序从 A 出发维护距离表：初始 B=4、C=2；随后 C 被弹出并松弛邻边，发现经 C 到 B 只需 2+1=3，B 被更新为 3；之后依次确认 D=8、E=10、F=13。'if d > dist[u]: continue' 会跳过堆中过期的旧记录，保证每个顶点只被有效扩展一次。按字母序打印，输出六行「顶点 距离」。"
+      },
+      "answer": "输出六行：A 0、B 3、C 2、D 8、E 10、F 13。「B 3」对应的最短路径是 A-C-B，长度 2+1=3。",
+      "solution": {
+        "idea": "在堆优化实现里跟踪 dist 表的更新，重点看 B 从 4 改成 3 的那次松弛。",
+        "steps": ["初始 dist：A=0，其余 ∞，堆中只有 (0, 'A')；", "弹出 A：B 记 4、C 记 2，入堆；", "弹出 C（2）：松弛 C-B 得 3（小于 4，更新 B 为 3）、C-D 得 10、C-E 得 12；", "继续弹出元素：B（3）定型；D 收紧为 8、E 为 10、F 为 13；后续弹出过期记录直接跳过；", "按字母序打印：A 0、B 3、C 2、D 8、E 10、F 13。"],
+        "result": "输出 A 0 / B 3 / C 2 / D 8 / E 10 / F 13；B 的最短路是 A-C-B（3）。",
+        "pitfalls": ["忽略「过期堆记录」处理：没有 'if d > dist[u]: continue' 时可能重复松弛，效率变差甚至出错；", "把 B 的 3 说成直接边 A-B：直接边权重是 4，3 是绕道 C 的结果。"],
+        "kid": "程序像一位耐心的记账员：从 A 出发先把直接相连的账记下（C 是 2，B 先记 4）；然后不断挑出「目前最近」的地方去更新别人的账——轮到 C 时发现，经 C 去 B 只要 3，B 的账就改成 3。最后按字母顺序报账：A 0、B 3、C 2、D 8、E 10、F 13。"
+      }
+    },
+    {
+      "id": "alg-12-e08",
+      "level": "medium",
+      "type": "judge",
+      "stem": "对同一个连通带权图，Prim 与 Kruskal 求出的最小生成树的总权重一定相同（即使它们选出的边集可能不同）。",
+      "answer": "正确",
+      "solution": {
+        "idea": "「最小总权重」是图的性质而不是算法的产物；形状可能不同，权重唯一。",
+        "steps": ["最小生成树的定义：在所有生成树中总权重最小者；", "Prim 与 Kruskal 都是经证明正确的算法，都会输出一个最小生成树；", "当存在等权边时，两者（甚至同一算法的不同起点）可能选出不同的边集，但总权重同为最小值；", "故说法正确。"],
+        "result": "正确。边集可能不同（等权边竞争），总权重必然相同。",
+        "pitfalls": ["把「树唯一」当结论：等权边存在时树形状可以不同；", "以为不同算法可能得出不同代价：若真不同，说明某一实现有误。"],
+        "kid": "两个工匠用不同手法拼同一套积木，拼出的形状可能略有差别，但用掉的积木总量一定一样——因为「最省」只有一个答案：要是有人能拼出只花 12 块的版本，那算法早就先把 12 块挑走啦。"
+      }
+    },
+    {
+      "id": "alg-12-e09",
+      "level": "hard",
+      "type": "derive",
+      "stem": "考虑带权有向图：边 A→B 权重 2，A→C 权重 3，C→B 权重 -2。若从 A 出发运行 Dijkstra，第 2 轮会定型哪个顶点、宣布的距离是多少？实际的 A 到 B 最短距离又是多少？请写出执行过程并解释 Dijkstra 出错的原因。",
+      "answer": "第 1 轮定型 A，松弛得 dist[B]=2、dist[C]=3；第 2 轮未定型中最小的是 B（2），定型 B，宣布「A 到 B 最短距离 = 2」——但这与事实矛盾：真实最短路是 A→C→B，长度 3 + (-2) = 1。第 3 轮定型 C 时，松弛 C-B 发现 3+(-2)=1，比已宣布的 2 更小，「定型即最终」被推翻。根源是负权边打破了 Dijkstra 的贪心前提：它假设「绕经尚未处理的顶点不可能得到更短路径」，而负边让远处绕道反而更便宜。",
+      "solution": {
+        "idea": "用最小反例展示负权如何推翻「定型即最终」。",
+        "steps": ["初始 dist：A=0，B、C 为 ∞；第 1 轮定型 A，松弛 A→B 得 2、A→C 得 3；", "第 2 轮：未定型中 B（2）最小，定型 B 并宣布其距离 2；", "第 3 轮定型 C（3），松弛 C→B 得 3 + (-2) = 1，小于已宣布的 2——B 的最短路被改小，但 B 已「结账」；", "根源：负权边使「先到者必最近」的直觉失效（绕路反而更短）；修法是改用 Bellman-Ford（可处理负权、可检测负环）。"],
+        "result": "第 2 轮定型 B、宣布距离 2；实际最短距离是 1（A→C→B）。Dijkstra 在负权图上会给出错误结论。",
+        "pitfalls": ["以为只是顺序问题、最终仍会修正：B 定型后不再被处理，宣布值就错了；", "把病根归结为「有向图」：有向且非负的图 Dijkstra 照样正确，问题出在负权。"],
+        "kid": "直接走 A 到 B 要 2 分钟，Dijkstra 就宣布「最少 2 分钟」；可还有条隐藏路线：先到 C（3 分钟），再走一条「倒贴 2 分钟」的怪路到 B，总共只要 1 分钟！先到的不一定最便宜——这就是「负权怪路」把 Dijkstra 绕晕的原因。"
+      }
+    },
+    {
+      "id": "alg-12-e10",
+      "level": "hard",
+      "type": "design",
+      "stem": "某物流公司有两条需求：(1) 给 8 个仓库铺设一张「总造价最低」的专线网，要求任意两个仓库之间都能通过专线（可以中转）到达；(2) 对「总部到各仓库」的运输，求单次时间最短的路线（道路互通、时间均为正数）。请分别选择算法并说明理由；再回答：若需求 (2) 升级为「任意两个仓库之间都要能快速查到最短时间」，工程上一般如何处理？",
+      "answer": "(1) 用最小生成树（Prim 或 Kruskal）：目标只是「全部连通且总权重最小」，不要求两两之间走最短路；8 个顶点需 7 条边。稀疏选 Kruskal（排序 + 并查集），稠密选 Prim。(2) 用 Dijkstra 从总部做单源最短路：道路时间均为正数满足非负权前提，逐轮定型 + 松弛可给出到每个仓库的最短时间。(3) 全源最短路：可对每个仓库各跑一次 Dijkstra，或对中等规模用 Floyd；工程上更常见「按需计算 + 缓存结果」，只对热点仓库预计算，避免全量两两运算。",
+      "solution": {
+        "idea": "先分清「连成网」与「找路线」是两类问题，再按数据形态选实现。",
+        "steps": ["需求 (1) 的目标是全局连通最小代价，对应最小生成树；边数固定为 n-1=7；", "需求 (2) 是单源最短路，边权为正常数，直接上 Dijkstra；", "需求升级为全源后，朴素做法是 n 次 Dijkstra（每次 O((V+E)log V)）；", "工程取舍：按需计算 + 缓存、只预计算热点；规模小则无压力。"],
+        "result": "(1) MST（Prim/Kruskal，按疏密选）；(2) Dijkstra；(3) n 次 Dijkstra 或 Floyd + 缓存优化。",
+        "pitfalls": ["需求 (1) 用 Dijkstra：求的是最短路，不是「全局连通最小总代价」，会得出错误方案；", "需求 (2) 忽略「权非负」前提的检查：这里成立，但要养成确认习惯；", "全源需求直接全量预计算：规模大时浪费严重，应先掂量查询频率。"],
+        "kid": "需求一像「给全村拉电线」：不关心谁到谁怎么走，只要最后人人连上、总花费最少——用最小生成树。需求二像「从总店给 8 家分店送货，各自怎么走最快」——从总部一盘棋向外结算，用 Dijkstra。八个仓库数据很小，怎么算都飞快；仓库成千上万时，工程师一般按需要算、把结果存起来再用。"
+      }
+    }
+  ]
+}

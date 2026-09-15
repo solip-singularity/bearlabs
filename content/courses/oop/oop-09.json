@@ -1,0 +1,363 @@
+{
+  "id": "oop-09",
+  "courseId": "oop",
+  "title": "第9讲 用 UML 给世界建模",
+  "objectives": [
+    "说出 UML 与类图的作用：用统一的图形语言描述系统的静态结构，让设计可以画出来、讲清楚、被评审",
+    "会画也会读类框：类名、属性、方法三栏，以及 +、-、# 三个可见性记号",
+    "分清关联、继承（泛化）、聚合、组合四种关系的画法与语义，掌握菱形方向和空心三角箭头的判读",
+    "走一遍「从需求到类图」的建模流程：从需求文字里找候选类、用动词定关系、标注多重性并迭代完善"
+  ],
+  "keyPoints": [
+    "UML（Unified Modeling Language，统一建模语言）是一套通用图形符号；类图描述有哪些类、类之间如何联系，是最常用的图",
+    "类框三栏：类名、属性、方法；可见性记号 +（公开）、-（私有）、#（受保护）",
+    "关联用实线表示，两端可标多重性（1、0..1、*、1..*），开口箭头表示导航方向",
+    "继承（泛化）画成实线加空心三角形箭头，箭头指向父类；组合用实心菱形、聚合用空心菱形，菱形永远贴在整体一端",
+    "组合与聚合的判据是生命周期：组合同生共死，聚合可聚可散",
+    "从需求到类图的基本流程：找名词、筛候选类、找动词、定关系与多重性、补属性方法、迭代修订"
+  ],
+  "minutes": 45,
+  "difficulty": 2,
+  "prerequisites": [
+    "oop-05 多态：一个命令，多种作答"
+  ],
+  "keywords": [
+    "UML",
+    "类图",
+    "关联",
+    "继承",
+    "组合",
+    "多重性",
+    "建模"
+  ],
+  "demoRefs": [
+    "oop-model"
+  ],
+  "refs": [
+    "《UML 精粹（第3版）》（延伸阅读：类图与关系部分）"
+  ],
+  "pro": {
+    "intro": "写代码之前先画图，是工程界的老习惯：建筑有施工图，电路有原理图，软件开发也有自己的图纸语言——UML。它不是某种编程语言，而是一套「人人都看得懂」的图形符号：类怎么画、关系怎么连线、数量怎么写，全都有统一约定。本讲要学的类图（Class Diagram）是 UML 家族里最常用的一员，它回答三个问题：系统里有哪些类？每个类有什么？类与类之间是什么关系？学会画它、读它，你就有了把脑子里的设计端到桌面上和别人讨论的能力。",
+    "sections": [
+      {
+        "heading": "9.1 为什么给软件画图纸",
+        "html": "<p>假设你要盖一栋房子，却只在脑子里想过户型——工人没法施工，邻居没法提意见，出了问题也说不清是哪儿错了。软件比房子更复杂：一个中等系统可能有几十上百个类，它们的职责和依赖散落在几千行代码里，光靠逐行读代码去理解结构，成本极高。</p><p>于是工程师们引入<strong>建模</strong>（Modeling，用简化图形描述系统的过程）：把系统的关键结构先画成图，在图层面讨论清楚，再进入代码。图不是装饰品，它有三个实打实的作用：</p><ul><li><strong>沟通</strong>：图纸是团队的通用语言，比口头描述精确，比读代码快得多；</li><li><strong>发现</strong>：画图会逼你把「谁认识谁」想清楚，很多设计漏洞在画图阶段就暴露了；</li><li><strong>记录</strong>：图纸是系统结构的索引，新人先看图再钻代码，上手速度翻倍。</li></ul><p>给软件画图的统一语言叫<strong>UML</strong>（Unified Modeling Language，统一建模语言）。注意两个关键词：<strong>统一</strong>——符号由标准约定，全世界通用；<strong>语言</strong>——它有词汇（各种图形符号），也有语法（符号怎么连、怎么读）。UML 家族里有十几种图，本讲只聚焦最常用的一种：<strong>类图</strong>（Class Diagram）。它描述系统的<strong>静态结构</strong>——有哪些类、类有哪些成员、类之间是什么关系，像一个不会动的骨架模型。至于对象之间消息怎么你来我往，那是时序图等其他图的事，本课不展开。</p>"
+      },
+      {
+        "heading": "9.2 一个类框里装什么",
+        "html": "<p>类图的基本单位是<strong>类框</strong>：一个矩形被两条横线分成三栏，从上到下依次是类名、属性、方法。请看图 9-1 的解剖。</p><figure><svg viewBox='0 0 640 310' role='img' aria-label='类框解剖图'><rect x='180' y='20' width='280' height='260' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.6'/><line x1='180' y1='88' x2='460' y2='88' stroke='#5E9E8F' stroke-width='1.2'/><line x1='180' y1='170' x2='460' y2='170' stroke='#5E9E8F' stroke-width='1.2'/><text x='320' y='60' text-anchor='middle' font-size='16' fill='#2A2E33'>Book</text><text x='200' y='112' font-size='13' fill='#2A2E33'>- isbn: str</text><text x='200' y='134' font-size='13' fill='#2A2E33'>- title: str</text><text x='200' y='156' font-size='13' fill='#2A2E33'>- available: bool</text><text x='200' y='198' font-size='13' fill='#2A2E33'>+ borrow(): None</text><text x='200' y='224' font-size='13' fill='#2A2E33'>+ give_back(): None</text><text x='40' y='55' font-size='13' fill='#6C7078'>类名</text><text x='40' y='118' font-size='13' fill='#6C7078'>属性</text><text x='40' y='222' font-size='13' fill='#6C7078'>方法</text><line x1='85' y1='50' x2='172' y2='50' stroke='#C9A96A' stroke-dasharray='4 3'/><line x1='85' y1='113' x2='172' y2='113' stroke='#C9A96A' stroke-dasharray='4 3'/><line x1='85' y1='217' x2='172' y2='217' stroke='#C9A96A' stroke-dasharray='4 3'/><text x='486' y='96' font-size='12' fill='#C96A6A'>- 私有：本类内部可见</text><text x='486' y='198' font-size='12' fill='#C96A6A'>+ 公开：任何代码可见</text><text x='486' y='236' font-size='12' fill='#C96A6A'># 受保护：子类可见</text></svg><figcaption>图 9-1 类框解剖：三栏分别是类名、属性、方法；行首符号 +、-、# 表示可见性。</figcaption></figure><p>三栏的读法很直白：<code>- isbn: str</code> 读作「私有属性 isbn，类型是字符串」；<code>+ borrow(): None</code> 读作「公开方法 borrow，没有返回值」。行首三个符号的约定请记牢：<code>+</code> 公开（public，任何代码可以访问）、<code>-</code> 私有（private，仅本类内部）、<code>#</code> 受保护（protected，本类与子类可用）。</p><p>你可能会嘀咕：Python 里根本没有 public、private 关键字，图上认真标可见性有什么用？两个理由。第一，<strong>图是语言无关的</strong>：同一张类图可以指导 Python、Java、C++ 等多种实现，可见性是一种设计承诺，具体语言用各自的方式落实（Python 用下划线开头的命名约定表示「请别碰」）。第二，<strong>写下来才想得清</strong>：逼自己标注每个成员给谁用，就是在逼自己完成封装的决策——这件事在画图阶段做完，比写代码时纠结便宜得多。</p><p>最后补两个书写习惯：属性行写成「名字: 类型」两段式，方法行写成「名字(参数表): 返回类型」；类名首字母大写、成员名全小写，是通行惯例，照着写即可。</p>"
+      },
+      {
+        "heading": "9.3 关系家族（上）：关联、聚合与组合",
+        "html": "<p>画好一个个类框，只是摆好了积木。类图真正值钱的地方在于<strong>连线</strong>——把「谁认识谁、谁拥有谁」一网打尽。先从最基本的一条线说起。</p><p><strong>关联</strong>（Association，两个类的对象之间的连接）用一条<strong>实线</strong>表示，含义是「一个类的对象知道另一个类的对象」。线两端可以写<strong>多重性</strong>（Multiplicity，数量范围），回答「一头配几个」的问题，常见写法有：<code>1</code>（恰好一个）、<code>0..1</code>（零或一个）、<code>*</code> 或 <code>0..*</code>（零或多个）、<code>1..*</code>（至少一个）。</p><p>读法是「几个配几个」。例如「学校 1 —— 0..* 学生」：一所学校对应零到多名学生；同时，一名学生恰好对应一所学校。两端一起读，含义才完整。线的某一端画上<strong>开口箭头</strong>，表示<strong>导航方向</strong>：箭头指向哪头，哪头的对象就是这一端「能找得到」的；两端都能找到就不画箭头。</p><p>关联里有一种特殊的「整体—部分」味道，UML 用<strong>菱形</strong>把它分成强弱两档：</p><ul><li><strong>聚合</strong>（Aggregation，弱的整体—部分）：<strong>空心菱形</strong>，画在<strong>整体</strong>一端。部分可以独立存在——如「电脑 ◇—— 鼠标」，鼠标拔下来还能插到别的电脑上用；</li><li><strong>组合</strong>（Composition，强的整体—部分）：<strong>实心菱形</strong>，同样画在整体一端。部分与整体<strong>同生共死</strong>——如「订单 ◆—— 订单行」，订单被删除，订单行必须一起消失；「人 ◆—— 心脏」，人没了，这颗心脏作为这个人的器官也就不存在了。</li></ul><p>判读口诀：<strong>菱形贴着整体站，实心比空心强。</strong>判断组合还是聚合，只问一句：整体消失时，部分能不能独立活下来？能，是聚合；不能，是组合。</p><p>再用代码对照巩固。Python 里两种写法一眼可辨：</p><pre class='code' data-lang='python'>class Car:                      # 倾向组合：引擎随车而生，车没了引擎也没了\n    def __init__(self):\n        self.engine = Engine()\n\nclass Garage:                   # 倾向聚合：车从外面开进来，也能开走\n    def __init__(self, car):\n        self.car = car</pre><p><code>Car</code> 在内部亲手创建 <code>Engine</code>，引擎的生死由车决定，倾向组合；车从外部传进来、可以随时换，倾向聚合。要注意：这是「倾向」而不是硬性判定——最终以业务语义为准，图要能讲通生命周期这个故事。</p>"
+      },
+      {
+        "heading": "9.4 关系家族（下）：继承与依赖",
+        "html": "<p>关联、聚合、组合都是横向的「持有」关系；还有一类纵向的「家族」关系——继承。</p><p><strong>继承</strong>在 UML 里叫<strong>泛化</strong>（Generalization，读作「子类是一种父类」）。画法是<strong>实线加空心三角形箭头，箭头指向父类</strong>：学生和老师都继承自「人」，图中就从 Student、Teacher 各引一条线，用空心三角一起指向 Person。方向千万别画反：<strong>空心三角指长辈</strong>——子类是父类的特化，信息更多，但箭头要指回更一般的父类去「认祖归宗」。三角形是空心的，没有实心写法，别自创。</p><p>还有一条最弱的虚线关系：<strong>依赖</strong>（Dependency，临时用一下）。画法是<strong>虚线加开口箭头</strong>，从使用者指向被使用者，比如某个方法只是把参数对象的类型用了一下，用完就走，不长期持有。本课里它出现频率低，认识画法即可。</p><figure><svg viewBox='0 0 640 300' role='img' aria-label='四种主要关系画法速查'><rect x='30' y='40' width='80' height='36' rx='4' fill='#FFFFFF' stroke='#5E9E8F'/><text x='70' y='63' text-anchor='middle' font-size='12' fill='#2A2E33'>班级</text><rect x='180' y='40' width='80' height='36' rx='4' fill='#FFFFFF' stroke='#5E9E8F'/><text x='220' y='63' text-anchor='middle' font-size='12' fill='#2A2E33'>学生</text><line x1='110' y1='58' x2='180' y2='58' stroke='#5E9E8F' stroke-width='1.5'/><text x='126' y='50' font-size='12' fill='#6C7078'>1</text><text x='160' y='50' font-size='12' fill='#6C7078'>*</text><text x='145' y='112' text-anchor='middle' font-size='12' fill='#2A2E33'>关联：实线 + 多重性</text><rect x='420' y='30' width='120' height='32' rx='4' fill='#FFFFFF' stroke='#5E9E8F'/><text x='480' y='51' text-anchor='middle' font-size='12' fill='#2A2E33'>父类 Person</text><rect x='420' y='90' width='120' height='32' rx='4' fill='#FFFFFF' stroke='#5E9E8F'/><text x='480' y='111' text-anchor='middle' font-size='12' fill='#2A2E33'>子类 Student</text><line x1='480' y1='90' x2='480' y2='74' stroke='#5E9E8F' stroke-width='1.5'/><polygon points='472,74 488,74 480,62' fill='#FFFFFF' stroke='#5E9E8F'/><text x='480' y='146' text-anchor='middle' font-size='12' fill='#2A2E33'>继承：空心三角指向父类</text><rect x='30' y='175' width='80' height='36' rx='4' fill='#FFFFFF' stroke='#5E9E8F'/><text x='70' y='198' text-anchor='middle' font-size='12' fill='#2A2E33'>电脑</text><rect x='180' y='175' width='80' height='36' rx='4' fill='#FFFFFF' stroke='#5E9E8F'/><text x='220' y='198' text-anchor='middle' font-size='12' fill='#2A2E33'>鼠标</text><line x1='110' y1='193' x2='180' y2='193' stroke='#5E9E8F' stroke-width='1.5'/><polygon points='112,193 124,186 136,193 124,200' fill='#FFFFFF' stroke='#5E9E8F'/><text x='145' y='247' text-anchor='middle' font-size='12' fill='#2A2E33'>聚合：空心菱形贴整体</text><rect x='395' y='175' width='90' height='36' rx='4' fill='#FFFFFF' stroke='#5E9E8F'/><text x='440' y='198' text-anchor='middle' font-size='12' fill='#2A2E33'>订单</text><rect x='545' y='175' width='80' height='36' rx='4' fill='#FFFFFF' stroke='#5E9E8F'/><text x='585' y='198' text-anchor='middle' font-size='12' fill='#2A2E33'>订单行</text><line x1='485' y1='193' x2='545' y2='193' stroke='#5E9E8F' stroke-width='1.5'/><polygon points='487,193 499,186 511,193 499,200' fill='#5E9E8F' stroke='#5E9E8F'/><text x='510' y='247' text-anchor='middle' font-size='12' fill='#2A2E33'>组合：实心菱形贴整体</text></svg><figcaption>图 9-2 四种主要关系速查：菱形贴整体、空心三角指父类、实线管关联、虚线管依赖。</figcaption></figure><p>把常用关系整理成一张速查表：</p><table><thead><tr><th>关系</th><th>画法</th><th>语义</th><th>例子</th></tr></thead><tbody><tr><td>关联</td><td>实线（可带开口箭头）；两端可标多重性</td><td>长期「认识」对方</td><td>学校 —— 学生</td></tr><tr><td>继承（泛化）</td><td>实线 + 空心三角箭头，指向父类</td><td>子类是父类的一种</td><td>Student 继承 Person</td></tr><tr><td>聚合</td><td>实线 + 空心菱形，贴在整体端</td><td>整体—部分，可聚可散</td><td>电脑 —— 鼠标</td></tr><tr><td>组合</td><td>实线 + 实心菱形，贴在整体端</td><td>整体—部分，同生共死</td><td>订单 —— 订单行</td></tr><tr><td>依赖</td><td>虚线 + 开口箭头</td><td>临时用一下，用完就走</td><td>方法参数的类型</td></tr></tbody></table>"
+      },
+      {
+        "heading": "9.5 从需求到类图：四步建模法",
+        "html": "<p>工具认全了，来干一次真活。给你一段需求文字，怎么把它变成类图？记住这条工作流：<strong>找名词 → 筛候选类 → 找动词 → 定关系与多重性 → 补属性方法 → 迭代</strong>。</p><p>需求原文（图书借阅的迷你版）：「图书馆要管理图书和读者。每本图书有书名和 ISBN；每位读者有姓名和读者号。读者可以借书：系统要记录谁借了哪本书、什么时候借、什么时候该还。」</p><ol><li><strong>找名词</strong>：把这段话里所有名词圈出来——图书、读者、书名、ISBN、姓名、读者号、系统……</li><li><strong>筛候选类</strong>：留下有可能成为「对象」的核心名词：<code>图书</code>、<code>读者</code>。书名、ISBN 是图书的属性，降级到第二步之后；「系统」太笼统，它的职责后面由「图书馆」这个服务类承担；再补两个隐藏的关键角色：<code>借阅记录</code>（「谁借了哪本书、什么时候借」这件事本身要有个对象来记）；</li><li><strong>找动词定关系</strong>：「读者借书」——一位读者可以有多条借阅记录（<code>1 —— 0..*</code>）；「记录谁借了哪本书」——每条借阅记录恰好对应一本图书（<code>1 —— 0..*</code> 的另一侧：记录端 <code>0..*</code>、图书端 <code>1</code>）；</li><li><strong>补属性方法、标多重性</strong>：图书写 <code>isbn、title</code>；读者写 <code>reader_id、name</code>；借阅记录写 <code>book、reader、borrow_date、due_date</code>。</li></ol><figure><svg viewBox='0 0 660 420' role='img' aria-label='图书借阅迷你类图'><rect x='30' y='30' width='210' height='180' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.5'/><line x1='30' y1='70' x2='240' y2='70' stroke='#5E9E8F' stroke-width='1.1'/><line x1='30' y1='150' x2='240' y2='150' stroke='#5E9E8F' stroke-width='1.1'/><text x='135' y='54' text-anchor='middle' font-size='13' fill='#2A2E33'>Book（图书）</text><text x='44' y='94' font-size='12' fill='#2A2E33'>- isbn: str</text><text x='44' y='116' font-size='12' fill='#2A2E33'>- title: str</text><text x='44' y='138' font-size='12' fill='#2A2E33'>- available: bool</text><text x='44' y='172' font-size='12' fill='#2A2E33'>+ borrow(): None</text><text x='44' y='196' font-size='12' fill='#2A2E33'>+ give_back(): None</text><rect x='420' y='30' width='200' height='140' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.5'/><line x1='420' y1='70' x2='620' y2='70' stroke='#5E9E8F' stroke-width='1.1'/><line x1='420' y1='136' x2='620' y2='136' stroke='#5E9E8F' stroke-width='1.1'/><text x='520' y='54' text-anchor='middle' font-size='13' fill='#2A2E33'>Reader（读者）</text><text x='434' y='94' font-size='12' fill='#2A2E33'>- reader_id: str</text><text x='434' y='116' font-size='12' fill='#2A2E33'>- name: str</text><rect x='225' y='250' width='210' height='160' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.5'/><line x1='225' y1='290' x2='435' y2='290' stroke='#5E9E8F' stroke-width='1.1'/><line x1='225' y1='362' x2='435' y2='362' stroke='#5E9E8F' stroke-width='1.1'/><text x='330' y='274' text-anchor='middle' font-size='13' fill='#2A2E33'>Loan（借阅记录）</text><text x='239' y='312' font-size='12' fill='#2A2E33'>- book: Book</text><text x='239' y='334' font-size='12' fill='#2A2E33'>- reader: Reader</text><text x='239' y='356' font-size='12' fill='#2A2E33'>- due_date: date</text><text x='239' y='386' font-size='12' fill='#2A2E33'>+ is_overdue(today): bool</text><path d='M 135 210 L 135 230 L 285 230 L 285 250' stroke='#5E9E8F' stroke-width='1.4' fill='none'/><text x='143' y='226' font-size='12' fill='#C96A6A'>1</text><text x='292' y='244' font-size='12' fill='#C96A6A'>0..*</text><path d='M 520 170 L 520 210 L 390 210 L 390 250' stroke='#5E9E8F' stroke-width='1.4' fill='none'/><text x='528' y='190' font-size='12' fill='#C96A6A'>1</text><text x='398' y='244' font-size='12' fill='#C96A6A'>0..*</text></svg><figcaption>图 9-3 从需求整理出的迷你类图：一本图书、一位读者都可以对应多条借阅记录；每条记录恰好对应一本书、一位读者。</figcaption></figure><p>最后一步「迭代」最重要：把图拿给同学看，连问三个问题——「这个类是不是太大？」「这条线的方向对不对？」「多重性读得通吗？」改到讲得通为止。刚才这张小图还有两个已知的粗糙处：借阅记录里没有「已归还」状态，也没画「图书馆」这个服务类。别急，这正是下一讲综合实战要补全的内容。</p><p>小结一句：类图不是画完就挂墙上的装饰，它是活的文档——代码改了，图要跟着改；反过来，图讲不通，代码多半也要病。</p>"
+      }
+    ]
+  },
+  "kid": {
+    "intro": "要把一个超大的玩具城堡搭起来，你会直接动手拼吗？聪明的做法是：先在纸上画好设计图——哪里是城门、哪里是吊桥、积木怎么连。写程序也一样：脑袋里想好的「谁和谁一起玩、谁管着谁」，先画成一张图，再动手写。这张图的画法，全世界的小朋友和大人都用同一套记号，它叫 UML。这一讲我们就来学最常用的一种：类图。",
+    "sections": [
+      {
+        "heading": "搭城堡之前先画图纸",
+        "html": "<p>工程师叔叔阿姨盖真房子，都会先画一排图纸：哪里有门、哪里有窗户、水管电线怎么走。软件工程师盖的是「看不见的房子」——程序，也要先画图。可是如果每个人画图的方式都不一样就乱套了：你说的圆圈是「小朋友」，我说的圆圈是「气球」。所以大家商量出一套统一记号，叫 <strong>UML</strong>：该用方框就用方框，该用连线就用连线，谁看都懂。</p><p>其中用得最多的一种图叫<strong>类图</strong>。你可以把它想成一张「全家福」：每个方框是一张人物卡片，连线告诉你谁和谁认识。看图的人十秒钟就能明白：这套程序里有哪些角色、谁跟谁打交道。</p>"
+      },
+      {
+        "heading": "一张卡片要写三行字",
+        "html": "<p>类图里每个方框就是一张卡片，长得像学生证。学生证上有三行：第一行写名字，第二行写你带着的东西（水壶、跳绳），第三行写你会做的事（唱歌、跑步）。类图的卡片也正好三行：</p><ul><li>第一行：名字，比如「书」；</li><li>第二行：它记得的信息，比如书名、编号；</li><li>第三行：它会做的事，比如「被借走」「被还回来」。</li></ul><p>每行前面还有一个小符号：<code>+</code> 表示「公开」——谁都能看、谁都能用；<code>-</code> 表示「私有」——是它的小秘密，只有自己知道。比如书的编号是 <code>- isbn</code>，别人不能随便改；「被借走」是 <code>+ borrow()</code>，谁都能喊它干活。</p><figure><svg viewBox='0 0 520 240' role='img' aria-label='卡片三行字示意图'><rect x='170' y='20' width='180' height='200' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.6'/><line x1='170' y1='80' x2='350' y2='80' stroke='#5E9E8F' stroke-width='1.1'/><line x1='170' y1='150' x2='350' y2='150' stroke='#5E9E8F' stroke-width='1.1'/><text x='260' y='54' text-anchor='middle' font-size='14' fill='#2A2E33'>Book（书）</text><text x='186' y='102' font-size='12' fill='#2A2E33'>- isbn: str</text><text x='186' y='124' font-size='12' fill='#2A2E33'>- title: str</text><text x='186' y='178' font-size='12' fill='#2A2E33'>+ borrow()</text><text x='186' y='200' font-size='12' fill='#2A2E33'>+ give_back()</text><text x='105' y='54' text-anchor='middle' font-size='12' fill='#6C7078'>名字</text><text x='100' y='113' text-anchor='middle' font-size='12' fill='#6C7078'>记得的信息</text><text x='100' y='189' text-anchor='middle' font-size='12' fill='#6C7078'>会做的事</text><line x1='140' y1='50' x2='168' y2='50' stroke='#C9A96A' stroke-dasharray='4 3'/><line x1='135' y1='110' x2='168' y2='110' stroke='#C9A96A' stroke-dasharray='4 3'/><line x1='135' y1='185' x2='168' y2='185' stroke='#C9A96A' stroke-dasharray='4 3'/></svg><figcaption>图 9-4 卡片的三行：名字、记得的信息、会做的事。</figcaption></figure>"
+      },
+      {
+        "heading": "线条会说话（上）：手拉手，住一起",
+        "html": "<p>卡片画好了，它们中间要连线。别小看一根线，线的样子不同，说的话完全不同。</p><p>第一种线最普通，就是一根<strong>实线</strong>，表示「认识」：老师和学生互相认识，就用一根线连起来。线上还可以写数字，表示「一头配几个」：一个班级配很多学生，就在学生那头写个星号 <code>*</code>，意思是「零个、一个、很多个都行」。</p><p>还有两种线带着一个<strong>小菱形</strong>，讲的是「谁住在谁家」：</p><ul><li><strong>空心菱形</strong>（聚合）：像「电脑和鼠标」——它们住在一起，但鼠标拔下来还能插到别的电脑上用，分开也各自能活；</li><li><strong>实心菱形</strong>（组合）：像「人和心脏」——同生共死，分不开。</li></ul><p>记口诀：<strong>菱形永远贴着「大管家」那头——也就是整体那头；实心比空心更黏人。</strong>看到实心菱形，就想到「拆不散」；看到空心菱形，就想到「可聚可散」。</p>"
+      },
+      {
+        "heading": "线条会说话（下）：谁是谁的小升级",
+        "html": "<p>最后一种线特别好认：实线加一个<strong>空心小三角</strong>，三角的尖尖指向「爸爸妈妈」那一头，表示「它是一种……」。比如「学生」和「老师」都是「人」，就画两个空心三角箭头，一起指着「人」。</p><p>口令喊一遍：<strong>空心三角指长辈，晚辈站在箭头尾。</strong>看到空心三角，就从箭头尖那头念：「它是一种……」——学生是一种人，老师也是一种人，一读就通。</p><p>还有一种很弱的虚线（依赖），表示「偶尔来帮个忙，用完就走」，认识一下就行，暂时用不上它。</p>"
+      },
+      {
+        "heading": "从「客人要什么」到图纸",
+        "html": "<p>图纸的零件认全了，来玩一个「开小店」游戏。第一步不是画图，而是<strong>听客人说话</strong>。比如老板说：「我开了一家借书小店，要管书、管客人；客人能借书，我要记下谁借了哪本、什么时候还。」</p><p>第二步，<strong>把话里的名词写成小卡片</strong>：书、客人、名字、编号……然后挑出「活角色」：<strong>书</strong>和<strong>客人</strong>。再想想——「借书」这件事会不会也需要一个角色？对，可以请一位「<strong>借阅记录</strong>」小管家，专门记「谁借了什么、啥时候还」。</p><p>第三步，<strong>把动词变成线</strong>：客人「借」书，就让客人和借阅记录手拉手，再让借阅记录连到书。</p><figure><svg viewBox='0 0 560 300' role='img' aria-label='借阅小店卡片全家福'><rect x='30' y='30' width='150' height='100' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.5'/><line x1='30' y1='70' x2='180' y2='70' stroke='#5E9E8F' stroke-width='1'/><text x='105' y='58' text-anchor='middle' font-size='14' fill='#2A2E33'>书</text><text x='46' y='92' font-size='12' fill='#2A2E33'>- 书名</text><text x='46' y='114' font-size='12' fill='#2A2E33'>+ 借出去</text><rect x='380' y='30' width='150' height='100' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.5'/><line x1='380' y1='70' x2='530' y2='70' stroke='#5E9E8F' stroke-width='1'/><text x='455' y='58' text-anchor='middle' font-size='14' fill='#2A2E33'>客人</text><text x='396' y='92' font-size='12' fill='#2A2E33'>- 姓名</text><text x='396' y='114' font-size='12' fill='#2A2E33'>+ 借书</text><rect x='205' y='190' width='150' height='100' fill='#FFFFFF' stroke='#5E9E8F' stroke-width='1.5'/><line x1='205' y1='230' x2='355' y2='230' stroke='#5E9E8F' stroke-width='1'/><text x='280' y='218' text-anchor='middle' font-size='14' fill='#2A2E33'>借阅记录</text><text x='221' y='252' font-size='12' fill='#2A2E33'>- 哪本书</text><text x='221' y='274' font-size='12' fill='#2A2E33'>- 谁借的</text><path d='M 105 130 L 105 160 L 230 160 L 230 190' stroke='#5E9E8F' stroke-width='1.4' fill='none'/><text x='113' y='152' font-size='12' fill='#C96A6A'>1</text><text x='236' y='184' font-size='12' fill='#C96A6A'>*</text><path d='M 455 130 L 455 160 L 330 160 L 330 190' stroke='#5E9E8F' stroke-width='1.4' fill='none'/><text x='463' y='152' font-size='12' fill='#C96A6A'>1</text><text x='336' y='184' font-size='12' fill='#C96A6A'>*</text></svg><figcaption>图 9-5 借阅小店的「全家福」：一位客人、一本书，都能对上好多条借阅记录。</figcaption></figure><p>第四步，<strong>检查</strong>：问自己「一位客人能有几条记录？」「一条记录管几本书？」把数字标上，图就差不多啦。以后发现漏了东西——比如「书还没还」怎么表示——再补上。图纸就是这样越改越好的，下一讲我们就来把它变成真正的程序。</p>"
+      }
+    ]
+  },
+  "glossary": [
+    {
+      "term": "UML（Unified Modeling Language）",
+      "def": "给软件画设计图的统一记号语言，全世界工程师通用"
+    },
+    {
+      "term": "类图（Class Diagram）",
+      "def": "用方框和连线画出「有哪些类、类里有什么、类之间怎么连」的图"
+    },
+    {
+      "term": "关联（Association）",
+      "def": "两个类「认识」的实线关系；两端可标多重性，箭头表示谁能找到谁"
+    },
+    {
+      "term": "多重性（Multiplicity）",
+      "def": "写在关联一端的数字，说明「一头配几个」，如 1、0..1、*"
+    },
+    {
+      "term": "泛化（继承）",
+      "def": "实线加空心三角箭头指向父类，表示「子类是一种父类」"
+    },
+    {
+      "term": "聚合（Aggregation）",
+      "def": "空心菱形画在整体端：整体—部分关系，但部分可以独立存在"
+    },
+    {
+      "term": "组合（Composition）",
+      "def": "实心菱形画在整体端：部分与整体同生共死，不能独立存在"
+    },
+    {
+      "term": "依赖（Dependency）",
+      "def": "虚线加开口箭头：临时用一下的关系，用完就走"
+    }
+  ],
+  "exercises": [
+    {
+      "id": "oop-09-e01",
+      "level": "easy",
+      "type": "choice",
+      "stem": "在 UML 类图中，成员行首的符号 <code>+</code> 表示可见性为？",
+      "options": [
+        "A. 公开（public），任何代码都可以访问",
+        "B. 私有（private），仅本类内部可访问",
+        "C. 受保护（protected），仅子类可访问",
+        "D. 静态（static），属于类而不属于对象"
+      ],
+      "answer": "A",
+      "solution": {
+        "idea": "记住三个可见性记号：+ 公开、- 私有、# 受保护。",
+        "steps": [
+          "+ 是加号，联想「对外加开门」：任何代码都能访问；",
+          "- 是减号，联想「关起门来」：只有本类内部能用；",
+          "# 数量最少见，表示受保护：本类与子类可用。"
+        ],
+        "result": "选 A。+ 表示公开（public）。",
+        "pitfalls": [
+          "把 + 与 - 记反：私有成员恰恰是「藏着不让碰」的那些；",
+          "误以为是静态标记：静态成员通常用下划线表示，和可见性记号是两回事。"
+        ],
+        "kid": "把类框想成一间小房子：加号 + 是「大门敞开」，谁都能进来用；减号 - 是「抽屉上锁」，只有主人自己能开。题目问的是 + 号，所以答案是敞开大门的那个：公开。"
+      }
+    },
+    {
+      "id": "oop-09-e02",
+      "level": "easy",
+      "type": "choice",
+      "stem": "关于类图里各种关系的画法，下列说法正确的是？",
+      "options": [
+        "A. 组合用空心菱形表示，部分可以独立存在",
+        "B. 继承（泛化）用实线加空心三角箭头，箭头指向父类",
+        "C. 关联用虚线表示，两端的数字表示参数个数",
+        "D. 聚合的空心菱形画在「部分」那一端"
+      ],
+      "answer": "B",
+      "solution": {
+        "idea": "逐条核对约定：空心三角指父类、菱形贴整体、实线管关联。",
+        "steps": [
+          "A 错：空心菱形是聚合，实心菱形才是组合；",
+          "B 对：继承是实线加空心三角箭头，箭头指向父类；",
+          "C 错：关联是实线，两端数字是多重性，不是参数个数；",
+          "D 错：菱形永远贴在整体那一端。"
+        ],
+        "result": "选 B。多重性标记、方向与聚合/组合的记法细节见解析中的对照表。",
+        "pitfalls": [
+          "把聚合与组合的菱形填料记反：实心更黏人，是组合；",
+          "以为菱形贴「部分」：口诀是「菱形贴着整体站」。"
+        ],
+        "kid": "这道题检查三个口诀：空心三角指长辈（B 是对的）；实心菱形才黏人（A 说反了）；菱形永远贴着大管家那头（D 说反了）。C 则把数字的用途搞错了——数字是「一头配几个」，不是工具的参数。"
+      }
+    },
+    {
+      "id": "oop-09-e03",
+      "level": "easy",
+      "type": "judge",
+      "stem": "类图关联端的多重性标记 <code>*</code>（即 <code>0..*</code>）表示「零个或多个」。",
+      "answer": "正确",
+      "solution": {
+        "idea": "多重性就是数量范围，* 是「多少都行」的通配写法。",
+        "steps": [
+          "1 表示恰好一个；",
+          "0..1 表示零或一个；",
+          "* 等价于 0..*，表示零个或多个；",
+          "1..* 表示至少一个。"
+        ],
+        "result": "正确。* 表示零个或多个。",
+        "pitfalls": [
+          "误以为 * 表示「必须有一个」：那是 1..* 或 1；",
+          "把 * 当成「无限大」的精确数字：它表达的是「数量不限」。"
+        ],
+        "kid": "星号 * 就像排队时的「不限人数」牌子：来零个也行、来一个也行、来一队也行。所以「零个或多个」这个说法是对的——它管的是数量上限，不是出场次数。"
+      }
+    },
+    {
+      "id": "oop-09-e04",
+      "level": "easy",
+      "type": "judge",
+      "stem": "聚合与组合都属于「整体—部分」关系，两者的本质区别在于：部分能不能离开整体独立存在。",
+      "answer": "正确",
+      "solution": {
+        "idea": "区分聚合与组合的判据就是生命周期。",
+        "steps": [
+          "聚合（空心菱形）：部分可独立存在，可聚可散，如电脑与鼠标；",
+          "组合（实心菱形）：部分与整体同生共死，如订单与订单行；",
+          "判断方法：整体消失时，部分能不能活下来。"
+        ],
+        "result": "正确。能否独立生存，正是两种关系的分界线。",
+        "pitfalls": [
+          "只看菱形空心还是实心，忘了追问一句「部分能独立活吗」；",
+          "把「物理上能不能拆」当成判据：要从业务语义判断生命周期的依赖。"
+        ],
+        "kid": "空心菱形像同桌关系：换座位后还是好同学，各自都能过得很好。实心菱形像牙齿和嘴巴：嘴巴里的牙齿掉了，这颗牙齿就不再是「谁的牙齿」了。区别就一句话——分开还能不能活。"
+      }
+    },
+    {
+      "id": "oop-09-e05",
+      "level": "medium",
+      "type": "derive",
+      "stem": "需求描述：「订单被取消时，订单里的每一条订单行都必须一起删除；而且订单行不能被别的订单共用。」请判断订单（Order）与订单行（OrderLine）之间应该画成哪种关系，说明画法的两个关键细节（线的样式与菱形的画法），并写出判断依据。",
+      "answer": "应画成组合：实线连接两个类，实心菱形画在「订单」一端（整体端）。判断依据：订单行与订单同生共死（订单没了，订单行一起删除），且不能共享，符合组合的定义。",
+      "solution": {
+        "idea": "从「同生共死、不可共享」两个特征锁定组合。",
+        "steps": [
+          "读需求关键词：「一起删除」说明生命周期绑定，「不能共用」说明部分专属于整体；",
+          "对照判据：部分不能独立存在，即组合而非聚合；",
+          "画法：实线 + 实心菱形，菱形贴在整体（订单）一端。"
+        ],
+        "result": "组合关系；实心菱形画在订单端。",
+        "pitfalls": [
+          "画成空心菱形：空心是聚合，部分应当能独立存在，与「一起删除」矛盾；",
+          "菱形画在订单行端：菱形永远贴整体，方向错了语义就反了。"
+        ],
+        "kid": "订单像一根冰糖葫芦的竹签，订单行像上面的山楂：竹签一扔，这一串就散了，山楂不能挂到别的竹签上接着用。它们同生共死，所以是「实心菱形」的组合。画的时候，实心菱形要紧紧贴在竹签——也就是订单那一头。"
+      }
+    },
+    {
+      "id": "oop-09-e06",
+      "level": "medium",
+      "type": "design",
+      "stem": "需求：「一支球队有零到多名球员；每名球员恰好属于一支球队；球员可以转会离开，球队解散后球员可以加入别的球队。」请完成三件事：(1) 找出两个候选类；(2) 写出它们之间的关联及两端多重性（说明哪个数字写在哪端）；(3) 能否用实心菱形？为什么？",
+      "answer": "(1) 球队 Team、球员 Player。(2) 球队 1 —— 0..* 球员：球队端写 1（每名球员对应一支球队），球员端写 0..*（每支球队对应零到多名球员）。(3) 不能用实心菱形：球员可以转会、球队解散后球员还在，说明部分能独立存在，不符合组合「同生共死」的判据；可以用普通关联（或空心菱形聚合）表达整体—部分味道。",
+      "solution": {
+        "idea": "先把两句数量话拆开，再套生命周期判据。",
+        "steps": [
+          "拆数量：一支球队对多名球员、一名球员对一支球队；",
+          "落两端：球队端 1，球员端 0..*，读作「一队配多名，一名配一队」；",
+          "套判据：球员离开球队依然存在（还能转会），不满足组合同生共死的要求。"
+        ],
+        "result": "球队 1 —— 0..* 球员；用关联或聚合表达，不能用实心菱形的组合。",
+        "pitfalls": [
+          "数字对调：把 0..* 写在球队端，读出来就变成「一支球队是多名球员」，讲不通；",
+          "见到「球队里有球员」就画实心菱形：忽略了「可转会」这条关键信息。"
+        ],
+        "kid": "球队解散了，球员们还能去别的队继续踢球——说明球员能独立生活，不是「拆不散的」。所以画一根普通实线、或者带空心菱形的线就够了：一队配好几名球员（球员端写 0..*），一名球员只属于一队（球队端写 1）。"
+      }
+    },
+    {
+      "id": "oop-09-e07",
+      "level": "medium",
+      "type": "code",
+      "stem": "阅读下面的 Python 代码（它对应图 9-3 中「图书—借阅记录」的连线）：(1) 运行后输出什么？(2) 两条借阅记录填在同一本书上，对应类图里的什么读法？",
+      "code": {
+        "lang": "python",
+        "code": "class Book:\n    def __init__(self, title):\n        self.title = title\n\nclass Loan:\n    def __init__(self, book):\n        self.book = book\n\nb = Book('Python 入门')\nl1 = Loan(b)\nl2 = Loan(b)\nprint(l1.book.title, l2.book.title)",
+        "output": "Python 入门 Python 入门",
+        "explain": "l1 与 l2 两条借阅记录都指向同一个 Book 对象 b；打印两边的 book.title 都得到「Python 入门」。这正对应类图中「图书 1 —— 0..* 借阅记录」：一本图书可以对应多条借阅记录。"
+      },
+      "answer": "(1) 输出：Python 入门 Python 入门。(2) 对应「图书 1 —— 0..* 借阅记录」：一本图书可以对应零到多条借阅记录；一条借阅记录恰好对应一本图书。",
+      "solution": {
+        "idea": "两个 Loan 对象共享同一个 Book 对象，说明「一」端可以被多条记录引用。",
+        "steps": [
+          "b 是一个 Book 对象；",
+          "l1、l2 分别把 b 存进自己的 book 属性，两条记录指向同一个对象；",
+          "print 输出两次 title，得到相同字符串；",
+          "从整体上看：多条借阅记录对应同一本书，就是 0..* 与 1 的对应。"
+        ],
+        "result": "输出「Python 入门 Python 入门」；对应「图书 1 —— 0..* 借阅记录」。",
+        "pitfalls": [
+          "以为第二次 Loan(b) 会「抢走」书：对象没有独占限制，两条记录可以同时引用它；",
+          "把多重性读反：0..* 写在借阅记录端，表示一本书对应的记录可以有很多条。"
+        ],
+        "kid": "两个小朋友共看同一本《Python 入门》：登记表上两条记录，写的是同一本书的书名。所以打印出来两次都是「Python 入门」。这也告诉你：一本书可以被记上好多条借阅记录——线上在「借阅记录」那头写 0..* 就是这个意思。"
+      }
+    },
+    {
+      "id": "oop-09-e08",
+      "level": "medium",
+      "type": "choice",
+      "stem": "类图中写着「图书 1 —— 0..* 借阅记录」，下列读法正确的是？",
+      "options": [
+        "A. 一本图书最多被借阅记录提到 0 次",
+        "B. 一本图书对应零到多条借阅记录；而每条借阅记录恰好对应一本图书",
+        "C. 一条借阅记录里装着 0 到多本图书",
+        "D. 借阅记录比图书更重要"
+      ],
+      "answer": "B",
+      "solution": {
+        "idea": "两端一起读：1 端配 0..* 端，两句话同时成立才是完整含义。",
+        "steps": [
+          "从图书看：一本图书可对应零到多条借阅记录；",
+          "从记录看：每条借阅记录恰好对应一本图书；",
+          "0..* 写在记录端，表示记录的「多条」，不是书的多本。"
+        ],
+        "result": "选 B。两端合读，含义才完整。",
+        "pitfalls": [
+          "只读一半：A、C 都是断章取义；",
+          "把 0..* 当成图书的数量：数字标在哪端就数哪端。"
+        ],
+        "kid": "「1 —— 0..*」要像看天平一样两端一起看：书的这边是「一本」，记录那边是「好多条」。也就是：一本书记在好多条记录里，每条记录只写一本书。B 正是这个意思。"
+      }
+    },
+    {
+      "id": "oop-09-e09",
+      "level": "hard",
+      "type": "design",
+      "stem": "校园选课子系统需求：「学生可以选多门课；每门课可以有多名学生选；每门课有课号和课名；学生有学号和姓名。」请给出类图草案：列出类与主要属性、写出类之间的关系与多重性，并说明这里为什么不应该用继承关系。",
+      "answer": "类：Student（学号、姓名）、Course（课号、课名）。关系：Student 0..* —— 0..* Course 的多对多关联（含义：一名学生可选多门课，一门课可被多名学生选）。不用继承的原因：学生不是一种课程，课程也不是一种学生，不存在 is-a 家族关系；选课是两类对象之间的「参与」关系，属于关联。提示：如果需要记录成绩、选课时间，可插入中间类 Enrollment（选课记录），把它拆成两条一对多关联。",
+      "solution": {
+        "idea": "多对多关联的典型场景；用「是不是一种」测试排除继承。",
+        "steps": [
+          "找类：学生、课程；学号、姓名、课号、课名降级为属性；",
+          "读数量：两边都是「多」——0..* 与 0..*；",
+          "做继承测试：说「学生是一种课程」很荒唐，is-a 不成立，用关联；",
+          "进阶：要把成绩等细节存下来，就加一个中间类拆开两条关联。"
+        ],
+        "result": "Student 0..* —— 0..* Course；不用继承，因为不存在「是一种」的关系。",
+        "pitfalls": [
+          "见到「学校里有学生和课」就硬拉一个共同的父类：没有共同语义的父类是过度设计；",
+          "把多对多写成一个方向的一对多：注意两边都要能「多」。"
+        ],
+        "kid": "学生和课程是两种完全不同的东西——总不能说「学生是一种课程」吧？所以它们之间不画空心三角（那是「是一种」专用的），而画一根普通实线：两头都写 0..*，表示学生可以挑好多门课，每门课也坐着好多学生。像舞会上大家互相认识，而不是谁是谁家亲戚。"
+      }
+    },
+    {
+      "id": "oop-09-e10",
+      "level": "hard",
+      "type": "design",
+      "stem": "小马虎画了一张类图，有三处毛病：(1) 把「组合」的实心菱形画在了「部分」（订单行）那一端；(2) 把继承的空心三角箭头的尖尖指向了子类；(3) 想要表达「一所学校可以有零到多名学生」，他却在「学校」端写了 0..*、在「学生」端写了 1，注释也写乱了。请逐条指出问题并给出正确的画法（第 3 条要写出正确的两端数字并给出一句读法）。",
+      "answer": "(1) 菱形必须贴在「整体」（订单）一端，画在部分端语义就反了；(2) 空心三角箭头应指向父类：方向是子类引线、「认祖归宗」指向父类；(3) 两端数字写反了：应改成「学校 1 —— 0..* 学生」，读作「一所学校对应零到多名学生；一名学生恰好对应一所学校」。",
+      "solution": {
+        "idea": "三处都违反画法约定，逐条用口诀对正。",
+        "steps": [
+          "口诀一：菱形贴着整体站——改到订单端；",
+          "口诀二：空心三维指长辈——箭头指向父类；",
+          "口诀三：数字标在谁那头就数谁——学生那头是「多」（0..*），学校那头是「一」（1）。"
+        ],
+        "result": "三处改为：菱形贴整体端；三角指父类；学校端 1、学生端 0..*。",
+        "pitfalls": [
+          "以为只要「有菱形」就行：位置画反会把「整体拥有部分」读成「部分拥有整体」；",
+          "箭头指子类：那是「父类是一种子类」的荒谬读法。"
+        ],
+        "kid": "小马虎把三张标签贴反了：菱形是「大管家」的标志，要贴在学校、订单这种整体身上；空心三角是「认爸爸妈妈」的箭头，要对准长辈；数字则是「谁那头数字大，谁就多」——学生多，就把 0..* 写在学生那头，学校那头写 1。贴对之后，读起来就顺了。"
+      }
+    }
+  ]
+}

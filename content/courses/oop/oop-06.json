@@ -1,0 +1,352 @@
+{
+  "id": "oop-06",
+  "courseId": "oop",
+  "title": "第6讲 抽象类与接口",
+  "objectives": [
+    "说出为什么要「契约式设计」：先约定必须提供哪些行为，再谈各自怎么实现",
+    "定义抽象类与抽象方法：抽象类是不能实例化的半成品模板，抽象方法只留签名，子类必须补全",
+    "定义接口：一份只规定「能做什么」的能力契约，一个类可以实现多个接口",
+    "给出抽象类与接口的选择标准：共享实现与状态用抽象类（is-a），跨家族能力用接口（can-do）",
+    "解释「组合优于继承」：优先把对象作为部件装进来（has-a），避免为拿代码而继承造成强耦合"
+  ],
+  "keyPoints": [
+    "抽象类不能被实例化，可以同时包含已实现的普通方法与未实现的抽象方法",
+    "接口只规定方法签名（契约），不规定实现；实现类必须补全全部约定方法",
+    "选择标准：多个子类要共享代码与状态时选抽象类；能力要跨家族复用、需要多重实现时选接口",
+    "继承表达 is-a（是一种），接口表达 can-do（会做什么）；一个类只能继承一个基类，却可以实现多个接口",
+    "组合优于继承：把对象作为部件装进来（有一个），比继承整棵家族树耦合更低、更灵活"
+  ],
+  "minutes": 45,
+  "difficulty": 3,
+  "prerequisites": [
+    "oop-05 多态：一个命令，多种作答"
+  ],
+  "keywords": [
+    "抽象类",
+    "抽象方法",
+    "接口",
+    "契约式设计",
+    "组合",
+    "多态"
+  ],
+  "demoRefs": [],
+  "refs": [
+    "《设计模式：可复用面向对象软件的基础》（延伸阅读：组合与继承的权衡）"
+  ],
+  "pro": {
+    "intro": "上一讲的多态需要一个「大家族」来支撑，但继承用多了会冒出两个尴尬问题：父类里的默认实现形同虚设，子类忘了重写也不报错；而「会飞」这种能力又横跨动物、飞机、超人几个毫无亲缘的家族，硬塞进同一条继承链会非常别扭。本讲介绍两个专门治这些病的工具——抽象类（Abstract Class）与接口（Interface），它们共同的思想叫契约式设计：先白纸黑字约定「必须会什么」，再谈各自怎么实现；最后我们讨论一条重要的经验法则——组合优于继承。",
+    "sections": [
+      {
+        "heading": "6.1 光有继承还不够：谁来保证子类「必须会」？",
+        "html": "<p>回到图形程序。我们在基类 Graphic 里写了个默认的 <code>area()</code>，返回 0，指望每个子类都去重写它：</p><pre class='code' data-lang='python'>class Graphic:\n    def area(self):\n        return 0        # 指望子类重写\n\nclass Rect(Graphic):\n    def __init__(self, w, h):\n        self.w = w\n        self.h = h\n    # 忘了重写 area()！\n\ng = Rect(3, 4)\nprint(g.area())         # 输出 0，程序不报错</pre><p>程序安然运行，账却悄悄算错——「指望」是最不可靠的机制。我们需要把「指望」升级成「合同」：<strong>契约式设计</strong>（Design by Contract，先约定必须提供哪些行为，再谈各自如何实现）要求：凡是声明自己是 Graphic 的类，<strong>必须</strong>交出 area() 的实现，否则连创建实例的资格都没有。提供这份约束的语法工具，就是抽象类与接口。</p>"
+      },
+      {
+        "heading": "6.2 抽象类：半成品模板",
+        "html": "<p><strong>抽象类</strong>（Abstract Class）是「不允许直接创建实例的类」，它像一份半成品模板：有些方法已经写好，有些只画了空槽——空槽里的方法叫<strong>抽象方法</strong>（Abstract Method，只声明签名、不写实现，强制子类补全）。Python 通过标准库 <code>abc</code> 支持：</p><pre class='code' data-lang='python'>from abc import ABC, abstractmethod\n\nclass Graphic(ABC):\n    @abstractmethod\n    def area(self):\n        ...                     # 只留签名，不写做法\n\n    def describe(self):         # 普通方法：已经写好\n        return '面积是 ' + str(self.area())\n\nclass Rect(Graphic):\n    def __init__(self, w, h):\n        self.w = w\n        self.h = h\n    def area(self):             # 必须补全，否则实例化报错\n        return self.w * self.h\n\nr = Rect(3, 4)\nprint(r.describe())             # 面积是 12\nGraphic()                       # 直接实例化抽象类：TypeError</pre><p>三个要点：① 抽象类不能被实例化，只能被继承；② 子类若不补全全部抽象方法，同样无法实例化——「合同」自动验收；③ 已实现的普通方法（如 describe）可以调用抽象方法，写出「流程固定、步骤留白」的骨架，配合第 5 讲的动态绑定，每个子类的面积会自动被填进同一句输出格式里。</p>"
+      },
+      {
+        "heading": "6.3 接口：一张能力证书",
+        "html": "<p><strong>接口</strong>（Interface）走得更彻底：它几乎不装任何实现，只列出一张「方法签名清单」，规定「实现我的人必须会这些」。在 Java 中它是独立的关键字：</p><pre class='code' data-lang='Java 风格伪代码'>interface Flyable {\n    void fly();                    // 只写要求，不写做法\n}\n\nclass Bird extends Animal implements Flyable {\n    public void fly() {\n        // 起飞动作，由鸟类自己实现\n    }\n}</pre><p>接口回答的是「能做什么」：鸟、飞机、超人分属不同家族，却可以共同实现 Flyable。两个关键特征：</p><ul><li><strong>一个类只能继承一个基类</strong>（亲爹只有一个），<strong>却可以实现多个接口</strong>（证书可以考很多张）；</li><li>接口不携带状态和实现，是纯粹的行为契约，天然适合做「能力插槽」。</li></ul><p>Python 没有 interface 关键字：惯用做法是「只含抽象方法的抽象类」，或者用 <code>typing.Protocol</code> 声明结构化契约（对象只要有对应方法就算数，与鸭子类型一脉相承）。形式不同，思想一致：用一张稳定的签名清单解耦调用方与实现方。</p>"
+      },
+      {
+        "heading": "6.4 怎么选：抽象类还是接口？",
+        "html": "<p>两者都制造「契约」，选择标准看两问：</p><ul><li><strong>要不要共享代码与状态？</strong>要——选抽象类。多个子类复用同一套字段和已实现方法，模板骨架也只有抽象类装得下；</li><li><strong>能力要不要跨家族、多张并发？</strong>要——选接口。「可联网」会出现在门锁、摄像头、音箱上，它们不该有同一个祖宗；一个类也可能同时「可联网、可远程控制」。</li></ul><p>用一句话概括：<strong>继承表达 is-a（是一种），接口表达 can-do（会做什么）</strong>。选错方向是有代价的：把能力塞进抽象类，家族树会越长越畸形——「会飞的动物」和「会飞的飞机」被迫认亲，公共代码反而没得共享；把共享代码塞进接口，实现类只好到处复制粘贴，契约一改全盘翻修。经验法则：先想「它是什么」，再想「它还会什么」，前者归抽象类，后者归接口。</p><figure><svg viewBox='0 0 640 260' role='img' aria-label='抽象类与接口对比图'><rect x='20' y='16' width='290' height='210' rx='12' fill='#FAF7F2' stroke='#5E9E8F' stroke-width='1.6'/><text x='165' y='44' text-anchor='middle' font-size='14' fill='#2A2E33'>抽象类：Graphic（半成品）</text><rect x='40' y='58' width='250' height='40' rx='8' fill='#FFFFFF' stroke='#6FA57E'/><text x='165' y='83' text-anchor='middle' font-size='12' fill='#2A2E33'>describe() 已实现，可共用</text><rect x='40' y='106' width='250' height='40' rx='8' fill='#FFFFFF' stroke='#C96A6A' stroke-dasharray='6 4'/><text x='165' y='131' text-anchor='middle' font-size='12' fill='#2A2E33'>area() 抽象方法，子类必补</text><rect x='40' y='168' width='110' height='44' rx='8' fill='#FFFFFF' stroke='#E4DCCF'/><text x='95' y='194' text-anchor='middle' font-size='12' fill='#2A2E33'>Rect 补全</text><rect x='180' y='168' width='110' height='44' rx='8' fill='#FFFFFF' stroke='#E4DCCF'/><text x='235' y='194' text-anchor='middle' font-size='12' fill='#2A2E33'>Circle 补全</text><path d='M95 168 C 105 158 125 152 150 149' stroke='#6FA57E' stroke-width='1.5' fill='none'/><path d='M235 168 C 228 160 215 154 195 151' stroke='#6FA57E' stroke-width='1.5' fill='none'/><rect x='330' y='16' width='290' height='210' rx='12' fill='#FAF7F2' stroke='#C9A96A' stroke-width='1.6'/><text x='475' y='44' text-anchor='middle' font-size='14' fill='#2A2E33'>接口：Flyable（能力契约）</text><rect x='350' y='58' width='250' height='40' rx='8' fill='#FFFFFF' stroke='#C9A96A' stroke-dasharray='6 4'/><text x='475' y='83' text-anchor='middle' font-size='12' fill='#2A2E33'>fly() 只写签名清单</text><rect x='350' y='168' width='76' height='44' rx='8' fill='#FFFFFF' stroke='#E4DCCF'/><text x='388' y='194' text-anchor='middle' font-size='12' fill='#2A2E33'>鸟</text><rect x='437' y='168' width='76' height='44' rx='8' fill='#FFFFFF' stroke='#E4DCCF'/><text x='475' y='194' text-anchor='middle' font-size='12' fill='#2A2E33'>飞机</text><rect x='524' y='168' width='76' height='44' rx='8' fill='#FFFFFF' stroke='#E4DCCF'/><text x='562' y='194' text-anchor='middle' font-size='12' fill='#2A2E33'>超人</text><path d='M388 168 C 400 140 430 112 462 100' stroke='#C9A96A' stroke-width='1.5' fill='none' stroke-dasharray='5 4'/><path d='M475 168 C 475 146 475 122 475 100' stroke='#C9A96A' stroke-width='1.5' fill='none' stroke-dasharray='5 4'/><path d='M562 168 C 550 140 520 112 488 100' stroke='#C9A96A' stroke-width='1.5' fill='none' stroke-dasharray='5 4'/><text x='320' y='248' text-anchor='middle' font-size='12' fill='#6C7078'>抽象类单继承；接口可被不同家族的类同时实现</text></svg><figcaption>图 6-1 抽象类装「共同实现与状态」，单继承；接口装「能力契约」，可多实现。</figcaption></figure>"
+      },
+      {
+        "heading": "6.5 组合优于继承 + 本讲小结",
+        "html": "<p>最后一条经验法则：<strong>组合优于继承</strong>（Composition over Inheritance）。继承是「白盒复用」——子类直接洞穿父类内部，父类一改，子孙全震；而且继承树一旦长歪，搬都搬不动。组合是「黑盒装配」：把对象作为部件装进来（has-a，有一个），要什么能力就装什么部件。</p><pre class='code' data-lang='python'>class Report:\n    def __init__(self, db):\n        self.db = db            # 组合：装一个数据库部件\n\n    def render(self):\n        rows = self.db.query('select 1')\n        return '报表行数：' + str(len(rows))</pre><p>Report 不再为了「用查询功能」去继承 Database，而是持有一个 db 对象：想换 SQLite 还是 Postgres，传不同的部件进来即可，Report 一行不改。什么时候仍用继承？答案是真正的 is-a（正方形确实可以说是一种图形）且需要参与多态时；其余时候，先想想能不能用组合把能力「装」进来。抽象类负责家族骨架，接口负责能力插槽，组合负责自由装配——三件工具合用，才是本讲的完整答案。</p>"
+      }
+    ]
+  },
+  "kid": {
+    "intro": "上一讲的多态很神奇，但它有个漏洞：万一有的同学偷懒不练功怎么办？这一讲我们学两样「治懒神器」：一张写好要求的任务卡，和一张证明「我会」的能力证书。最后还要送你一个拼乐高的秘诀——很多本事不用「生」出来，装上去就行。",
+    "sections": [
+      {
+        "heading": "任务卡：只写要求，不教做法",
+        "html": "<p>老师布置手抄报，任务卡上写着：必须有标题、必须有插图、必须有落款。至于你画机器人还是画小花，老师不管——但少一样，作品就直接被打回，想蒙混过关？没门。</p><p>程序里的「抽象方法」就是这种任务卡：只写要求，不写做法。谁继承了这张卡，就必须把要求的每件事都做完，否则程序连创建对象都不答应。这可比「指望你自觉」靠谱多啦。</p>"
+      },
+      {
+        "heading": "半成品模具：蛋糕胚已有，奶油你来补",
+        "html": "<p>抽象类就像一个半成品蛋糕模具：花边已经压好了（写好的普通方法大家共用），中间的奶油位空着（抽象方法），每个糕点师必须自己补上奶油。还有一条规矩：半成品模具不能直接吃——抽象类不能创建对象，只有补全了所有空格的「成品类」才能 new 出来用。</p><figure><svg viewBox='0 0 560 200' role='img' aria-label='半成品模具与能力证书示意'><rect x='24' y='20' width='240' height='160' rx='12' fill='#FAF7F2' stroke='#5E9E8F' stroke-width='2'/><text x='144' y='48' text-anchor='middle' font-size='13' fill='#2A2E33'>抽象类：半成品模具</text><rect x='44' y='64' width='200' height='36' rx='8' fill='#FFFFFF' stroke='#6FA57E'/><text x='144' y='88' text-anchor='middle' font-size='12' fill='#2A2E33'>花边已做好（可共用）</text><rect x='44' y='108' width='200' height='36' rx='8' fill='#FFFFFF' stroke='#C96A6A' stroke-dasharray='6 4'/><text x='144' y='132' text-anchor='middle' font-size='12' fill='#2A2E33'>奶油空位（必须补全）</text><rect x='300' y='20' width='236' height='160' rx='12' fill='#FAF7F2' stroke='#C9A96A' stroke-width='2'/><text x='418' y='48' text-anchor='middle' font-size='13' fill='#2A2E33'>接口：能力证书</text><rect x='320' y='64' width='196' height='36' rx='8' fill='#FFFFFF' stroke='#C9A96A' stroke-dasharray='6 4'/><text x='418' y='88' text-anchor='middle' font-size='12' fill='#2A2E33'>证书：我会飞（只写要求）</text><rect x='320' y='108' width='196' height='36' rx='8' fill='#FFFFFF' stroke='#E4DCCF'/><text x='418' y='132' text-anchor='middle' font-size='12' fill='#2A2E33'>鸟、飞机都能考这张证</text></svg><figcaption>图 6-2 左边是半成品模具（抽象类），右边是能力证书（接口）。</figcaption></figure>"
+      },
+      {
+        "heading": "能力证书：驾照不教你开车",
+        "html": "<p>接口像一张证书：驾照说明「这个人会开车」，但证书本身不教你方向盘怎么打。更妙的是，一个人可以同时有驾照和游泳证——一个类也可以同时实现多个接口。而且考证不看出身：鸟、飞机、超人三家互不相识，都能考「飞行证」。这就是接口和模具最大的不同：模具认祖宗（只能认一个），证书认本事（可以有很多张）。</p>"
+      },
+      {
+        "heading": "什么时候用模具，什么时候用证书？",
+        "html": "<p>记两个问句：第一句「它<strong>是一种</strong>什么？」——回答得出来，用抽象类。比如正方形是一种图形，图形家族共用画框和描述功能。第二句「它<strong>会</strong>什么本事？」——回答这个，用接口。比如会飞、会联网、会打印。如果全用模具，八竿子打不着的飞机会被迫认鸟当亲戚，家谱乱成一团；如果全用证书，每个糕点师都要重新发明花边，累死人。两样配合着用才聪明。</p>"
+      },
+      {
+        "heading": "拼装思维：本事是装上去的",
+        "html": "<p>最后送你一个乐高秘诀：想要会飞的本事，不一定要「生」一个会飞的孩子，把翅膀<strong>装</strong>上去就行。程序里也一样：与其拼命继承，不如把数据库、报警器这些部件像积木一样装进新对象，坏了一个换一个，别的不用动。这叫「组合优于继承」。下一讲，我们要学五条著名的设计规矩，让程序像棒棒的大楼一样稳。</p>"
+      }
+    ]
+  },
+  "glossary": [
+    {
+      "term": "抽象类（Abstract Class）",
+      "def": "不能直接创建实例的「半成品」类，可以包含已实现方法和抽象方法"
+    },
+    {
+      "term": "抽象方法（Abstract Method）",
+      "def": "只声明「必须有什么方法」、不写具体实现的方法，强制子类补全"
+    },
+    {
+      "term": "接口（Interface）",
+      "def": "一份只列方法签名的能力契约，规定实现者「必须会什么」"
+    },
+    {
+      "term": "契约式设计",
+      "def": "先约定必须提供的行为，再谈各自实现的设计思路"
+    },
+    {
+      "term": "实现（Implement）",
+      "def": "类按接口清单逐项完成方法，相当于「考下这张证书」"
+    },
+    {
+      "term": "组合（Composition）",
+      "def": "把其他对象作为部件装进自己内部（有一个），用装配代替继承"
+    },
+    {
+      "term": "耦合（Coupling）",
+      "def": "两个模块互相牵扯的程度；耦合越深，改一处越容易弄坏另一处"
+    }
+  ],
+  "exercises": [
+    {
+      "id": "oop-06-e01",
+      "level": "easy",
+      "type": "choice",
+      "stem": "关于抽象类，下列说法正确的是？",
+      "options": [
+        "A. 抽象类可以像普通类一样 new 出对象",
+        "B. 抽象类不能实例化，只能被继承，子类补全抽象方法后才能创建实例",
+        "C. 抽象类里不能写普通方法，只能写抽象方法",
+        "D. 抽象类的作用是让程序运行得更快"
+      ],
+      "answer": "B",
+      "solution": {
+        "idea": "抽象类的定位是「半成品模板」，用途是被继承而不是被实例化。",
+        "steps": [
+          "抽象类里可以有抽象方法（空槽）也可以有普通方法（已写好）；",
+          "直接实例化抽象类会被拒绝；",
+          "子类补全全部抽象方法后才有创建实例的资格。"
+        ],
+        "result": "B。抽象类不能实例化，只能被继承；子类补全全部抽象方法后才有创建实例的资格。",
+        "pitfalls": [
+          "以为抽象类只能装抽象方法：半成品的意思是「有一部分已做好」；",
+          "以为抽象类能提速：它解决的是契约与复用问题，不是性能问题。"
+        ],
+        "kid": "半成品蛋糕模具不能直接吃，得让糕点师把奶油补齐做成成品。抽象类就是模具：自己不能 new，等子类把空格全补上，才有资格创建对象。"
+      }
+    },
+    {
+      "id": "oop-06-e02",
+      "level": "easy",
+      "type": "judge",
+      "stem": "接口（或只含抽象方法的契约）只规定「必须实现哪些方法」，不规定具体怎么实现；实现细节由实现类自己决定。",
+      "answer": "正确",
+      "solution": {
+        "idea": "接口的本质是签名清单，不含实现细节。",
+        "steps": [
+          "接口列出「必须会什么」；",
+          "怎么实现是每个实现类自己的事；",
+          "这正是「要求统一、做法自由」的契约精神。"
+        ],
+        "result": "正确。接口是签名清单：要求统一，做法自由。",
+        "pitfalls": [
+          "以为接口要带默认实现：那是抽象类的职责（个别语言允许接口带默认方法，但契约的核心仍是签名清单）。"
+        ],
+        "kid": "证书只写「你会开车」这件事，至于你习惯双手握方向盘还是单手，证管不着。要求统一、做法自由——这正是契约最讨人喜欢的地方，也是接口与抽象类的意义。"
+      }
+    },
+    {
+      "id": "oop-06-e03",
+      "level": "easy",
+      "type": "choice",
+      "stem": "「组合优于继承」这条经验的核心建议是？",
+      "options": [
+        "A. 永远不要使用继承",
+        "B. 复用能力时优先把对象作为部件装进来，而不是为了拿代码去继承",
+        "C. 组合的运行速度一定比继承快",
+        "D. 子类必须继承尽可能多的父类"
+      ],
+      "answer": "B",
+      "solution": {
+        "idea": "组合用「装配部件（has-a）」代替「继承代码（is-a）」，降低耦合。",
+        "steps": [
+          "为拿代码而继承会让子类与父类强绑定；",
+          "组合把依赖缩小到「部件能干什么」；",
+          "部件可替换，宿主类不用改。"
+        ],
+        "result": "B。「优于」不是「禁止」：真正的 is-a 场景继承依然合理。",
+        "pitfalls": [
+          "把经验法则读成禁令：继承在表达真实分类与多态时仍然重要；",
+          "以为组合是为了性能：它换来的是灵活与低耦合。"
+        ],
+        "kid": "想会飞，装翅膀比生一个会飞的孩子省事多了。乐高积木拼着玩，零件坏了换零件；要是全靠「生」，一家老小牵牵绊绊，动一个全家抖三抖。"
+      }
+    },
+    {
+      "id": "oop-06-e04",
+      "level": "easy",
+      "type": "judge",
+      "stem": "在 Python 的 abc 模块中，被 @abstractmethod 标记的方法在抽象类里必须写出完整的方法体，否则程序无法运行。",
+      "answer": "错误",
+      "solution": {
+        "idea": "@abstractmethod 的方法只写签名，实现留给子类。",
+        "steps": [
+          "抽象方法常用 ... 或 pass 占位；",
+          "要求实现写在抽象类里恰恰违背契约的含义；",
+          "子类补全后才能实例化。"
+        ],
+        "result": "错误。父类立要求，子类交实现，留白是契约的一部分。",
+        "pitfalls": [
+          "把「只留签名」当成写错代码：留白是故意的。"
+        ],
+        "kid": "任务卡上只写「要有插图」，不会替你画好插图，空格本来就是留给小画家的。程序里的抽象方法也一样：父类管提要求，子类管交作品。"
+      }
+    },
+    {
+      "id": "oop-06-e05",
+      "level": "medium",
+      "type": "code",
+      "stem": "阅读下面的 Python 代码，运行后输出什么？它体现了一种什么样的「契约」约定？",
+      "code": {
+        "lang": "python",
+        "code": "class Payment:\n    def pay(self, amount):\n        raise NotImplementedError\n\nclass WechatPay(Payment):\n    def pay(self, amount):\n        return '微信支付' + str(amount) + '元'\n\np = WechatPay()\nprint(p.pay(9))",
+        "output": "微信支付9元",
+        "explain": "Payment 用 NotImplementedError 立下「必须实现 pay」的简易契约；WechatPay 补全实现，动态绑定执行子类版本，返回微信支付9元。"
+      },
+      "answer": "输出：微信支付9元。父类 pay 立契约，子类补实现。",
+      "solution": {
+        "idea": "Payment 的 pay 只立规矩不干活，谁不兑现契约谁就会在调用时报错。",
+        "steps": [
+          "Payment.pay 抛 NotImplementedError，相当于占位的空槽；",
+          "WechatPay 重写 pay，拼接字符串返回；",
+          "p 是 WechatPay 实例，动态绑定执行子类版本。"
+        ],
+        "result": "微信支付9元。",
+        "pitfalls": [
+          "直接实例化 Payment 再调 pay 会抛 NotImplementedError：契约不兑现就报错；",
+          "金额要先 str() 转成字符串才能拼接。"
+        ],
+        "kid": "这是张简易任务卡：付款这活儿必须自己干，交白卷（直接用父类的 pay）当场报错。微信支付把活儿干了，所以顺利付款 9 元，任务卡验收通过。"
+      }
+    },
+    {
+      "id": "oop-06-e06",
+      "level": "medium",
+      "type": "choice",
+      "stem": "智能门锁「是一种」门锁设备，同时具有「可联网」能力；联网能力同样出现在摄像头、音箱上。把「可联网」设计成什么最合适？",
+      "options": [
+        "A. 设计一个「联网设备」抽象基类，让门锁、摄像头、音箱都继承它",
+        "B. 把「可联网」设计成接口，谁需要就实现谁",
+        "C. 把联网代码复制粘贴到每个设备类里",
+        "D. 把联网方法写进「门锁设备」基类，其他设备再想办法"
+      ],
+      "answer": "B",
+      "solution": {
+        "idea": "联网是跨家族能力（can-do），不是身份（is-a）。",
+        "steps": [
+          "门锁、摄像头、音箱分属不同家族，为联网硬造共同基类会扭曲继承树；",
+          "能力跨家族共享，符合接口的特征；",
+          "一个设备还可以同时「可联网、可远程控制」，接口支持多实现。"
+        ],
+        "result": "B。「可联网」是跨家族能力，用接口表达最贴切。",
+        "pitfalls": [
+          "选 A：为能力建基类会让家谱畸形；",
+          "选 C：复制粘贴违反复用，改协议要改 N 处。"
+        ],
+        "kid": "「会游泳」不是某家人的祖传基因，而是可以考的证书：鱼、鸭子、救生员各考各的。把游泳写成某个家族的祖传手艺，别人家想学都拜不了师。"
+      }
+    },
+    {
+      "id": "oop-06-e07",
+      "level": "medium",
+      "type": "design",
+      "stem": "要设计图形库的抽象类 Graphic：所有图形都要能算面积 area()，都要能输出一句自我描述 describe()（格式统一：先名字后面积）。请指出 area 与 describe 谁该做成抽象方法、谁该做成普通方法并说明理由；新增 Triangle 子类时需要写什么？",
+      "answer": "area() 做成抽象方法——每个图形算法不同，父类无法代劳，只立契约；describe() 做成普通方法——格式统一，可写成 return '面积是 ' + str(self.area())，复用骨架并调用抽象步骤。新增 Triangle 只需实现 area()，describe 自动可用。",
+      "solution": {
+        "idea": "按「各子类是否不同」拆分：算法各异的做抽象，流程统一的做具体。",
+        "steps": [
+          "面积公式因图形而异，area 只能立契约；",
+          "描述格式全家族一致，describe 写成普通方法；",
+          "describe 内部调用 self.area()，靠动态绑定拿到各子类面积；",
+          "Triangle 继承 Graphic，补全 area() 即可，describe 白得。"
+        ],
+        "result": "area 抽象、describe 具体；新子类只补自己的面积公式。",
+        "pitfalls": [
+          "把 describe 也设为抽象：格式代码在每个子类抄一遍，改格式要改 N 处；",
+          "在抽象方法里写具体算法：抽象方法本来就「不知道」面积公式。"
+        ],
+        "kid": "自我介绍的「句式」全家族统一：先说名字再说面积——这句套话写一次大家共用；至于面积怎么算，各家有各家的公式，留成空格让每家自己填。新来的三角形只要会报自己的面积，套话自动就会说了。"
+      }
+    },
+    {
+      "id": "oop-06-e08",
+      "level": "medium",
+      "type": "judge",
+      "stem": "用 Python 的 abc 定义抽象类 Graphic 和抽象方法 area()，子类 Rect 忘了实现 area()。那么执行 Rect() 创建实例时会抛出 TypeError。",
+      "answer": "正确",
+      "solution": {
+        "idea": "abc 机制在实例化这一步就把关。",
+        "steps": [
+          "Python 会在创建实例时检查抽象方法是否已全部实现；",
+          "Rect 没补全 area()，实例化被拒绝并抛 TypeError；",
+          "补全后即可正常创建实例。"
+        ],
+        "result": "正确。契约在实例化时自动验收。",
+        "pitfalls": [
+          "以为要到调用 area 时才报错：abc 在创建实例这一步就拦截；",
+          "以为抛的是 NameError：实际是 TypeError，提示抽象方法未实现。"
+        ],
+        "kid": "补全空格之前，半成品模具不许开工。你忘了填「算面积」这一格，模具直接拒绝开工（报错），绝不会悄悄做出一个算错账的蛋糕，更不会让你蒙混过关。"
+      }
+    },
+    {
+      "id": "oop-06-e09",
+      "level": "hard",
+      "type": "design",
+      "stem": "鸟类程序里，Bird 基类写好了 fly()，Penguin（企鹅）继承了 Bird 却不会飞，只好把 fly() 写成抛异常或空操作。请指出这种设计的两处问题，并用接口（能力契约）与组合给出新的类结构。",
+      "answer": "问题一：破坏可替换性——把 Penguin 当 Bird 用时调用 fly() 会崩或什么都不做，调用方被迫特判；问题二：fly 与「鸟类」身份捆绑，能力无法跨家族复用。新结构：把 fly 抽成 Flyable 接口；Sparrow 继承 Bird 并实现 Flyable；Penguin 只继承 Bird 不实现 Flyable；飞机与 Bird 无亲缘，也可实现 Flyable。也可让个体组合一个 FlyingSkill 部件，会飞的装配它。",
+      "solution": {
+        "idea": "先拆「身份」（is-a：企鹅是一种鸟）与「能力」（can-do：会飞），再各归其位。",
+        "steps": [
+          "身份用继承保留：Penguin 仍是 Bird 子类；",
+          "能力用接口表达：Flyable 只给会飞的类实现；",
+          "需要运行时变化时用组合装配能力部件；",
+          "对照旧设计逐条指出违约与复用问题。"
+        ],
+        "result": "身份归继承，能力归接口或组合；能力清单不再写死在家族户口本上。",
+        "pitfalls": [
+          "把 fly 从 Bird 删掉让会飞的各自写：失去统一契约，调用方又要认类型；",
+          "让 Penguin 的 fly 抛异常还继续沿用继承：问题只是被藏起来。"
+        ],
+        "kid": "企鹅确实是鸟（身份没毛病），但「会飞」不该写进鸟家族的户口本，而应是一张自愿报考的飞行证。麻雀考了证就飞，企鹅不考证也不尴尬，飞机隔着一百家也能考证。本领用证书发，户口本只管「你是什么」。"
+      }
+    },
+    {
+      "id": "oop-06-e10",
+      "level": "hard",
+      "type": "open",
+      "stem": "有同学说：「接口里一行实现都没有，多亏啊；不如全用抽象类把代码写好，子类直接继承，多省事。」请评析这句话：说明两种工具的定位差异，给出「什么时候该用抽象类、什么时候该用接口」的判断清单，并指出「全用抽象类」长期会导致什么后果。",
+      "answer": "定位差异：抽象类是「家族骨架」，共享代码与状态，表达 is-a，单继承；接口是「能力契约」，只定签名，表达 can-do，可多实现、可跨家族。判断清单：① 多个子类要共用字段和实现吗？是则抽象类；② 能力出现在多个互不相干的家族吗？是则接口；③ 一个对象要同时具备多项能力吗？是则接口；④ 只想解耦调用方与实现、不需要共享代码吗？是则接口。全用抽象类的后果：为共享代码硬造亲缘，继承树畸形且越扎越深；父类任何改动波及所有子孙；单继承限制能力组合；契约与实现绑死，调用方难以替换实现。",
+      "solution": {
+        "idea": "评析题先给结论：省事是真的，代价更大。",
+        "steps": [
+          "从 is-a 与 can-do 两条线分别归位；",
+          "用四个典型场景演示判断清单；",
+          "推演「全抽象类」在跨家族能力与多能力组合下的爆炸路径。"
+        ],
+        "result": "模具管家族，证书管能力；全押一边，短期省事、长期返工。",
+        "pitfalls": [
+          "只比较「有没有实现代码」：真正的差异是身份与能力、单继承与多实现；",
+          "走向另一个极端「全用接口」：公共代码被迫复制，同样失衡。"
+        ],
+        "kid": "模具省事，因为它把花边都做好了；但要是把「会飞」也铸进模具，飞机、超人就都得认这个祖宗，家谱越来越离谱。证书虽然白纸一张，可谁都能考、能同时考好几张。模具管家族，证书管本事，全押一边迟早乱套。"
+      }
+    }
+  ]
+}

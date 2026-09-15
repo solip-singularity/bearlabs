@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>使用与交接说明 · 计算机知识学习站</title>
+<style>
+  :root{
+    --bg:#FAF7F2; --surface:#FFFFFF; --fg:#26292E; --muted:#676B73;
+    --border:#E6DFD3; --accent:#46796B; --accent-strong:#3A6659; --wash:#EAF1EE;
+    --sand:#C9A96A; --sand-ink:#7E622D; --sand-wash:#F6EFE0;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:"PingFang SC","HarmonyOS Sans SC","MiSans","Source Han Sans SC","Noto Sans CJK SC","Microsoft YaHei UI","Microsoft YaHei",sans-serif;
+    line-height:1.85;font-size:16px}
+  .wrap{max-width:920px;margin:0 auto;padding:48px 24px 80px}
+  header.hero{padding:24px 0 8px}
+  .eyebrow{font-family:ui-monospace,Consolas,monospace;font-size:12px;letter-spacing:.08em;color:var(--accent-strong);text-transform:uppercase;margin:0 0 12px}
+  h1{font-size:clamp(28px,4vw,40px);line-height:1.25;letter-spacing:-.015em;margin:0 0 12px;font-weight:600}
+  .lead{color:var(--muted);font-size:18px;margin:0 0 8px;max-width:62ch}
+  h2{font-size:24px;letter-spacing:-.01em;margin:56px 0 16px;font-weight:600;padding-top:20px;border-top:1px solid var(--border)}
+  h3{font-size:18px;margin:28px 0 8px;font-weight:600}
+  p{margin:0 0 14px}
+  ul,ol{margin:0 0 16px;padding-left:1.4em}
+  li{margin:.35em 0}
+  code,kbd{font-family:ui-monospace,"Cascadia Code",Consolas,monospace;font-size:.88em;background:#F0ECE4;padding:.12em .45em;border-radius:6px}
+  pre{background:#2B2F36;color:#E8E6E1;padding:16px 20px;border-radius:14px;overflow-x:auto;font-size:13.5px;line-height:1.7}
+  pre code{background:none;padding:0;color:inherit}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 24px;margin:16px 0;box-shadow:0 1px 2px rgba(38,41,46,.04),0 6px 20px rgba(38,41,46,.06)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin:16px 0}
+  .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;background:var(--wash);color:var(--accent-strong);margin-right:6px}
+  .badge.sand{background:var(--sand-wash);color:var(--sand-ink)}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;margin:12px 0 20px}
+  th,td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:12.5px;letter-spacing:.04em}
+  .tip{background:var(--sand-wash);border-radius:12px;padding:12px 16px;font-size:14.5px;margin:12px 0}
+  .meta{color:var(--muted);font-size:13px}
+  a{color:#3E6C8E}
+  .stepnum{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:9px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;margin-right:10px}
+  @media print{.wrap{padding:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">Handoff · 交接文档</p>
+    <h1>使用与交接说明</h1>
+    <p class="lead">这份文档写给两类人：现在想开始学习的你，以及未来接手维护、扩充这个网站的任何人。读完它，不需要原始开发者也能继续把网站运营下去。</p>
+    <p class="meta">计算机知识学习站 · 9 门课程 / 100 讲 / 双讲解 / 三级习题 / 交互动画 · 零第三方依赖</p>
+  </header>
+
+  <h2>一、五分钟上手</h2>
+  <div class="card">
+    <p><span class="stepnum">1</span>安装 <a href="https://nodejs.org/">Node.js</a> 18+（仅启动本地服务需要；纯浏览也可用任意静态服务器）。</p>
+    <p><span class="stepnum">2</span>Windows 双击 <code>start.bat</code>；macOS / Linux 执行 <code>node server/server.js</code>（或 <code>npm start</code>）。</p>
+    <p><span class="stepnum">3</span>浏览器打开控制台打印的地址（默认 <code>http://127.0.0.1:8642/</code>）。控制台还会打印<strong>管理员密钥</strong>（存于 <code>server/data/admin-key.txt</code>），用于 <code>#/admin</code> 学习记录台账。</p>
+  </div>
+  <p class="tip">没有 Node 也可以把整个文件夹丢给任意静态托管（Netlify / Vercel / GitHub Pages，配置已备好在 <code>deploy/</code>）。差别只有一点：静态托管下「账号同步、管理员台账」不可用，其余功能完全一致，学习数据保存在浏览器本地。</p>
+
+  <h2>二、这个网站有什么</h2>
+  <div class="grid">
+    <div class="card"><h3 style="margin-top:0">9 门课程 · 100 讲</h3><p class="meta" style="margin:0">组成原理、网络、操作系统、数据结构与算法、面向对象编程（本科核心）＋数据库、编译原理、离散数学与计算理论、AI·机器学习入门（研究生入门导读）。每门课标注层次、先修与学习路径。</p></div>
+    <div class="card"><h3 style="margin-top:0">双讲解</h3><p class="meta" style="margin:0">每讲都有「专业版」（术语、定义、推导）与「小孩版」（生活类比、零基础可读），一键切换且保留阅读位置；两版讲同一批知识点，结论一致。</p></div>
+    <div class="card"><h3 style="margin-top:0">三级习题 + 完整解答</h3><p class="meta" style="margin:0">每讲 10 题（简单 4 / 中等 4 / 困难 2），五要素解答：思路 → 分步 → 结果 → 常见错误 → 零基础说明；编程题代码可运行、输出经过实测。</p></div>
+    <div class="card"><h3 style="margin-top:0">16 个交互动画</h3><p class="meta" style="margin:0">进程调度、TCP、内存与指针、浮点数、缓存、流水线、排序 / 查找 / 图遍历、面向对象建模、编译流程、神经网络等；全部支持重置 / 单步 / 播放 / 速度 / 参数，每步配旁白。</p></div>
+  </div>
+
+  <h2>三、推荐的学习流程</h2>
+  <ol>
+    <li>首页 → <strong>学习路径</strong>：选一条线（零基础选「轻松起步线」；本科主线按 编程 → 算法 → 组成 → OS → 网络 → 数据库；进阶读「深造线」）。</li>
+    <li>进入课程 → 从第一讲开始。章节页顶部可随时切换<strong>专业版 / 小孩版</strong>；建议先读通俗版建立直觉，再读专业版巩固。</li>
+    <li>章节内遇到 <span class="badge">动手实验</span> 标记的交互演示，按旁白亲手操作一遍（重置 / 上一步 / 下一步都能点）。</li>
+    <li>学完做<strong>本讲习题</strong>：选择 / 判断题自动判分；推导 / 设计 / 编程题先自己写，再对照五要素解答并自评。</li>
+    <li>点「完成本讲」；进度、正确率、错题本自动进入 <strong>我的进度</strong> 面板。</li>
+    <li>每周看一次错题本，把已掌握的题目「标记掌握」移出。</li>
+  </ol>
+
+  <h2>四、学习数据与隐私</h2>
+  <ul>
+    <li>默认<strong>全部数据保存在本机浏览器</strong>（localStorage，键 <code>cslearn.progress.v1</code>），不上传任何服务器。</li>
+    <li>「我的进度」页可<strong>导出 JSON 备份</strong>、导出题目 / 章节 CSV 台账，也可导入恢复；换浏览器或清理缓存前请先导出。</li>
+    <li>可选账号同步：本地服务运行时，在进度面板注册 / 登录即可上传 / 下载记录（跨设备）；密码为 scrypt 加盐哈希存储，同步内容仅学习数据。</li>
+    <li>管理员在 <code>#/admin</code> 输入密钥，可查看 / 导出所有同步用户的汇总台账（用于教学管理统计）。</li>
+  </ul>
+
+  <h2>五、如何新增 / 修改内容（维护者必读）</h2>
+  <h3>5.1 新增或修改一讲</h3>
+  <ol>
+    <li>复制任意现有 <code>content/courses/&lt;课程&gt;/&lt;章&gt;.json</code> 作为模板。</li>
+    <li>按 <code>docs/AUTHORING-GUIDE.md</code> 填写：元信息、pro / kid 双讲解（节数一致、每章至少 1 张内联 SVG）、恰好 10 道习题（4/4/2）与五要素解答。</li>
+    <li>在对应 <code>course.json</code> 的单元章节列表登记新章（id、标题、课时、难度）。</li>
+    <li>校验：<code>npm run validate</code>；通过后 <code>npm run build</code> 刷新搜索索引与统计。</li>
+  </ol>
+  <h3>5.2 新增课程 / 交互动画</h3>
+  <ul>
+    <li>新课程：在 <code>content/courses/manifest.json</code> 登记（id、名称、图标 SVG、学习路径），再建课程目录。</li>
+    <li>新动画：读 <code>docs/demo-spec.md</code>，照 <code>js/demos/sorting.js</code> 的「帧序列 + 播放控制」模式实现 <code>js/demos/&lt;id&gt;.js</code> 与元数据 <code>content/demos/&lt;id&gt;.json</code>，并在 manifest 登记。</li>
+  </ul>
+  <h3>5.3 质量门槛（改完必须过）</h3>
+  <table>
+    <tr><th>命令</th><th>检查什么</th></tr>
+    <tr><td><code>npm run validate</code></td><td>每讲结构完整性：双讲解齐全与节数一致、10 题 4/4/2、五要素解答、字数基线、演示引用合法</td></tr>
+    <tr><td><code>npm run build</code></td><td>重新生成搜索索引与首页统计（否则新章节搜不到）</td></tr>
+    <tr><td><code>npm run audit</code></td><td>生成覆盖矩阵与审计报告（docs/coverage-matrix.csv、audit-report.json）</td></tr>
+    <tr><td><code>npm run smoke</code></td><td>13 项端到端冒烟：页面、API、同步、判分记录、导出</td></tr>
+  </table>
+
+  <h2>六、部署</h2>
+  <table>
+    <tr><th>方案</th><th>适合</th><th>说明</th></tr>
+    <tr><td>静态托管（Netlify / Vercel / GitHub Pages）</td><td>个人学习站、快速分享</td><td>零成本上线；同步 / 管理员功能不可用，其余全功能。配置见 <code>deploy/</code>，步骤见 <code>docs/deploy.md</code></td></tr>
+    <tr><td>Node 自托管（本地 / 局域网 / VPS）</td><td>班级 / 家庭共用、需要跨设备同步</td><td><code>HOST=0.0.0.0 node server/server.js</code>；建议 pm2 守护 + Nginx/Caddy 做 HTTPS；数据在 <code>server/data/</code>，直接复制即备份</td></tr>
+  </table>
+  <p>详细步骤、环境变量与安全注意事项见 <a href="deploy.md">docs/deploy.md</a>。</p>
+
+  <h2>七、已知限制与扩展建议</h2>
+  <ul>
+    <li>内容深度对标「本科核心 + 研究生入门导读」，不替代教材与系统课程；后续可按 <code>docs/OUTLINES.md</code> 的同一格式扩充「计算机图形学」等课程。</li>
+    <li>同步合并策略为「后写优先」，不支持多设备同时编辑的细粒度合并；频繁跨设备学习者建议每次学习结束手动同步一次。</li>
+    <li>服务端按个人 / 小规模使用设计（无速率限制、无内置 TLS），公网部署请置于反向代理之后。</li>
+    <li>值得做的下一步：错题本智能复习提醒（间隔重复）、课程内容包（把 content/ 打包分享）、PWA 离线缓存。</li>
+  </ul>
+
+  <h2>八、文档索引</h2>
+  <table>
+    <tr><th>文件</th><th>用途</th></tr>
+    <tr><td><code>README.md</code></td><td>项目总览、快速开始、命令表</td></tr>
+    <tr><td><code>docs/AUTHORING-GUIDE.md</code></td><td>内容写作规范（字段结构、质量基线、校验）</td></tr>
+    <tr><td><code>docs/OUTLINES.md</code></td><td>9 门课程 100 讲的总大纲（唯一权威）</td></tr>
+    <tr><td><code>docs/demo-spec.md</code></td><td>交互动画规格书（引擎 API、质量清单）</td></tr>
+    <tr><td><code>docs/design-notes.md</code></td><td>设计决策留档（风格、色彩、字体、无障碍）</td></tr>
+    <tr><td><code>docs/deploy.md</code> + <code>deploy/</code></td><td>部署指南与三平台配置</td></tr>
+    <tr><td><code>docs/coverage-matrix.csv</code> / <code>audit-report.json</code></td><td>内容覆盖矩阵与自动化审计结果</td></tr>
+    <tr><td><code>docs/self-check-report.html</code></td><td>交付前自检报告（逐条验收结论与证据）</td></tr>
+  </table>
+
+  <p class="meta" style="margin-top:40px">计算机知识学习站 · 交接文档 · 内容为原创讲解，欢迎学习与非商业使用</p>
+</div>
+</body>
+</html>

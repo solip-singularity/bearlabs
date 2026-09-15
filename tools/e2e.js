@@ -82,18 +82,20 @@ async function main() {
     const quizCount = await evl("document.querySelectorAll('.quiz-item').length");
     check('章节页渲染：标题/专业版节数/题数', !!chTitle && proSecs >= 4 && quizCount === 10, JSON.stringify({ chTitle, proSecs, quizCount }));
 
-    /* ── 3. 双讲解切换（节数一致 + 切换生效） ── */
+    /* ── 3. 双讲解切换（节数一致 + 切换生效 + 切回恢复） ── */
     const kidInfo = await evl(`(function(){
       var btns=[].slice.call(document.querySelectorAll('.trackbar .segmented button'));
+      var proBtn=btns.find(function(b){return b.textContent.indexOf('专业')>=0;});
       var kid=btns.find(function(b){return b.textContent.indexOf('小孩')>=0;});
-      if(!kid) return {err:'no kid btn'};
+      if(!kid || !proBtn) return {err:'no track buttons'};
+      var proSecsBefore=document.querySelectorAll('.track[data-track="pro"] .track-section').length;
       kid.click();
       var kidSecs=document.querySelectorAll('.track[data-track="kid"] .track-section').length;
-      var proSecs=document.querySelectorAll('.track[data-track="pro"] .track-section').length;
-      btns.find(function(b){return b.textContent.indexOf('专业')>=0;}).click();
-      return {kidSecs:kidSecs, proSecs:proSecs};
+      proBtn.click();
+      var proSecsAfter=document.querySelectorAll('.track[data-track="pro"] .track-section').length;
+      return {proSecsBefore:proSecsBefore, kidSecs:kidSecs, proSecsAfter:proSecsAfter};
     })()`);
-    check('双讲解切换：小孩版节数=专业版节数', kidInfo && kidInfo.kidSecs === kidInfo.proSecs && kidInfo.kidSecs >= 4, JSON.stringify(kidInfo));
+    check('双讲解切换：小孩版节数=专业版节数，切回恢复', kidInfo && kidInfo.kidSecs === kidInfo.proSecsBefore && kidInfo.kidSecs >= 4 && kidInfo.proSecsAfter === kidInfo.proSecsBefore, JSON.stringify(kidInfo));
 
     /* ── 4. 习题提交与判分（选第一个选择题，点第一个选项提交） ── */
     const quizResult = await evl(`(function(){

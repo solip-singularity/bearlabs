@@ -1,0 +1,241 @@
+{
+  "id": "oop-04",
+  "courseId": "oop",
+  "title": "第4讲 继承：站在巨人的肩膀上",
+  "objectives": [
+    "说出继承的适用前提：is-a（是一种）关系成立，而不是仅仅代码相似",
+    "会用 Python 写出子类继承父类，理解代码复用从何而来",
+    "掌握方法重写（override）的语义：子类版本覆盖父类版本，且父类实现并不消失",
+    "会用 super() 调用父类的初始化与方法，理解重写 __init__ 时必须先补全父类部分",
+    "能区分继承（is-a）与组合（has-a），避免滥用继承"
+  ],
+  "keyPoints": [
+    "继承表达 is-a：狗是一种动物；子类（Dog）写在括号里：class Dog(Animal)",
+    "子类自动拥有父类的属性与方法，这是继承带来的代码复用；子类还可以新增自己的成员",
+    "方法重写：子类定义与父类同名的方法，调用时生效的是子类版本",
+    "super() 调用继承链上一环的实现；重写 __init__ 时通常先 super().__init__(...)，否则父类属性不会建立",
+    "has-a 关系（汽车有发动机）用组合而不是继承；重写后子类对象必须仍能顶替父类使用"
+  ],
+  "minutes": 45,
+  "difficulty": 2,
+  "prerequisites": ["已完成第1-3讲：会定义类、理解构造过程与封装的公开接口"],
+  "keywords": ["继承", "父类", "子类", "方法重写", "super", "is-a", "代码复用"],
+  "demoRefs": [],
+  "refs": ["《设计模式：可复用面向对象软件的基础》第1章（延伸阅读）"],
+  "pro": {
+    "intro": "前三讲我们把一个类从零画好、又给它装上了门卫。但需求不会停：程序里要出现狗、猫、鸟，它们都有名字、都要吃东西，也各有绝活。如果每个类都从头写一遍 name 和 eat()，重复代码就会像野草一样蔓延。本讲讲面向对象的复用基石——继承（Inheritance）：让新类站在旧类的肩膀上。同时我们会反复检验一个更重要的前提：什么时候<strong>不该</strong>用它。",
+    "sections": [
+      {
+        "heading": "4.1 相似代码像野草：复用的动机",
+        "html": "<p>先看反面教材。如果不谈继承，Dog 和 Cat 会各自写一遍 <code>__init__</code> 和 <code>eat()</code>，代码一模一样；再来一只鸟、一只兔子，就再抄两遍。重复的代价不只是多打字：哪天发现 eat 的逻辑要改，你必须在每个类里各改一遍，漏一处就是 bug。面向对象的解法是把<strong>公共部分抽到父类</strong>，子类只写自己的差异：</p><pre class='code' data-lang='python'>class Animal:\n    def __init__(self, name):\n        self.name = name\n\n    def eat(self):\n        print(self.name + '在吃东西')\n\nclass Dog(Animal):              # 括号里写父类：Dog 继承 Animal\n    def fetch(self):\n        print(self.name + '衔回飞盘')\n\nd = Dog('旺财')\nd.eat()                         # eat 是从 Animal 继承来的，Dog 自己没写\nd.fetch()                       # fetch 是 Dog 新增的</pre><p><code>class Dog(Animal)</code> 一行完成了认亲：Dog 是<strong>子类</strong>（Subclass），Animal 是<strong>父类</strong>（Superclass）。Dog 没有写 <code>eat</code>，却能直接调用——调用时 Python 在 Dog 里没找到，就沿着继承关系去 Animal 里找。父类写一次，所有子类共享，这就是继承式的代码复用。</p>"
+      },
+      {
+        "heading": "4.2 继承的语义：先问「是不是」",
+        "html": "<p>继承不只是「省代码」的技巧，更是一个<strong>语义承诺</strong>：写 <code>class Dog(Animal)</code> 时，你在向所有读者声明——<strong>狗是一种动物</strong>（is-a 关系）。这个承诺意味着：任何需要动物的地方，狗都应该能顶上去而不出乱子。is-a 成立，继承才成立；反过来说，仅仅因为两个类「代码长得像」就让它们继承，迟早会翻车。</p><p>与 is-a 相对的是 <strong>has-a</strong>（有一个）：汽车「有」发动机，发动机却不是一种汽车；这种情况应该用<strong>组合</strong>（Composition）——在 Car 类里放一个 Engine 对象作为属性，而不是让 Car 继承 Engine。一个简单的判断口诀：<strong>能说「B 是一种 A」才用继承；只能说「B 有一个 A」就组合</strong>。继承画成图是一棵向上的树：</p><figure><svg viewBox='0 0 640 250' role='img' aria-label='继承关系树状示意图'><text x='320' y='24' text-anchor='middle' font-size='14' fill='#2A2E33'>继承树：箭头指向父类，子类 is-a 父类</text><rect x='235' y='40' width='170' height='86' rx='10' fill='#FAF7F2' stroke='#5E9E8F' stroke-width='1.8'/><text x='320' y='68' text-anchor='middle' font-size='13' fill='#2A2E33'>父类：Animal</text><text x='320' y='92' text-anchor='middle' font-size='12' fill='#6C7078'>属性：name</text><text x='320' y='114' text-anchor='middle' font-size='12' fill='#6C7078'>方法：eat()、speak()</text><line x1='180' y1='158' x2='268' y2='132' stroke='#C9A96A' stroke-width='1.8'/><polygon points='278,128 262,126 268,137' fill='#C9A96A'/><line x1='460' y1='158' x2='372' y2='132' stroke='#C9A96A' stroke-width='1.8'/><polygon points='362,128 378,126 372,137' fill='#C9A96A'/><rect x='80' y='160' width='200' height='78' rx='10' fill='#FFFFFF' stroke='#E4DCCF'/><text x='180' y='186' text-anchor='middle' font-size='13' fill='#2A2E33'>子类：Dog</text><text x='180' y='207' text-anchor='middle' font-size='12' fill='#6C7078'>继承：eat()、speak()</text><text x='180' y='227' text-anchor='middle' font-size='12' fill='#6C7078'>新增：fetch()</text><rect x='360' y='160' width='200' height='78' rx='10' fill='#FFFFFF' stroke='#E4DCCF'/><text x='460' y='186' text-anchor='middle' font-size='13' fill='#2A2E33'>子类：Cat</text><text x='460' y='207' text-anchor='middle' font-size='12' fill='#6C7078'>继承：eat()</text><text x='460' y='227' text-anchor='middle' font-size='12' fill='#6C7078'>重写：speak() 改为喵</text></svg><figcaption>图 4-1 继承树：公共属性与方法收敛在父类，子类只描述差异（新增或重写）。</figcaption></figure><p>用 is-a 的尺子量一量：「猫是一种动物」通过；「自行车是一种鸟」荒谬；「正方形是一种矩形」数学上成立，但如果矩形提供分别设置宽和高的方法，正方形继承后就会自相矛盾——判断标准始终是<strong>行为上的 is-a</strong>，子类必须能毫无意外地顶替父类登场。</p>"
+      },
+      {
+        "heading": "4.3 方法重写：同一句话，新的回答",
+        "html": "<p>子类觉得父类的方法「不适合自己」时，可以<strong>重新定义同名方法</strong>，这叫<strong>方法重写</strong>（Method Override）。重写之后，子类对象调用该方法时生效的是子类版本；没有重写的子类则继续沿用父类版本：</p><pre class='code' data-lang='python'>class Animal:\n    def __init__(self, name):\n        self.name = name\n\n    def speak(self):\n        return self.name + '在出声'\n\nclass Dog(Animal):\n    def speak(self):                # 重写：覆盖父类版本\n        return self.name + '：汪汪'\n\nclass Cat(Animal):\n    pass                            # Cat 不重写，沿用父类版本\n\nprint(Dog('旺财').speak())          # 旺财：汪汪（用 Dog 自己的）\nprint(Cat('咪咪').speak())          # 咪咪在出声（用 Animal 的）\nprint(isinstance(Dog('旺财'), Animal))  # True：狗仍然是一种动物</pre><p>两个要点必须说准：第一，重写是<strong>覆盖</strong>不是<strong>删除</strong>——父类的原版本仍然存在于类中，随时可以通过 super()（下一节）取用；isinstance 检查也告诉我们，重写丝毫没有动摇「Dog 是 Animal」的身份。第二，重写方法的参数签名应尽量与父类保持兼容（参数数量与含义一致），这样调用者拿着同一套用法，面对任何子类都不会错愕——这正是下一讲「多态」的伏笔。Python 查找方法时沿着「对象所属的类 → 父类 → 更上层」这条链一路向上，找到第一个匹配就停，这条链的完整规则叫 MRO，本阶段记住「就近覆盖」即可。</p>"
+      },
+      {
+        "heading": "4.4 super()：不是复制父类代码，是调用它",
+        "html": "<p>重写带来一个新问题：如果子类重写了 <code>__init__</code>，父类的 <code>__init__</code> 就<strong>不会自动执行</strong>——因为子类版本覆盖了它。这时父类负责的属性（如 name）就不会建立，后续使用必然出错。<strong>super()</strong> 正是为这种情况准备的：它代表「继承链上一环」的类，让你在重写的同时，显式借用父类的实现：</p><pre class='code' data-lang='python'>class Animal:\n    def __init__(self, name):\n        self.name = name\n\n    def speak(self):\n        return self.name + '在出声'\n\nclass Dog(Animal):\n    def __init__(self, name, breed):\n        super().__init__(name)      # 先请父类把 name 建好\n        self.breed = breed          # 再补上自己的属性\n\n    def speak(self):\n        return super().speak() + '，汪汪'   # 扩展：先要父类的结果，再加料\n\nd = Dog('旺财', '柴犬')\nprint(d.name, d.breed)              # 旺财 柴犬\nprint(d.speak())                    # 旺财在出声，汪汪</pre><p>super() 有两种典型用法，语义要写准：其一，<strong>扩展初始化</strong>——子类 __init__ 先用 <code>super().__init__(name)</code> 请父类完成它负责的部分，再补自己的属性；忘写这一行的后果是父类属性根本不存在，访问时抛 AttributeError。其二，<strong>扩展方法</strong>——在子类方法里先取父类的结果、再追加自己的行为，如 <code>super().speak() + '，汪汪'</code>。注意 super() 是<strong>调用</strong>父类实现，不是把父类代码复制一遍：父类逻辑改动时，子类通过 super() 自动受益，这正是它优于复制的地方。严格地说，super() 取的是方法解析顺序（MRO）上的下一环；单继承场景下，把它理解成「父类」即可。</p>"
+      },
+      {
+        "heading": "4.5 小结与预告",
+        "html": "<p>本讲你拿到了复用的钥匙：<code>class Dog(Animal)</code> 表达 is-a 并继承全部家底；重写让子类给出自己的回答；super() 在重写的同时保住父类的参与；is-a 不成立时改用组合。一句口诀收尾：<strong>先问是不是，再谈继承家产；重写莫忘 super，父类原版不删。</strong></p><p>但请注意本讲刻意回避的一个场景：Dog 和 Cat 都会 speak，却要分别写 <code>Dog('旺财').speak()</code>、<code>Cat('咪咪').speak()</code>。有没有办法让同一段调用代码 <code>animal.speak()</code> 自动对狗汪、对猫喵？有——这就是下一讲的主角<strong>多态</strong>：重写是排练，多态才是正式演出。</p>"
+      }
+    ]
+  },
+  "kid": {
+    "intro": "上一讲我们学会了给书包装门卫。今天有个更省事的大招：好多类长得都很像——狗和猫都有名字、都要吃饭，难道要写两遍？不用！孩子可以继承爸爸的本事。今天我们就来认认「程序里的亲戚」，还要学一个咒语 super，它能喊来爸爸帮忙。",
+    "sections": [
+      {
+        "heading": "爸爸的本事，孩子天生就会",
+        "html": "<p>小狗和小猫都要写「有名字」「会吃饭」，太重复啦！聪明办法：先画一张「动物爸爸」的图纸，把名字和吃饭都写好；再画小狗图纸时，只需在名字后面加个括号写上 Animal，等于宣布：「我是动物家的孩子，爸爸的本事我全要！」</p><p>这样，小狗图纸上一行吃饭的代码都没写，<code>d.eat()</code> 照样能用——因为它是从爸爸那里<strong>继承</strong>来的。小狗还可以学爸爸不会的新本事，比如接飞盘（自己新增的方法）。一套本事，全家共用；各自的绝活，自己再学。</p>"
+      },
+      {
+        "heading": "「是一种」才能认亲",
+        "html": "<p>是不是随便两个类都能认亲戚？不行！规矩只有一条：得能说出「<strong>B 是一种 A</strong>」这句话。小狗是一种动物，说得通，能认亲；自行车是一种鸟？说不通，不许认！</p><p>还有些关系容易看走眼：汽车「有」发动机——发动机不是一种汽车，它只是汽车身上的零件。零件的正确处理办法是「装进去」：在汽车肚子里放一个发动机对象当零件（大人们管这叫「组合」）。记住口诀：能说「是一种」就认亲（继承），只能说「有一个」就装零件（组合）。</p>"
+      },
+      {
+        "heading": "同一个问题，不同的回答（重写）",
+        "html": "<p>动物爸爸的图纸里写着：被问「说一句」时，回答「某某在出声」。小狗觉得这回答不够带劲，于是自己重新写了一句——这叫<strong>重写</strong>：同样的问题，给出自己的新回答「旺财：汪汪」。小猫懒得重写，就继续用爸爸的原话「咪咪在出声」。</p><p>注意哦，重写不是把爸爸的台词撕掉——爸爸的原话还好好地收在家里，随时能请出来（下一节咒语就干这个）。而且小狗不管怎么改台词，它<strong>还是动物</strong>，见到要动物的地方照样能上台。</p>"
+      },
+      {
+        "heading": "咒语 super：先喊爸爸帮忙",
+        "html": "<p>小狗自己写出生清单（__init__）时有个坑：一旦自己动手写，爸爸那份清单就<strong>不会自动执行</strong>了——结果小狗身上没有「名字」口袋，一用就出错。怎么办？念咒语 <code>super()</code>，意思是「请上一辈的来」：<code>super().__init__(name)</code> 就是「爸爸，请先把名字装好」，然后小狗再装自己的「品种」口袋。</p><p>说话也一样：小狗想说得更隆重，可以念 <code>super().speak()</code> 先借爸爸的原话，再在后面加上「，汪汪」。念咒语是「请爸爸帮忙做」，不是把爸爸的代码抄一遍——爸爸的本事升级了，小狗跟着升级，多好啊。</p>"
+      },
+      {
+        "heading": "小结与预告",
+        "html": "<p>今天记住四件事：能说「是一种」才继承；继承来的本事不用重写就能用；重写是换自己的新台词，爸爸的原话还在；写清单前先念 super 请爸爸帮忙，零件关系用「装进去」的组合办法。</p><p>下一讲有个更好玩的魔法：让同一句命令 <code>animal.speak()</code>，狗听了汪汪、猫听了喵喵，喊的人根本不用知道对方是谁——这就是大名鼎鼎的「多态」。像不像指挥一个合唱团？下讲见！</p>"
+      }
+    ]
+  },
+  "glossary": [
+    { "term": "继承（Inheritance）", "def": "子类自动获得父类属性与方法的机制，表达「是一种」的关系" },
+    { "term": "父类（Superclass）", "def": "被继承的类，也叫基类；提供公共的属性和方法" },
+    { "term": "子类（Subclass）", "def": "继承别人的类，也叫派生类；在父类基础上新增或重写成员" },
+    { "term": "方法重写（Override）", "def": "子类重新定义父类的同名方法，调用时生效的是子类版本，父类实现仍可通过 super() 调用" },
+    { "term": "super()", "def": "调用继承链上一环（通常是父类）已写好的实现；重写 __init__ 时常用它先补全父类部分" },
+    { "term": "is-a 关系", "def": "「B 是一种 A」的关系，是使用继承的前提，如狗是一种动物" },
+    { "term": "组合（Composition）", "def": "把其他对象作为属性装进自己身体里的复用方式，适合「有一个」的关系，如汽车有发动机" }
+  ],
+  "exercises": [
+    {
+      "id": "oop-04-e01",
+      "level": "easy",
+      "type": "choice",
+      "stem": "什么时候适合让类 B 继承类 A？",
+      "options": ["A. 只要 A 和 B 的代码有相似之处", "B. 只要能成立「B 是一种 A」这句话", "C. 只要 B 需要用到 A 身上的某个零件", "D. 任何时候都适合，能少写代码就是好"],
+      "answer": "B",
+      "solution": {
+        "idea": "继承是语义承诺，前提是 is-a 关系成立。",
+        "steps": ["代码相似不等于「是一种」，仅相似就继承会埋下隐患；", "「B 需要A 的零件」是 has-a，应该用组合；", "只有 is-a 成立时继承才名正言顺，选 B。"],
+        "result": "B。继承的前提是能说出「B 是一种 A」。",
+        "pitfalls": ["把「省代码」当成首要标准：语义错了，省下的代码会变成坑；", "分不清 is-a 与 has-a：零件关系要用组合。"],
+        "kid": "认亲戚只有一条规矩：能大声说出「B 是一种 A」吗？小狗是一种动物，说得通，能认；遥控器「像」电视但不是一种电视，不能认。先问是不是，再谈继承。"
+      }
+    },
+    {
+      "id": "oop-04-e02",
+      "level": "easy",
+      "type": "judge",
+      "stem": "子类继承父类后，仍然可以新增父类没有的属性和方法。",
+      "answer": "正确",
+      "solution": {
+        "idea": "继承提供父类的家底，同时允许子类扩展自己的特色。",
+        "steps": ["子类自动拥有父类的属性与方法；", "子类还可以定义自己独有的属性与方法（如 Dog 的 fetch）；", "两者不冲突，判断正确。"],
+        "result": "正确。继承不排斥扩展，子类可以拥有新成员。",
+        "pitfalls": ["以为继承只能「原样照搬」：新增成员正是子类的价值之一。"],
+        "kid": "孩子继承了爸爸会吃饭的本事，还可以自己学接飞盘——爸爸不会接飞盘也没关系，这是孩子的新招数。继承家底和自己学新本事，两不耽误。"
+      }
+    },
+    {
+      "id": "oop-04-e03",
+      "level": "easy",
+      "type": "choice",
+      "stem": "下列哪一组关系最适合用继承表达？",
+      "options": ["A. 汽车与发动机", "B. 猫与动物", "C. 订单与商品", "D. 书包与课本"],
+      "answer": "B",
+      "solution": {
+        "idea": "逐组检验 is-a 是否成立。",
+        "steps": ["发动机不是一种汽车，是汽车的一个零件；", "商品不是订单，订单「包含」商品；", "课本不是书包，书包「装」课本；", "猫是一种动物，is-a 成立，选 B。"],
+        "result": "B。猫与动物是「是一种」的关系，适合继承。",
+        "pitfalls": ["看到「包含/装着」就选继承：那是 has-a，应该用组合。"],
+        "kid": "发动机、商品、课本都只是「被装在别人身上的零件」，要用「装进去」的办法（组合）；只有猫和动物能说「是一种」，才能认亲戚（继承）。"
+      }
+    },
+    {
+      "id": "oop-04-e04",
+      "level": "easy",
+      "type": "judge",
+      "stem": "子类重写父类方法后，父类的原版本就彻底消失，任何情况下都无法再被调用了。",
+      "answer": "错误",
+      "solution": {
+        "idea": "重写是覆盖生效顺序，不是删除父类实现。",
+        "steps": ["子类对象调用该方法时优先用子类版本；", "父类版本仍完整保留在父类中；", "通过 super().方法名() 随时可以调用父类原版本，判断错误。"],
+        "result": "错误。父类实现仍在，super() 可以调用它。",
+        "pitfalls": ["把「覆盖」理解成「删除」：被覆盖的只是默认生效顺序；", "以为 super() 只能用于 __init__：普通方法同样可以调用。"],
+        "kid": "小狗换了新台词「汪汪」，但爸爸的原话「在出声」还好好地收在家里的抽屉里，念咒语 super 随时能请爸爸上台再说一遍。换台词不等于撕台词。"
+      }
+    },
+    {
+      "id": "oop-04-e05",
+      "level": "medium",
+      "type": "derive",
+      "stem": "运行下面的程序，输出是什么？\n<pre class='code' data-lang='python'>class A:\n    def hello(self):\n        return 'A 你好'\n\nclass B(A):\n    def hello(self):\n        return 'B[' + super().hello() + ']'\n\nprint(B().hello())</pre>",
+      "answer": "输出：B[A 你好]。B 重写了 hello，但先通过 super().hello() 拿到父类结果，再包上自己的装饰。",
+      "solution": {
+        "idea": "重写后调用 B 的版本；B 的版本内部调用 super()，即父类 A 的实现。",
+        "steps": ["第1步：B() 创建对象，hello 在 B 中被重写，优先生效；", "第2步：B.hello 内部执行 super().hello()，转到 A.hello；", "第3步：A.hello 返回「A 你好」；", "第4步：B 拼接为 B[A 你好] 并打印。"],
+        "result": "B[A 你好]。super() 让重写后的方法仍然能借用父类实现。",
+        "pitfalls": ["以为重写后 A.hello 无法调用：super() 正是它的入口；", "忽略字符串拼接的顺序：B 的部分在前，父类结果在后。"],
+        "kid": "B 上台时先喊一声：爸爸（super），你先说。爸爸说完「A 你好」，B 再把自己的话包在外面，变成 B[A 你好]。一层套一层，像套娃。"
+      }
+    },
+    {
+      "id": "oop-04-e06",
+      "level": "medium",
+      "type": "design",
+      "stem": "请为「交通工具」家族设计继承结构：给出一个父类 Vehicle 和三个子类（如地铁 Subway、公交车 Bus、自行车 Bicycle）。说明哪些属性和方法应该放进父类、哪些留给子类新增或重写；最后用 is-a 检验这套设计是否成立。不必写完整代码。",
+      "answer": "参考设计：父类 Vehicle 放公共部分——属性 brand（品牌）、方法 move()（移动）与 show_info()；三个子类各自重写 move()：Subway 输出「在轨道上行驶」、Bus 输出「沿固定线路停靠站台」、Bicycle 输出「靠人力蹬踏板前进」，Bicycle 还可新增 ring_bell()。is-a 检验：地铁是一种交通工具、公交车是一种交通工具、自行车是一种交通工具，均成立，继承关系合理。",
+      "solution": {
+        "idea": "公共属性与统一的动作名收进父类，差异化的实现下放给子类重写。",
+        "steps": ["第1步：找出所有子类共有的状态（品牌）与动作（移动）；", "第2步：把它们写进父类 Vehicle；", "第3步：每个子类重写 move()，给出各自的移动方式，必要时新增方法；", "第4步：用「是一种」逐个检验子类与父类的关系。"],
+        "result": "父类放共有家底，子类重写差异行为，is-a 检验全部通过。",
+        "pitfalls": ["把「轮子数量」这种并非所有交通工具共有的属性放进父类：自行车也有轮子但地铁按节车厢算，这类属性应留在具体子类；", "子类忘记重写却期待不同输出：不重写就沿用父类版本。"],
+        "kid": "先画「交通工具爸爸」：都有牌子、都会移动。地铁、公交、自行车三兄弟各自改写「怎么移动」：一个在轨道上跑、一个靠站停车、一个靠人蹬。最后念口诀检验：地铁是一种交通工具吗？是！认亲成功。"
+      }
+    },
+    {
+      "id": "oop-04-e07",
+      "level": "medium",
+      "type": "choice",
+      "stem": "Dog 继承 Animal（父类的 __init__ 会建立 self.name），但 Dog 定义了自己的 <code>__init__</code> 却忘了写 <code>super().__init__(name)</code>。创建对象 d 后调用父类方法 <code>d.eat()</code>（内部使用 self.name），会发生什么？",
+      "options": ["A. 正常运行，name 自动为 None", "B. 正常运行，name 是空字符串", "C. 抛出 AttributeError：Dog 对象没有属性 name", "D. Python 会自动替你补上父类的 __init__"],
+      "answer": "C",
+      "solution": {
+        "idea": "子类重写 __init__ 后，父类的 __init__ 不会自动执行，父类负责的属性不会被建立。",
+        "steps": ["Dog.__init__ 覆盖了 Animal.__init__，父类初始化被跳过；", "self.name 从未被赋值，实例上不存在 name 属性；", "d.eat() 内部访问 self.name 时抛出 AttributeError，选 C。"],
+        "result": "C。忘写 super().__init__() 会导致父类属性缺失。",
+        "pitfalls": ["以为 Python 会自动兜底：重写即覆盖，父类初始化不会偷偷执行；", "以为属性会有默认值 None：没赋过的属性是「不存在」，不是 None。"],
+        "kid": "小狗自己写了出生清单，却忘了先请爸爸来报名字。结果小狗身上根本没有「名字」口袋，爸爸的本事一用到名字，就翻遍全身也找不到，程序只好大喊「找不到 name」报错。"
+      }
+    },
+    {
+      "id": "oop-04-e08",
+      "level": "medium",
+      "type": "code",
+      "stem": "请编写代码：父类 Animal 有属性 name 和方法 speak()（返回「名字在出声」）；子类 Cat 重写 speak() 返回「名字：喵」；创建名为咪咪的 Cat 对象并打印它说话的结果。",
+      "answer": "程序输出：咪咪：喵",
+      "code": {
+        "lang": "python",
+        "code": "class Animal:\n    def __init__(self, name):\n        self.name = name\n\n    def speak(self):\n        return self.name + '在出声'\n\nclass Cat(Animal):\n    def speak(self):\n        return self.name + '：喵'\n\nmimi = Cat('咪咪')\nprint(mimi.speak())",
+        "output": "咪咪：喵",
+        "explain": "Cat 继承 Animal 获得 __init__ 与 name 属性；Cat 重写了 speak()，调用时沿「Cat → Animal」就近查找，命中 Cat 自己的版本，返回「咪咪：喵」。"
+      },
+      "solution": {
+        "idea": "父类写好公共部分，子类只写重写的 speak()。",
+        "steps": ["第1步：定义 Animal：__init__ 建立 name，speak 返回默认话术；", "第2步：定义 Cat(Animal)，重写 speak 返回带「喵」的字符串；", "第3步：创建 mimi = Cat('咪咪')；", "第4步：打印 mimi.speak()，生效的是 Cat 的版本。"],
+        "result": "输出：咪咪：喵。",
+        "pitfalls": ["在 Cat 里重复写一遍 __init__：不需要，继承已经拿到了；", "重写时方法名拼错（如 speek）：那不是重写，成了新方法，调用仍是父类版本。"],
+        "kid": "先画动物爸爸的图纸：有名字、会出声。再画小猫的图纸，只换一句台词——把「在出声」换成「喵」。喊咪咪说话，它用自己的新台词回答「咪咪：喵」。"
+      }
+    },
+    {
+      "id": "oop-04-e09",
+      "level": "hard",
+      "type": "code",
+      "stem": "阅读下面的三层继承代码，写出 <code>print(Puppy('豆豆').speak())</code> 的输出，并解释 super 的调用链条经过哪几个类、顺序如何。\n<pre class='code' data-lang='python'>class Animal:\n    def __init__(self, name):\n        self.name = name\n\n    def speak(self):\n        return self.name + '在出声'\n\nclass Dog(Animal):\n    def speak(self):\n        return super().speak() + '：汪！'\n\nclass Puppy(Dog):\n    def speak(self):\n        return '小' + super().speak()</pre>",
+      "answer": "输出：小豆豆在出声：汪！调用链条：Puppy.speak 先取「小」，再经 super() 调 Dog.speak；Dog.speak 又经 super() 调 Animal.speak 得到「豆豆在出声」，返回 Dog 后拼上「：汪！」，最后回到 Puppy 拼上「小」。顺序是 Puppy → Dog → Animal，再逐层返回。",
+      "code": {
+        "lang": "python",
+        "code": "class Animal:\n    def __init__(self, name):\n        self.name = name\n\n    def speak(self):\n        return self.name + '在出声'\n\nclass Dog(Animal):\n    def speak(self):\n        return super().speak() + '：汪！'\n\nclass Puppy(Dog):\n    def speak(self):\n        return '小' + super().speak()\n\nprint(Puppy('豆豆').speak())",
+        "output": "小豆豆在出声：汪！",
+        "explain": "Puppy.speak 中 super() 指向 Dog；Dog.speak 中 super() 指向 Animal。Animal 先完成最基础的话术「豆豆在出声」，Dog 追加「：汪！」，Puppy 再加前缀「小」，三层合作拼出完整结果。"
+      },
+      "solution": {
+        "idea": "沿继承链逐层展开 super 调用，从最上层开始拼装结果。",
+        "steps": ["第1步：Puppy.speak 触发，先记下前缀「小」，进入 super()；", "第2步：Dog.speak 触发，等待 super().speak() 的结果；", "第3步：Animal.speak 返回「豆豆在出声」；", "第4步：Dog 拼成「豆豆在出声：汪！」，Puppy 再拼成「小豆豆在出声：汪！」。"],
+        "result": "输出「小豆豆在出声：汪！」；super 链为 Puppy → Dog → Animal。",
+        "pitfalls": ["以为 super 只会跳一层就返回：每层都可能继续向上调；", "忽略拼接顺序：Animal 最先完成，Puppy 的「小」是最后才加上去的前缀。"],
+        "kid": "小小狗上台先说「小」，再请爸爸（Dog）说；爸爸又先请爷爷（Animal）说「豆豆在出声」，回来才接上「：汪！」。像传话接龙，一人一句，最后串成「小豆豆在出声：汪！」。"
+      }
+    },
+    {
+      "id": "oop-04-e10",
+      "level": "hard",
+      "type": "open",
+      "stem": "判断下列关系中哪些适合继承、哪些适合组合，并说明理由：① 汽车与发动机；② 猫与动物；③ 订单与商品；④ 正方形与矩形（矩形提供 set_width 和 set_height 两个方法）。最后用一句话总结判断标准，并说明它和「子类必须能顶替父类使用」这句话的关系。",
+      "answer": "参考结论：① 组合——汽车「有」发动机，发动机是零件不是一种汽车；② 继承——猫「是」一种动物，is-a 成立；③ 组合——订单「包含」商品列表，商品不是订单；④ 谨慎处理——数学上正方形是特殊矩形（is-a 成立），但矩形的 set_width 与 set_height 可以独立设置，正方形若继承并重写它们以维持四边相等，就会出现「设宽 4、设高 5，结果两边互相干扰」的意外行为，调用者按矩形的习惯使用会出错。这提示：判断标准是<strong>行为上的 is-a</strong>——子类对象必须能在任何父类出现的场合顶替登场、且不产生意外（这就是「里氏替换」直觉，第7讲会正式展开）。做不到行为兼容时，宁可不用继承，改用组合或让类型不可变。",
+      "solution": {
+        "idea": "先用「是一种 / 有一个」初筛，再用「子类能否无意外顶替父类」复核行为层面。",
+        "steps": ["第1步：①③是「有一个」的零件关系，用组合；", "第2步：②是标准的「是一种」，用继承；", "第3步：④数学上 is-a 成立，但行为上 set_width/set_height 互相干扰，破坏调用者对矩形的预期；", "第4步：总结——继承的最终检验是行为兼容，而非概念或代码相似。"],
+        "result": "开放题。①③组合，②继承，④概念上是继承、行为上不满足顶替要求，工程上应避免直接继承或改为不可变设计。",
+        "pitfalls": ["只看概念不验行为，判定④必须继承：重写后 setter 互相干扰是经典反例；", "认为组合「低级」：零件关系用组合才是正确设计，不是妥协。"],
+        "kid": "汽车「有」发动机：发动机是零件，装进去就好，不用认亲；猫「是」动物：真亲戚，可以继承。正方形虽说是特殊的矩形，但一按矩形的按钮（分别设宽和设高），它就变得不像自己了——这样的亲戚认得勉强，不如不认。判断口诀：能说「是一种」并且能顶替爸妈登场，才继承。"
+      }
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "id": "cmp",
+  "title": "编译原理",
+  "subtitle": "源代码到机器码的魔法之旅",
+  "level": "研究生入门",
+  "levelNote": "适合修过数据结构、熟悉至少一门编程语言的高年级本科生与研究生入门。课程从直觉与动手切入，不要求先修形式语言与自动机。",
+  "hours": 14,
+  "keywords": ["编译器", "词法分析", "语法分析", "上下文无关文法", "中间代码", "代码优化", "代码生成", "LLVM"],
+  "description": "编译器把人写的源代码翻译成机器能执行的指令，内部是一条环环相扣的流水线。本课沿词法、语法、语义、中间代码、优化与代码生成六个阶段逐站深入，并带你用 Python 手写迷你词法分析器、理解递归下降与 LR 分析的直觉，看清一门语言是如何被真正「执行」起来的。",
+  "prerequisites": [
+    "熟练使用至少一门编程语言（C、Python、Java 均可）",
+    "学过数据结构：树、栈与递归的基本操作",
+    "建议先修本站《离散数学与计算理论》单元三（自动机与形式语言），未修也能跟上"
+  ],
+  "units": [
+    {
+      "id": "cmp-u1",
+      "title": "单元一 总览与词法",
+      "summary": "先建立编译器全貌：编译与解释两条路线、六阶段流水线地图；再深入第一站，把字符流切成 token 流。",
+      "chapters": [
+        { "id": "cmp-01", "title": "第1讲 编译器是什么", "objective": "说清编译与解释的区别，画出编译器六阶段流水线全景图", "minutes": 35, "difficulty": 1, "prereqs": [] },
+        { "id": "cmp-02", "title": "第2讲 词法分析", "objective": "用正则表达式描述词素，理解 token 流的生成与 DFA 实现思路，能手写迷你词法分析器", "minutes": 50, "difficulty": 3, "prereqs": ["cmp-01"] }
+      ]
+    },
+    {
+      "id": "cmp-u2",
+      "title": "单元二 语法分析",
+      "summary": "从 token 流到语法树：上下文无关文法、推导与二义性；递归下降、LL 预测分析与 LR 移进归约的直觉。",
+      "chapters": [
+        { "id": "cmp-03", "title": "第3讲 语法分析（上）：文法与推导", "objective": "掌握上下文无关文法四元组、最左最右推导与语法树，能识别并解释二义性", "minutes": 50, "difficulty": 3, "prereqs": ["cmp-02"] },
+        { "id": "cmp-04", "title": "第4讲 语法分析（下）：LL 与 LR", "objective": "理解递归下降与预测分析的做法，建立 LR 移进归约分析的直觉", "minutes": 55, "difficulty": 3, "prereqs": ["cmp-03"] }
+      ]
+    },
+    {
+      "id": "cmp-u3",
+      "title": "单元三 语义与中间表示",
+      "summary": "类型检查与符号表把好语义关；三地址码与 SSA 搭起前端与后端之间的桥；运行时栈帧解释函数调用的来龙去脉。",
+      "chapters": [
+        { "id": "cmp-05", "title": "第5讲 语义分析与符号表", "objective": "理解类型检查与作用域规则，掌握符号表的组织方式", "minutes": 45, "difficulty": 3, "prereqs": ["cmp-04"] },
+        { "id": "cmp-06", "title": "第6讲 中间代码", "objective": "能把表达式与控制流翻译成三地址码，理解 SSA 与中间表示的意义", "minutes": 50, "difficulty": 3, "prereqs": ["cmp-05"] },
+        { "id": "cmp-07", "title": "第7讲 运行时与栈帧", "objective": "说清函数调用约定、栈帧布局与活动记录的运作方式", "minutes": 50, "difficulty": 3, "prereqs": ["cmp-06"] }
+      ]
+    },
+    {
+      "id": "cmp-u4",
+      "title": "单元四 优化与代码生成",
+      "summary": "在保证语义等价的前提下提速：常量折叠、循环优化、指令选择、寄存器分配；最后走进 LLVM 与现代编译器生态。",
+      "chapters": [
+        { "id": "cmp-08", "title": "第8讲 代码优化入门", "objective": "掌握常量折叠、死代码消除与循环优化的原理，理解优化安全第一", "minutes": 50, "difficulty": 3, "prereqs": ["cmp-07"] },
+        { "id": "cmp-09", "title": "第9讲 代码生成与寄存器分配", "objective": "理解指令选择与图着色寄存器分配的直觉", "minutes": 45, "difficulty": 3, "prereqs": ["cmp-08"] },
+        { "id": "cmp-10", "title": "第10讲 现代编译器生态", "objective": "认识 LLVM、GCC、JIT 与 DSL，规划后续学习路径", "minutes": 40, "difficulty": 2, "prereqs": [] }
+      ]
+    }
+  ]
+}
