@@ -383,8 +383,8 @@ DemoKit.register('deadlock', function (root, kit) {
     ctx.fillStyle = P.muted;
     ctx.font = '12px ' + kit.font;
     ctx.textAlign = 'center';
-    ctx.fillText('进程', px, 86);
-    ctx.fillText('资源', rx, 86);
+    ctx.fillText('进程', px, 64);
+    ctx.fillText('资源', rx, 64);
 
     /* 先画边，再画节点 */
     for (let i = 0; i < n; i++) {
@@ -487,7 +487,7 @@ DemoKit.register('deadlock', function (root, kit) {
       ctx.fillText(wk[k] + ' = ' + f.work[k], x + 48, 65);
       ctx.textBaseline = 'alphabetic';
     }
-    if (f.tent) {
+    if (f.tent && !f.req) {
       ctx.fillStyle = P.sandInk;
       ctx.font = '11px ' + kit.font;
       ctx.textAlign = 'left';
@@ -504,7 +504,7 @@ DemoKit.register('deadlock', function (root, kit) {
       ctx.font = '12px ' + kit.font;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('请求：P' + f.req.p + ' 申请 ' + vfmt(f.req.v), 574, 63);
+      ctx.fillText('请求：P' + f.req.p + ' 申请 ' + vfmt(f.req.v) + (f.tent ? ' · 试算中' : ''), 574, 63);
       ctx.textBaseline = 'alphabetic';
     }
 
