@@ -19,6 +19,8 @@
 2. 仓库 Settings → Pages → Build and deployment → Source 选 **GitHub Actions**（已附 `.github/workflows/deploy-pages.yml`）。
 3. 手动触发或 push 到 main 即自动部署，地址为 `https://<用户名>.github.io/<仓库名>/`。
 
+> 本项目当前线上地址：<https://solip-singularity.github.io/bearlabs/>（仓库：<https://github.com/solip-singularity/bearlabs>）。工作流只发布前端资源（index.html / css / js / content / assets / docs），不包含 server 与 tools。
+
 > 三个平台均可绑定自定义域名并自动配 HTTPS。
 
 ## 方案 B · Node 自托管（全功能）
@@ -63,3 +65,11 @@ node server/server.js                    # 建议用 pm2 / systemd 守护
 2. 打开 `#/demos` 任一演示，操作「重置 / 上一步 / 下一步 / 播放」。
 3. （方案 B）注册一个测试账号 → 做一题 → 上传同步 → 换浏览器登录拉取，确认记录一致；`#/admin` 用密钥导出台账。
 4. 静态托管时按 F12 确认无 404（同步相关按钮会提示「需要本地服务」，属预期）。
+
+## 静态托管的缓存与「改了看不到」
+
+GitHub Pages 对静态资源固定下发 `Cache-Control: max-age=600`，重新部署后浏览器最长约 10 分钟仍可能使用旧缓存。
+
+- 本项目已内置 `tools/stamp-assets.js`：部署工作流会在发布前给 `index.html` 中的 `css/*`、`js/*` 引用自动加上 `?v=<内容哈希>`（按文件内容计算）。因此 CSS/JS 一改，引用 URL 就变，浏览器必然重新拉取，不会再出现「新页面配旧样式」的错配状态。
+- 本地改完 CSS/JS 后建议手动执行一次 `node tools/stamp-assets.js`，让本地预览与线上保持一致（脚本幂等，可反复执行）。
+- 若页面本体（`index.html`）仍是旧的：强制刷新（Windows `Ctrl+F5`、macOS `Cmd+Shift+R`），或在网址后临时加一个查询参数（如 `?v=1`）打开。

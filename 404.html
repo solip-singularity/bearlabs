@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>页面未找到 · 贝尔实验室</title>
+  <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48" />
+  <style>
+    body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+           background:#FAF7F2; color:#2A2E33;
+           font-family: system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif; }
+    .box { text-align:center; padding:32px; }
+    h1 { font-size:22px; margin:0 0 12px; }
+    p { color:#6B7280; margin:0 0 20px; }
+    a { color:#46796B; }
+  </style>
+  <script>
+    /* 本站为 hash 路由单页应用：误入的深层路径一律回到站点根目录
+       （兼容 GitHub Pages 项目子路径部署，如 /<repo>/xxx → /<repo>/） */
+    (function () {
+      var parts = location.pathname.split('/').filter(Boolean);
+      if (parts.length > 1) location.replace('/' + parts[0] + '/' + location.hash);
+    })();
+  </script>
+</head>
+<body>
+  <div class="box">
+    <h1>页面走丢了</h1>
+    <p>本站是单页应用，请从首页进入课程。</p>
+    <p><a id="home" href="./">← 返回 贝尔实验室 · 计算机知识学习站</a></p>
+  </div>
+</body>
+</html>

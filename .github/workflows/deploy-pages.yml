@@ -1,26 +1,53 @@
 name: Deploy to GitHub Pages
+
 on:
   push:
     branches: [main]
   workflow_dispatch:
+
 permissions:
   contents: read
   pages: write
   id-token: write
+
 concurrency:
   group: pages
   cancel-in-progress: true
+
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 内容校验
+        run: node tools/validate-content.js --all
+
+      - name: 生成统计与搜索索引
+        run: node tools/build.js
+
+      - name: 组装待发布站点（仅前端资源，不含 server / tools）
+        run: |
+          set -e
+          mkdir -p _site
+          cp -r index.html 404.html favicon.ico css js content assets docs _site/
+          node tools/stamp-assets.js _site
+          touch _site/.nojekyll
+          echo "发布体积：" && du -sh _site
+          echo "发布的顶层条目：" && ls -1 _site
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
   deploy:
+    needs: build
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
       - id: deployment
         uses: actions/deploy-pages@v4

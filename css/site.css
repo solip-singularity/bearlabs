@@ -195,8 +195,8 @@ h4, .h4 { font-size: var(--fs-h4); line-height: 1.45; font-weight: 600; margin: 
 .topbar-inner { display: flex; align-items: center; gap: var(--sp-4); padding-block: 12px; }
 .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--fg); font-weight: 600; font-size: 17px; letter-spacing: -0.01em; }
 .brand:hover { text-decoration: none; color: var(--fg); }
-.brand-mark { width: 30px; height: 30px; border-radius: 9px; background: var(--accent); display: grid; place-items: center; flex: none; }
-.brand-mark svg { width: 18px; height: 18px; }
+.brand-mark { width: 40px; height: 40px; border-radius: 12px; background: var(--accent); display: grid; place-items: center; flex: none; overflow: hidden; }
+.brand-mark img { width: 40px; height: 40px; object-fit: cover; display: block; }
 .topnav { display: flex; align-items: center; gap: 2px; margin-left: var(--sp-4); flex: 1; }
 .topnav a {
   color: var(--fg-2); font-size: var(--fs-sm); padding: 8px 12px;
@@ -639,6 +639,28 @@ details.disclosure > summary:hover { text-decoration: underline; text-underline-
 .hero h1 { font-size: var(--fs-display); letter-spacing: -0.025em; }
 .hero .lead { margin-top: var(--sp-5); }
 .hero-cta { display: flex; gap: var(--sp-3); flex-wrap: wrap; margin-top: var(--sp-8); }
+/* 首页 hero 右侧品牌横幅（拉长版 + 虚化光晕） */
+.hero-banner-wrap { position: relative; margin-bottom: var(--sp-6); }
+.hero-banner-glow {
+  position: absolute; inset: -16px; border-radius: 50%; pointer-events: none;
+  background: url("../assets/brand-hero.png") center / cover no-repeat;
+  filter: blur(30px) saturate(2.6) brightness(1.05); opacity: 0.34;
+}
+.hero-banner {
+  position: relative; border-radius: var(--radius-lg); overflow: hidden;
+  aspect-ratio: 2.4 / 1;
+  /* 边缘羽化：中心完全实心，向外柔和淡出到接近透明（椭圆半径≈半个盒子，边缘才真正淡掉） */
+  -webkit-mask-image: radial-gradient(54% 58% at 50% 50%, #000 64%, rgba(0, 0, 0, 0) 100%);
+  mask-image: radial-gradient(54% 58% at 50% 50%, #000 64%, rgba(0, 0, 0, 0) 100%);
+}
+.hero-banner-img {
+  display: block; width: 100%; height: 100%;
+  object-fit: cover; object-position: 50% 45%;
+  /* 不再虚化：图案要看得清；柔和感全部交给外层羽化蒙版 */
+  filter: saturate(1.08);
+  opacity: 1;
+}
+@media (max-width: 920px) { .hero-banner { aspect-ratio: 2 / 1; } .hero-banner-glow { inset: -10px; } }
 .hero-visual { position: relative; }
 .hero-panel {
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);

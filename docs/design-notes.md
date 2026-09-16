@@ -36,7 +36,7 @@
 
 ## 5. 双讲解的视觉语言
 
-- 专业版：默认纸面排版；小孩版：砂金 wash 容器 + 更口语的小节标题。
+- 专业版：默认纸面排版；宝宝巴士版：砂金 wash 容器 + 更口语的小节标题。
 - 切换用 segmented 控件（`aria-pressed`），按节序映射保留滚动位置；版本选择持久化到本地进度存储。
 
 ## 6. 无障碍与降级（accessibility-baseline / animation-discipline / state-coverage）
