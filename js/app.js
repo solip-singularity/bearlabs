@@ -10,6 +10,7 @@ var App = (function () {
   const NAV = [
     { href: '#/', label: '首页', match: (r) => r.name === 'home' },
     { href: '#/courses', label: '课程', match: (r) => ['courses', 'course', 'chapter'].indexOf(r.name) >= 0 },
+    { href: '#/problems', label: '必刷题', match: (r) => r.name === 'problems' },
     { href: '#/paths', label: '学习路径', match: (r) => r.name === 'paths' },
     { href: '#/demos', label: '演示实验室', match: (r) => r.name === 'demos' || r.name === 'demo' },
     { href: '#/practice', label: '练习中心', match: (r) => r.name === 'practice' },
@@ -27,6 +28,12 @@ var App = (function () {
     if (!seg.length) return Object.assign(base, { name: 'home' });
     const simple = ['paths', 'courses', 'demos', 'practice', 'dashboard', 'admin', 'about', 'institute'];
     if (simple.indexOf(seg[0]) >= 0) return Object.assign(base, { name: seg[0] });
+    if (seg[0] === 'problems') {
+      const sub = seg[1] || '';
+      if (sub === 'q' && seg[2]) return Object.assign(base, { name: 'problems', sub: 'q', id: decodeURIComponent(seg[2]) });
+      if (['wrong', 'fav', 'stats', 'do'].indexOf(sub) >= 0) return Object.assign(base, { name: 'problems', sub });
+      return Object.assign(base, { name: 'problems', sub: '' });
+    }
     if (seg[0] === 'course' && seg[1]) return Object.assign(base, { name: 'course', id: seg[1] });
     if (seg[0] === 'chapter' && seg[1] && seg[2]) return Object.assign(base, { name: 'chapter', courseId: seg[1], chapterId: seg[2] });
     if (seg[0] === 'demo' && seg[1]) return Object.assign(base, { name: 'demo', id: seg[1] });
@@ -67,6 +74,7 @@ var App = (function () {
         case 'demos': view = await Views.demosPage(); break;
         case 'demo': view = await Views.demoPage(route); break;
         case 'practice': view = await Views.practice(); break;
+        case 'problems': view = await Views.problems(route); break;
         case 'dashboard': view = await Views.dashboard(); break;
         case 'admin': view = await Views.admin(); break;
         case 'about': view = await Views.about(); break;

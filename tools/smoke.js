@@ -55,7 +55,7 @@ async function main() {
       if (!r.ok || !t.includes('贝尔实验室') || !t.includes('BEARLABS')) throw new Error('HTTP ' + r.status + ' / 品牌文案缺失');
     });
     await check('关键静态资源可访问', async () => {
-      const rs = await Promise.all(['/css/site.css', '/js/app.js', '/js/views.js', '/js/store.js', '/js/demokit.js', '/js/util.js'].map((u) => fetch(BASE + u)));
+      const rs = await Promise.all(['/css/site.css', '/css/problems.css', '/js/app.js', '/js/views.js', '/js/views-problems.js', '/js/problems.js', '/js/store.js', '/js/demokit.js', '/js/util.js'].map((u) => fetch(BASE + u)));
       rs.forEach((r) => { if (!r.ok) throw new Error('资源 404'); });
     });
     await check('课程清单可用（≥5 门）', async () => {
@@ -72,6 +72,16 @@ async function main() {
       const r = await fetch(BASE + '/content/demos/manifest.json');
       const j = await r.json();
       if ((j.demos || []).length < 10) throw new Error('演示数量不足');
+    });
+    await check('必刷题题库可用（清单 ≥200 题、8 科目、单科可读）', async () => {
+      const r = await fetch(BASE + '/content/problems/manifest.json');
+      if (!r.ok) throw new Error('manifest 不可访问');
+      const m = await r.json();
+      if (!m.total || m.total < 200) throw new Error('总题量不足 200：' + m.total);
+      if ((m.subjects || []).length < 8) throw new Error('科目不足 8 个');
+      if ((m.index || []).length !== m.total) throw new Error('索引与总数不一致');
+      const d = await (await fetch(BASE + '/content/problems/ds.json')).json();
+      if (!d.questions || !d.questions.length) throw new Error('ds.json 无题目');
     });
     await check('注册接口', async () => {
       const r = await fetch(BASE + '/api/auth/register', {

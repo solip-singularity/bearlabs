@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server/server.js",
     "validate": "node tools/validate-content.js --all",
+    "validate:problems": "node tools/validate-problems.js",
     "build": "node tools/build.js",
     "audit": "node tools/audit.js",
     "smoke": "node tools/smoke.js"

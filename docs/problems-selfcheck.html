@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="../favicon.ico" />
+<title>「必刷题」板块自检报告 · 贝尔实验室</title>
+<style>
+  :root{
+    --bg:#FAF7F2; --surface:#FFFFFF; --fg:#26292E; --muted:#676B73;
+    --border:#E6DFD3; --accent:#46796B; --accent-strong:#3A6659; --wash:#EAF1EE;
+    --sand:#C9A96A; --sand-ink:#7E622D; --sand-wash:#F6EFE0;
+    --red:#A64F4F; --red-wash:#F6E7E6; --green:#3E7A52; --green-wash:#E7F1EA;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:"PingFang SC","HarmonyOS Sans SC","MiSans","Source Han Sans SC","Noto Sans CJK SC","Microsoft YaHei UI","Microsoft YaHei",sans-serif;
+    line-height:1.85;font-size:16px}
+  .wrap{max-width:1020px;margin:0 auto;padding:48px 24px 96px}
+  .eyebrow{font-family:ui-monospace,Consolas,monospace;font-size:12px;letter-spacing:.08em;color:var(--accent-strong);text-transform:uppercase;margin:0 0 12px}
+  h1{font-size:clamp(26px,3.6vw,38px);line-height:1.25;letter-spacing:-.015em;margin:0 0 12px;font-weight:600}
+  .lead{color:var(--muted);font-size:17px;margin:0 0 8px;max-width:72ch}
+  h2{font-size:23px;letter-spacing:-.01em;margin:52px 0 14px;font-weight:600;padding-top:18px;border-top:1px solid var(--border)}
+  h3{font-size:17px;margin:24px 0 8px;font-weight:600}
+  p{margin:0 0 12px}
+  ul,ol{margin:0 0 14px;padding-left:1.4em}
+  li{margin:.3em 0}
+  code{font-family:ui-monospace,"Cascadia Code",Consolas,monospace;font-size:.88em;background:#F0ECE4;padding:.12em .42em;border-radius:6px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 22px;margin:14px 0;box-shadow:0 1px 2px rgba(38,41,46,.04),0 6px 20px rgba(38,41,46,.06)}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;margin:12px 0 20px}
+  th,td{padding:9px 11px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:12.5px;letter-spacing:.03em;background:var(--surface)}
+  tr.total td{font-weight:700;background:var(--surface)}
+  .num{font-family:ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums;text-align:right}
+  .ok{color:var(--green);font-weight:600}
+  .badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;background:var(--wash);color:var(--accent-strong);margin-right:6px}
+  .badge.sand{background:var(--sand-wash);color:var(--sand-ink)}
+  .badge.green{background:var(--green-wash);color:var(--green)}
+  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0}
+  .metric{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px}
+  .metric .v{font-family:ui-monospace,Consolas,monospace;font-size:26px;font-weight:700;color:var(--accent-strong)}
+  .metric .k{font-size:12.5px;color:var(--muted)}
+  .meta{color:var(--muted);font-size:13px}
+  .sample{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 20px;margin:14px 0}
+  .s-head{margin-bottom:10px;display:flex;flex-wrap:wrap;align-items:center;gap:2px}
+  .s-head .meta{margin-left:6px}
+  .s-stem{font-size:15.5px;line-height:1.8;margin:0 0 8px}
+  .s-opts{margin:0 0 8px;padding-left:1.6em;font-size:14.5px;color:#43474F}
+  .s-ans{font-size:14.5px;margin:0 0 10px}
+  .s-exp{border-top:1px dashed var(--border);padding-top:10px;margin-top:10px}
+  .s-label{font-size:12.5px;color:var(--sand-ink);font-weight:600;letter-spacing:.05em;margin-bottom:4px}
+  .s-body{font-size:14.5px;line-height:1.9;color:#33373D}
+  .s-exp.kid .s-body{background:var(--sand-wash);border-radius:8px;padding:10px 12px}
+  figure{margin:16px 0}
+  figure img{max-width:100%;border:1px solid var(--border);border-radius:10px;display:block}
+  figcaption{font-size:13px;color:var(--muted);margin-top:6px}
+  .mob{max-width:400px}
+  .fix{border-left:3px solid var(--sand);padding:2px 0 2px 14px;margin:12px 0}
+  .fix .t{font-weight:600}
+  a{color:#3E6C8E}
+  @media print{.wrap{padding:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="eyebrow">Self-check · 必刷题板块 · 自检报告</p>
+  <h1>「必刷题」板块 · 交付自检报告</h1>
+  <p class="lead">纯刷题板块（只放题目与解析）：220 道计算机面试与 408 考研经典题，8 大科目、7 种题型、三档难度递增，每题「专业版 + 宝宝巴士版」双解析，含筛选、错题本、收藏与进度统计。以下为逐项验收核对、分布统计、抽样对照与实机验证记录。</p>
+  <p class="meta">生成：2026-09-22 · 交付目录：<code>DELIVERY/cs-learn-site/</code> · 板块入口：#/problems（主导航「必刷题」） · 校验报告：<code>docs/problems-report.json</code> · 端到端报告：<code>docs/e2e-report.json</code></p>
+
+  <h2>一、结论摘要</h2>
+  <div class="metrics">
+    <div class="metric"><div class="v">220</div><div class="k">道题（8 大科目，去重 220/220）</div></div>
+    <div class="metric"><div class="v">74/87/59</div><div class="k">入门 / 进阶 / 冲刺 三档分布</div></div>
+    <div class="metric"><div class="v">7</div><div class="k">种题型（非清一色选择）</div></div>
+    <div class="metric"><div class="v">100%</div><div class="k">双版本解析覆盖率</div></div>
+    <div class="metric"><div class="v">8/8</div><div class="k">题库文件结构校验通过</div></div>
+    <div class="metric"><div class="v">24/24</div><div class="k">端到端交互测试（含 7 项必刷题）</div></div>
+    <div class="metric"><div class="v">17/17</div><div class="k">板块实机冒烟（含移动端）</div></div>
+    <div class="metric"><div class="v">23/23</div><div class="k">关键计算题独立复算</div></div>
+  </div>
+  <div class="card">
+    <p><span class="badge green">总体结论</span> 验收标准逐条核对<strong>全部通过</strong>：题库总量、考点覆盖、题型多样、难度递增、双版本解析、答题闭环、进度持久化、筛选检索、移动端可用与维护文档均已就绪；写作与复核由主线完成（子代理通道在 20 分钟运行上限内产出不足，已如实记录于工作台，详见第六节）。</p>
+  </div>
+
+  <h2>二、验收标准逐项核对</h2>
+  <table>
+    <tr><th style="width:24%">验收标准</th><th style="width:9%">结论</th><th>证据</th></tr>
+    <tr><td>独立「必刷题」板块入口，板块内只有题目与解析</td><td class="ok">通过</td><td>主导航「必刷题」+ 首页横幅 + 页脚入口；路由 <code>#/problems</code>（题库 / 错题本 / 收藏 / 统计四个页签，无课程形态内容）；见下方截图与站内实测。</td></tr>
+    <tr><td>题库总量 ≥200 且不重复，每题唯一编号</td><td class="ok">通过</td><td>总计 <strong>220 题</strong>；题干指纹去重 <strong>220/220（重复 0）</strong>；编号 <code>pb-&lt;科目&gt;-NNN</code> 唯一且连续；<code>node tools/validate-problems.js</code> 输出见第五节。</td></tr>
+    <tr><td>覆盖 408 四大科目 + 编程/算法/数据库/智力场景</td><td class="ok">通过</td><td>8 大科目：数据结构 30 / 计算机组成原理 30 / 操作系统 30 / 计算机网络 30 / 编程语言基础 25 / 算法与复杂度 30 / 数据库 25 / 智力·场景面试 20（交叉矩阵见第三节）。</td></tr>
+    <tr><td>题型多样（≥5 种），每种有实际题目</td><td class="ok">通过</td><td>7 种：单选 81 / 多选 25 / 判断 30 / 填空 27 / 简答 27 / 代码算法 15 / 复杂度分析 15；分布见第三节。</td></tr>
+    <tr><td>难度分三档且整体由易到难递增</td><td class="ok">通过</td><td>入门 74 / 进阶 87 / 冲刺 59；每科文件内按难度升序排序（校验器强检），默认刷题顺序即「入门 → 进阶 → 冲刺」分块推进。</td></tr>
+    <tr><td>每题都有专业版与宝宝巴士版解析</td><td class="ok">通过</td><td>覆盖率 100%（校验器逐题检查两版非空、字数下限）；复核阶段对 8 科目抽样细读 12 题，两版结论一致、答案同一（见第四节对照样例）。</td></tr>
+    <tr><td>答题—判分—看解析闭环可用</td><td class="ok">通过</td><td>端到端测试：「答题判分 + 双版本解析切换」「答错自动进错题本」通过；客观题（单选/多选/判断/填空）即时判分并展示正确答案，主观题（简答/代码/复杂度）对照参考答案自评；答错不会被吞掉。</td></tr>
+    <tr><td>作答记录与进度持久记录、可追踪</td><td class="ok">通过</td><td>localStorage 键 <code>cslearn.problems.v1</code>（与课程记录分离）；「刷新后记录仍在」「进度统计与本地台账一致」实测通过；提供错题本、收藏、统计界面与 JSON/CSV 导出、一键清空。</td></tr>
+    <tr><td>可按科目/题型/难度/关键词筛选与检索；支持顺序、随机、错题重做</td><td class="ok">通过</td><td>四项筛选可组合、结果计数实时更新（端到端 2 项筛选联动测试通过）；顺序刷题（题组前进/后退）、随机一题、只看未做/做错、重做错题全可用（冒烟 17 项含对应断言）。</td></tr>
+    <tr><td>手机端可正常刷题</td><td class="ok">通过</td><td>390 宽移动仿真实测：阅读区无横向溢出、选项可点、双版本解析切换可用；截图为证（第五节）。</td></tr>
+    <tr><td>交付题库维护与出题规范文档</td><td class="ok">通过</td><td><code>docs/problems-guide.md</code>：字段结构、新增题目完整流程、难度评定标准、双版本解析写作规范、文案禁区与校验命令（不看代码也能加题）。</td></tr>
+    <tr><td>原始需求约束（纯刷题、不复制商业题库、主观题不自动判分、无新增账号体系）</td><td class="ok">通过</td><td>板块内无课程/章节/视频形态；题目为经典考点原创改编；主观题仅提供参考答案与自评；不设付费墙、不新建账号体系（沿用站点既有能力）。</td></tr>
+  </table>
+
+  <h2>三、科目 × 难度 × 题型分布</h2>
+  <table><tr><th>科目</th><th class="num">合计</th><th class="num">入门</th><th class="num">进阶</th><th class="num">冲刺</th><th class="num">单选</th><th class="num">多选</th><th class="num">判断</th><th class="num">填空</th><th class="num">简答</th><th class="num">代码/算法</th><th class="num">复杂度</th></tr><tr><td>数据结构</td><td class="num">30</td><td class="num">10</td><td class="num">12</td><td class="num">8</td><td class="num">10</td><td class="num">3</td><td class="num">5</td><td class="num">5</td><td class="num">3</td><td class="num">2</td><td class="num">2</td></tr><tr><td>计算机组成原理</td><td class="num">30</td><td class="num">10</td><td class="num">12</td><td class="num">8</td><td class="num">12</td><td class="num">4</td><td class="num">4</td><td class="num">4</td><td class="num">3</td><td class="num">0</td><td class="num">3</td></tr><tr><td>操作系统</td><td class="num">30</td><td class="num">10</td><td class="num">12</td><td class="num">8</td><td class="num">11</td><td class="num">3</td><td class="num">5</td><td class="num">4</td><td class="num">4</td><td class="num">0</td><td class="num">3</td></tr><tr><td>计算机网络</td><td class="num">30</td><td class="num">10</td><td class="num">12</td><td class="num">8</td><td class="num">13</td><td class="num">4</td><td class="num">4</td><td class="num">4</td><td class="num">3</td><td class="num">0</td><td class="num">2</td></tr><tr><td>编程语言基础</td><td class="num">25</td><td class="num">9</td><td class="num">10</td><td class="num">6</td><td class="num">10</td><td class="num">3</td><td class="num">3</td><td class="num">3</td><td class="num">3</td><td class="num">3</td><td class="num">0</td></tr><tr><td>算法与复杂度</td><td class="num">30</td><td class="num">9</td><td class="num">12</td><td class="num">9</td><td class="num">8</td><td class="num">3</td><td class="num">3</td><td class="num">2</td><td class="num">2</td><td class="num">7</td><td class="num">5</td></tr><tr><td>数据库</td><td class="num">25</td><td class="num">9</td><td class="num">10</td><td class="num">6</td><td class="num">9</td><td class="num">3</td><td class="num">3</td><td class="num">3</td><td class="num">4</td><td class="num">3</td><td class="num">0</td></tr><tr><td>智力·场景面试</td><td class="num">20</td><td class="num">7</td><td class="num">7</td><td class="num">6</td><td class="num">8</td><td class="num">2</td><td class="num">3</td><td class="num">2</td><td class="num">5</td><td class="num">0</td><td class="num">0</td></tr><tr class="total"><td>总计</td><td class="num">220</td><td class="num">74</td><td class="num">87</td><td class="num">59</td><td class="num">81</td><td class="num">25</td><td class="num">30</td><td class="num">27</td><td class="num">27</td><td class="num">15</td><td class="num">15</td></tr></table>
+  <p class="meta">数据来源：<code>node tools/validate-problems.js --json docs/problems-report.json</code>（含去重核验与全局门槛检查，全部通过）。</p>
+
+  <h2>四、抽样对照样例（每科目 1 题，数据直接取自题库文件）</h2>
+  <p class="meta">覆盖单选 / 填空 / 简答 / 代码多种题型；完整 220 题可在站内浏览（#/problems）。</p>
+  <div class="sample"><div class="s-head"><span class="badge">数据结构</span><span class="badge sand">单选</span><span class="badge">难度 2</span><span class="meta"><code>pb-ds-020</code> · 考点：栈的应用</span></div><p class="s-stem">将中缀表达式 a + b * c - d 转换为后缀（逆波兰）表达式，结果是：</p><ul class="s-opts"><li>A. a b c * + d -</li><li>B. a b + c * d -</li><li>C. a b c + * d -</li><li>D. a b c d * + -</li></ul><p class="s-ans">答案：<strong>A</strong></p><div class="s-exp"><div class="s-label">专业版解析</div><div class="s-body">按运算优先级与结合性加括号：( ( a + ( b * c ) ) - d )。转后缀时把运算符移到对应括号外：b*c 得 b c *；(a + [bc*]) 得 a (bc*) +；最后整体减 d 得 a (bc*+) d -，即 a b c * + d -。易错点：乘法优先级高于加减，a + b * c 的正确转法是先算 b*c；另外后缀表达式求值时从左到右扫描、遇运算符弹两个操作数，检验结果时可反向计算一遍。</div></div><div class="s-exp kid"><div class="s-label">宝宝巴士版解析</div><div class="s-body">中缀表达式是「人话版」：a + b * c - d；后缀表达式是「先干活、后报账」：ab c 先乘，结果再和 a 相加，最后减 d。判断口诀：先按「乘除优先」加好括号，再把每个运算符挪到它管的那个括号后面，去掉括号，就是逆波兰式。</div></div></div>
+<div class="sample"><div class="s-head"><span class="badge">计算机组成原理</span><span class="badge sand">填空</span><span class="badge">难度 2</span><span class="meta"><code>pb-co-013</code> · 考点：校验码</span></div><p class="s-stem">采用偶校验时，发送方在数据位后添加校验位，使得整个码字（数据位 + 校验位）中 1 的总个数为 ____（填「奇数」或「偶数」）。</p><p class="s-ans">答案：<strong>偶数 / 偶数个</strong></p><div class="s-exp"><div class="s-label">专业版解析</div><div class="s-body">偶校验规则：使码字中 1 的总个数为偶数（包括 0 个 1）。发送方统计数据位中 1 的个数，若已是偶数则校验位填 0，否则填 1。接收方重新统计，若为奇数则判定传输出错。相应地，奇校验使 1 的总个数为奇数。易错点：奇/偶校验的定义对象是「整个码字中 1 的个数」，而不是「校验位本身的取值」；两种规则不要记反。</div></div><div class="s-exp kid"><div class="s-label">宝宝巴士版解析</div><div class="s-body">偶校验像约定「全班举手的人数必须是偶数」。出发前队长数一数：如果已经是偶数就让校验员不动；如果是奇数，校验员也举一只手凑成偶数。到达后重新数：人数变成奇数，说明路上有人把「手」掉了——发现异常。</div></div></div>
+<div class="sample"><div class="s-head"><span class="badge">操作系统</span><span class="badge sand">单选</span><span class="badge">难度 2</span><span class="meta"><code>pb-os-018</code> · 考点：分页存储</span></div><p class="s-stem">某系统页面大小为 4KB，逻辑地址（十进制）为 8196，则其页号是：</p><ul class="s-opts"><li>A. 0</li><li>B. 1</li><li>C. 2</li><li>D. 3</li></ul><p class="s-ans">答案：<strong>C</strong></p><div class="s-exp"><div class="s-label">专业版解析</div><div class="s-body">4KB = 4096 字节，页内偏移占 12 位。页号 = 8196 ÷ 4096 = 2（整除部分），页内偏移 = 8196 - 2×4096 = 4。换算成二进制更直观：8196 = 0b10 0000 0000 0100 → 高 20 位是页号（值为 2），低 12 位是偏移（值为 4）。易错点：页号从 0 开始编号；除法的余数不是页号而是偏移；若题目给 16 进制地址，直接按位数切分更快。</div></div><div class="s-exp kid"><div class="s-label">宝宝巴士版解析</div><div class="s-body">页面大小 4KB，就像每个抽屉装 4096 颗糖。现在数到第 8196 颗糖：第 1 个抽屉装 0 到 4095 颗，第 2 个抽屉装 4096 到 8191 颗，第 8196 颗在第 3 个抽屉里。抽屉编号从 0 数起：第 3 个抽屉编号是 2。所以页号 = 2。</div></div></div>
+<div class="sample"><div class="s-head"><span class="badge">计算机网络</span><span class="badge sand">简答</span><span class="badge">难度 3</span><span class="meta"><code>pb-net-025</code> · 考点：TCP连接</span></div><p class="s-stem">简述 TCP 三次握手的完整过程，并说明「为什么需要三次而不是两次」。</p><p class="s-ans">答案：<strong>过程：第一次，客户端发送 SYN=1、seq=x，进入 SYN-SENT；第二次，服务器回复 SYN=1、ACK=1、seq=y、ack=x+1，进入 SYN-RCVD；第三次，客户端发送 ACK=1、ack=y+1，双方进入 ESTABLISHED。需要三次的原因：防止已失效的旧连接请求报文突然到达服务器造成错误连接——若只有两次，服务器收到一个滞留在网络中的旧 SYN 后就会直接建立连接并分配资源，而客户端并不会响应，导致服务器资源被白白占用；三次握手让服务器在收到第三次确认前不建立连接，相当于客户端的一次「最终确认」，使双方都确认「对方确实要通信且双方收发能力正常」。</strong></p><div class="s-exp"><div class="s-label">专业版解析</div><div class="s-body">从「过程」与「为什么」两方面作答。过程按报文标志与状态机描述：SYN → SYN+ACK → ACK，同时交代序号细节（SYN 消耗一个序号，第三次的 ack=y+1）。为什么三次：核心是抵御「历史重复 SYN」的干扰——网络中的旧报文可能延迟到达，若两次握手即建立连接，服务器会被死连接的半开状态拖累（资源泄漏甚至被 SYN 洪泛放大利用）；三次握手下，服务器把「分配连接资源的时机」推迟到收到确认之后，未确认的半连接只保留极轻量的状态。易错点：第三个报文可以携带数据；前两个不可以；SYN 洪泛攻击（SYN flood）正是利用半连接状态，对策之一是 SYN cookie。</div></div><div class="s-exp kid"><div class="s-label">宝宝巴士版解析</div><div class="s-body">三次握手像打电话确认：「喂，听得到吗？」（我发你听）→「听得到，你听得到我吗？」（你发我听）→「听得到！」（收尾确认）。为什么不能只打两次？因为电话线里可能飘着一段很早以前的旧录音——如果你一喊「听得到吗」它就冒充我回「听得到」，你就以为我在听，其实人早走了，白等一场还占着线路。多问一轮「你听得到我吗」，就没人能冒名顶替了。</div></div></div>
+<div class="sample"><div class="s-head"><span class="badge">编程语言基础</span><span class="badge sand">单选</span><span class="badge">难度 1</span><span class="meta"><code>pb-pl-009</code> · 考点：浮点数</span></div><p class="s-stem">在多数采用 IEEE754 浮点数的语言中，表达式 0.1 + 0.2 == 0.3 的结果是：</p><ul class="s-opts"><li>A. true</li><li>B. false</li><li>C. 抛出异常</li><li>D. 取决于操作系统</li></ul><p class="s-ans">答案：<strong>B</strong></p><div class="s-exp"><div class="s-label">专业版解析</div><div class="s-body">0.1、0.2、0.3 在二进制浮点中大多无法精确表示（它们换算成二进制是无限循环小数），0.1 + 0.2 的实际结果约为 0.30000000000000004，因此与字面量 0.3 不相等，表达式为 false。正确做法：浮点比较应使用误差容忍（如 |a-b| &lt; 1e-9），或改用十进制精确类型（如 Python decimal、Java BigDecimal）。易错点：这不是语言 bug，而是二进制基数的固有限制；整数运算在 2^53 范围内不受影响。</div></div><div class="s-exp kid"><div class="s-label">宝宝巴士版解析</div><div class="s-body">把 0.1 想成「三分之一」：十进制里写不出来整数，二进制里 0.1 也写不干净，只能存一个「极接近版」。两个极接近版相加，误差攒成了 0.30000000000000004——就差那么一丁点（约 4×10⁻¹⁷）。所以程序里比小数，别用 == 死磕，要允许一点点误差（比如「差得小于一亿分之一就算相等」）。</div></div></div>
+<div class="sample"><div class="s-head"><span class="badge">算法与复杂度</span><span class="badge sand">代码/算法</span><span class="badge">难度 2</span><span class="meta"><code>pb-algo-019</code> · 考点：链表</span></div><p class="s-stem">实现反转单链表的函数，返回新的头结点，并说明复杂度。（语言不限，请注明）</p><p class="s-ans">答案：<strong>参考实现（JavaScript）：
+function reverseList(head) {
+  let prev = null, cur = head;
+  while (cur) {
+    const next = cur.next;
+    cur.next = prev;
+    prev = cur;
+    cur = next;
+  }
+  return prev;
+}
+时间复杂度 O(n)：每个结点访问一次；额外空间 O(1)：只用了三个指针。</strong></p><div class="s-exp"><div class="s-label">专业版解析</div><div class="s-body">迭代法三步循环：保存后继（next）、反转指针（cur.next = prev）、向前推进（prev/cur 前移）。返回的 prev 即新头结点（原尾结点）。正确性直觉：把「箭头」一格格掰向反方向，循环结束时所有指针已反转。易错点：忘记先保存 next 会「断链」找不到后继；返回 head 而不是 prev；空链表与单结点链的边界（空链表时循环不执行、返回 null，正确）。递归写法（head.next.next = head; head.next = null）也行但空间 O(n)，面试中两版都建议准备。</div></div><div class="s-exp kid"><div class="s-label">宝宝巴士版解析</div><div class="s-body">反转链表像把一列「单向火车」调头：每节车厢只认「后面一节」。你做调头指挥：把每节的「下节车厢」指针扭向「上一节」，然后带着三个小旗子（上一节、当前节、下一节）整体前移一格。全部扭完，最后一节就成了新的车头。小心：先把「下一节」记下来再扭指针，不然就迷路了。</div></div></div>
+<div class="sample"><div class="s-head"><span class="badge">数据库</span><span class="badge sand">单选</span><span class="badge">难度 2</span><span class="meta"><code>pb-db-011</code> · 考点：索引原理</span></div><p class="s-stem">MySQL InnoDB 存储引擎的索引底层采用的主要数据结构是：</p><ul class="s-opts"><li>A. 哈希表</li><li>B. B+ 树</li><li>C. 二叉搜索树</li><li>D. 跳表</li></ul><p class="s-ans">答案：<strong>B</strong></p><div class="s-exp"><div class="s-label">专业版解析</div><div class="s-body">InnoDB 索引的底层是 B+ 树：非叶结点只存键值、不存数据，一次磁盘 IO 能读入更多键，树更矮（千万级数据通常 3 层左右）；所有数据都在叶子结点且叶子间用链表相连，范围查询高效稳定。为什么不用其他结构：哈希索引不支持范围查询与排序（等值快但场景窄）；二叉树/红黑树树高受限于 2 叉，磁盘 IO 次数多；跳表多用于内存结构（如 Redis）。易错点：Memory 引擎默认哈希索引、MyISAM 也用 B+ 树（但叶子存数据地址、非聚簇）；InnoDB 主键索引是聚簇索引（叶子即数据行）。</div></div><div class="s-exp kid"><div class="s-label">宝宝巴士版解析</div><div class="s-body">B+ 树像一个「矮胖的图书馆索引柜」：每一层的抽屉里只放「编号范围指引牌」（不塞书），所以一层能装下超多指引，三层就够找到千万本里的任何一本。找到楼层后，所有书其实都摆在最底层的书架上，而且书架之间手拉手连着——想找「从 A 书到 C 书」一整排，顺着走就行。矮（少跑腿）、全在底层（找谁都一样快），这就是它被选中的原因。</div></div></div>
+<div class="sample"><div class="s-head"><span class="badge">智力·场景面试</span><span class="badge sand">简答</span><span class="badge">难度 2</span><span class="meta"><code>pb-brain-013</code> · 考点：系统设计</span></div><p class="s-stem">简述一致性哈希（Consistent Hashing）的基本思想，以及它解决了什么问题。</p><p class="s-ans">答案：<strong>基本思想：把哈希值空间组织成一个环（如 0 ~ 2³²-1），将缓存节点（或分片）与数据键都通过哈希映射到环上；数据键顺时针找到的第一个节点即为其归属节点。解决的问题：普通「取模分片」（hash % N）在节点数量变化时几乎全部映射失效（缓存雪崩式重建）；一致性哈希在增删一个节点时，只影响环上相邻区间的数据（约 1/N 的数据需要迁移），其余映射保持稳定。改进：引入「虚拟节点」——每个物理节点映射成多个虚拟节点散布在环上，缓解数据倾斜（节点少时分布不均）与负载不均问题。</strong></p><div class="s-exp"><div class="s-label">专业版解析</div><div class="s-body">按「问题 → 方案 → 优化」三段作答：问题段点明取模分片的痛点（N 变化引起全量重映射）；方案段描述环结构、顺时针归属与增删只影响局部的性质（迁移量 ≈ 1/N）；优化段引入虚拟节点解决倾斜，并说明工程细节（副本数、单调性、负载均衡评价）。补充对比：与「哈希槽」（Redis Cluster 的 16384 槽）思路相通——先分槽再分配槽位，扩缩容时搬迁槽。易错点：把一致性哈希说成「让数据分布绝对均匀」（它只保证稳定性，均匀性靠虚拟节点改善）；忽略「时钟方向」与「为什么是 1/N」的推导。</div></div><div class="s-exp kid"><div class="s-label">宝宝巴士版解析</div><div class="s-body">普通分片像「固定 4 个格子分糖果」：糖果按「编号除以 4 的余数」进格。一旦加了一格（变 5 格），几乎所有糖果都要重新分——乱成一锅粥。一致性哈希把格子摆成一个「圆环」：每颗糖果沿着环往前走，遇到的第一个格子就是它的家。加一个格子时，只有它「插队」位置前后的那一小段糖果需要挪窝（大约 1/N），其余原地不动。小补丁：一个节点变成环上好多个「分身」（虚拟节点），免得一段糖果全挤到一个格子。</div></div></div>
+
+  <h2>五、实机验证记录</h2>
+  <h3>5.1 结构校验（tools/validate-problems.js）</h3>
+  <p>8 个科目文件全部 PASS：字段完整性、ID 连续与唯一、答案与选项合法性、双解析字数与禁用词（emoji / 外链 / HTML / 繁体字提示）、题量精确（30/30/30/30/25/30/25/20）、三档难度每科 ≥3、每科题型 ≥4、全库去重 220/220。</p>
+  <h3>5.2 端到端交互测试（tools/e2e.js，24/24 通过）</h3>
+  <p>必刷题相关 7 项：题库列表与页签 / 难度筛选联动 / 题型筛选联动 / 答题判分 + 双解析切换 / 答错自动进错题本 / 进度统计与本地台账一致 / 流程无 JS 异常。课程与站点原有 17 项全部保持通过（无回归）。</p>
+  <h3>5.3 板块实机冒烟（tools/_psmoke.js，17/17 通过）</h3>
+  <p>入口渲染、科目筛选、单题渲染、提交判分、双解析切换、localStorage 写入、刷新持久化、错题本、收藏、统计页、未做筛选、随机一题、顺序题组、移动端两项、三字母科目标签、无 JS 异常。</p>
+  <h3>5.4 关键计算题独立复算（23/23 通过）</h3>
+  <p>对全库计算类题目独立重算复核，例：哈夫曼 WPL=33、FIFO 缺页=9（且 4 块时 10 次，Belady 反例成立）、SJF 平均等待=4、完全二叉树 n=1000 叶子=500、/26 可用主机=62、香农公式≈30kbps、流水线 312ns、Cache AMAT 7→4ns（提升 42.9%）、二分最多 7 次、发送时延 800μs、生日悖论 23 人 >50%、过桥 17 分钟等，全部与题库答案一致。</p>
+  <h3>5.5 实机截图（docs/screenshots/problems/）</h3>
+  <figure><img src="screenshots/problems/problems-hub-desktop.png" alt="必刷题题库主页（桌面）" /><figcaption>桌面 1440×900：题库主页——指标条、模式按钮、四项筛选、220 题列表。</figcaption></figure>
+  <figure><img src="screenshots/problems/problems-quiz-desktop.png" alt="单题作答与解析（桌面）" /><figcaption>桌面：答题后即时判分 + 「专业版 / 宝宝巴士版」解析切换（答错场景）。</figcaption></figure>
+  <figure class="mob"><img src="screenshots/problems/problems-hub-mobile.png" alt="必刷题主页（移动端 390 宽）" /><figcaption>移动端 390 宽：筛选栏与列表完整可读，无横向滚动。</figcaption></figure>
+  <figure class="mob"><img src="screenshots/problems/problems-quiz-mobile.png" alt="单题与宝宝巴士版解析（移动端）" /><figcaption>移动端：宝宝巴士版解析切换可用。</figcaption></figure>
+
+  <h2>六、复核方法与修复记录</h2>
+  <p>复核方式：主线完成数字复算（独立重算 23 项）、全库 220 条题干通读、8 科目 12 题抽样细读。</p>
+  <p>说明：题库写作与复核原计划由子代理分批完成，实测 4 路子代理均在 20 分钟运行上限超时且产出近乎为零（输出 tokens ≤407，未落盘）；据此改为「主线直写 + 主线复核」，并已记录于工作台（<code>plan.md</code> 执行记录）。</p>
+  <div class="fix"><span class="t">修复 1 · 科目键解析</span>：三字母科目（net/algo/brain）在统计矩阵与题卡上取科目名错误（取到 "ne"/"al"/"br"）——修正校验器与前端的分割逻辑，并补充专项断言（冒烟「三字母科目标签完整」）。</div>
+  <div class="fix"><span class="t">修复 2 · 考点标签字数</span>：两处考点标签不足 2 字（如「栈」「堆」）——改为「出栈序列」「二叉堆」。</div>
+  <div class="fix"><span class="t">修复 3 · 题干过短</span>：一处题干 8 字低于 10 字下限——扩写为完整题干。</div>
+  <div class="fix"><span class="t">修复 4 · 填空答案变体超限</span>：一处填空答案 5 个变体超过 4 上限——精简为 4 个。</div>
+  <div class="fix"><span class="t">修复 5 · 繁体字与扫描器</span>：一处「誰」改为简体，并将「疑似繁体字」检查固化进校验器（全库现为零告警）。</div>
+  <div class="fix"><span class="t">修复 6 · 测试脚本转义</span>：e2e 两处筛选断言正则过度转义导致误报（功能本身正常）——改为数值解析并重跑通过。</div>
+  <div class="fix"><span class="t">修复 7 · 截图环境</span>：测试用无头浏览器残留进程曾污染截图状态——清理 86 个残留进程后重拍，主页恢复「0/220」全新状态。</div>
+
+  <h2>七、维护入口</h2>
+  <ul>
+    <li>出题与维护规范：<code>docs/problems-guide.md</code>（新增一道题的完整流程、难度标准、双解析写法、文案禁区）。</li>
+    <li>题库文件：<code>content/problems/&lt;科目&gt;.json</code>（8 科交卷 + 由构建脚本生成的 <code>manifest.json</code>）。</li>
+    <li>校验命令：<code>node tools/validate-problems.js</code>（全库） / <code>--file &lt;文件&gt;</code>（单科自查）；构建：<code>node tools/build.js</code>。</li>
+    <li>站点接入：导航与路由已挂在 <code>js/app.js</code>；板块代码为 <code>js/problems.js</code>、<code>js/views-problems.js</code>、<code>css/problems.css</code>。</li>
+  </ul>
+
+  <p class="meta">本报告由 <code>_mkcheck.js</code> 从真实题库与校验产物自动生成，分布与样例数据与线上题库一致。相关文件：docs/problems-guide.md · docs/problems-report.json · docs/e2e-report.json · docs/screenshots/problems/。</p>
+</div>
+</body>
+</html>

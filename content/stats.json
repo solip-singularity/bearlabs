@@ -1,5 +1,5 @@
 {
-  "updatedAt": 1790007140557,
+  "updatedAt": 1790013403350,
   "courses": 11,
   "chapters": 116,
   "chaptersLoaded": 116,
@@ -107,5 +107,9 @@
       "minutes": 345
     }
   },
-  "missing": []
+  "missing": [],
+  "problems": {
+    "total": 220,
+    "subjects": 8
+  }
 }

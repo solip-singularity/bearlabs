@@ -72,6 +72,40 @@ function main() {
     search.unshift({ t: c.title, s: '课程 · ' + (c.level || ''), u: '#/course/' + c.id, k: [c.title, c.short || '', c.level || ''].join(' ') });
   });
 
+  /* 「必刷题」统计与清单（content/problems/manifest.json） */
+  try {
+    const problemsDir = path.join(CONTENT, 'problems');
+    const SUBJ_META = [
+      ['ds', '数据结构'], ['co', '计算机组成原理'], ['os', '操作系统'], ['net', '计算机网络'],
+      ['pl', '编程语言基础'], ['algo', '算法与复杂度'], ['db', '数据库'], ['brain', '智力·场景面试'],
+    ];
+    const problemsManifest = { total: 0, subjects: [], index: [] };
+    SUBJ_META.forEach(([id, name]) => {
+      const f = path.join(problemsDir, id + '.json');
+      if (!fs.existsSync(f)) return;
+      const data = readJSON(f, null);
+      if (!data || !Array.isArray(data.questions)) return;
+      const byDifficulty = { 1: 0, 2: 0, 3: 0 };
+      const byType = {};
+      data.questions.forEach((q) => {
+        byDifficulty[q.difficulty] = (byDifficulty[q.difficulty] || 0) + 1;
+        byType[q.type] = (byType[q.type] || 0) + 1;
+        problemsManifest.index.push({ id: q.id, s: id, tp: q.topic, ty: q.type, df: q.difficulty, stem: q.stem });
+      });
+      problemsManifest.subjects.push({ id, name, desc: data.desc || '', count: data.questions.length, byDifficulty, byType });
+    });
+    problemsManifest.index.sort((a, b) => (a.df - b.df)
+      || (SUBJ_META.findIndex((x) => x[0] === a.s) - SUBJ_META.findIndex((x) => x[0] === b.s))
+      || (a.id < b.id ? -1 : 1));
+    problemsManifest.total = problemsManifest.index.length;
+    if (problemsManifest.total > 0) {
+      fs.writeFileSync(path.join(problemsDir, 'manifest.json'), JSON.stringify(problemsManifest));
+      stats.problems = { total: problemsManifest.total, subjects: problemsManifest.subjects.length };
+    }
+  } catch (e) {
+    console.log('  [warn] 必刷题统计失败：' + e.message);
+  }
+
   fs.writeFileSync(path.join(CONTENT, 'stats.json'), JSON.stringify(stats, null, 2));
   fs.writeFileSync(path.join(CONTENT, 'search-index.json'), JSON.stringify(search));
 
@@ -79,6 +113,7 @@ function main() {
   console.log('  课程 ' + stats.courses + ' 门，章节 ' + stats.chaptersLoaded + '/' + stats.chapters + ' 已落盘');
   console.log('  习题 ' + stats.exercises + ' 道，正文累计约 ' + (stats.words / 10000).toFixed(1) + ' 万字');
   console.log('  演示 ' + stats.demos + ' 个');
+  if (stats.problems) console.log('  必刷题 ' + stats.problems.total + ' 题（' + stats.problems.subjects + ' 个科目，manifest 已更新）');
   if (stats.missing.length) {
     console.log('  缺口章节（' + stats.missing.length + '）：' + stats.missing.slice(0, 30).join(', ') + (stats.missing.length > 30 ? ' …' : ''));
   }

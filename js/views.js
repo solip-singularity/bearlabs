@@ -336,6 +336,7 @@ var Views = (function () {
       grid.appendChild(statTile('16', '个交互演示'));
     }
     cont.appendChild(grid);
+    if (window.Views && window.Views.problemsBanner) cont.appendChild(window.Views.problemsBanner());
     if (all) {
       cont.appendChild(el('div', { class: 'row-between mt-12' }, [
         el('div', {}, [el('p', { class: 'eyebrow', text: '课程目录' }), el('h2', { text: '十一门课，从入门到研究生导读' })]),
@@ -1176,7 +1177,8 @@ var Views = (function () {
       '<h4>学习方式</h4><ul>' +
       '<li>从<a href="#/paths">学习路径</a>选一条线，按顺序学；或直接进<a href="#/courses">课程目录</a>挑感兴趣的主题。</li>' +
       '<li>每讲读完做一遍习题：选择题、判断题可即时判分；推导、设计、编程题对照完整解答自评。</li>' +
-      '<li>把「标记本讲完成」点亮，学习进度、时长、错题都会记入<a href="#/dashboard">进度面板</a>。</li></ul>' +
+      '<li>把「标记本讲完成」点亮，学习进度、时长、错题都会记入<a href="#/dashboard">进度面板</a>。</li>' +
+      '<li>想先刷题？直接去<a href="#/problems">必刷题</a>板块：220 道面试与 408 经典题，做完看双版本解析，再决定要不要系统学课。</li></ul>' +
       '<h4>数据与隐私</h4><p>学习数据默认只保存在你当前浏览器的本地存储里，不会上传到任何地方。你可以随时导出 JSON/CSV 备份，也可以在启动本地服务后使用可选的账号同步功能跨设备同步。</p>' +
       '<h4>技术说明</h4><p>本站为纯前端静态应用 + 可选轻量 Node 服务（无第三方依赖）：内容以结构化 JSON 组织，交互演示基于原生 Canvas/SVG 实现，支持键盘操作与低性能设备的分步降级。</p>' +
       '<h4>反馈与扩展</h4><p>想新增课程、章节、题目或演示？请参考项目文档中的《内容维护指南》（docs/AUTHORING-GUIDE.md）与《交接说明》（docs/handoff.html）。</p>'

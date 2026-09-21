@@ -23,6 +23,9 @@ jobs:
       - name: 内容校验
         run: node tools/validate-content.js --all
 
+      - name: 必刷题题库校验
+        run: node tools/validate-problems.js
+
       - name: 生成统计与搜索索引
         run: node tools/build.js
 

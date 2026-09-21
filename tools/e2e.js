@@ -258,6 +258,44 @@ async function main() {
     const csv = await evl("(function(){ try { return Store.exportCSV_exercises().split('\\r\\n').length; } catch(e) { return 'ERR:'+e.message; } })()");
     check('答题记录可导出 CSV', typeof csv === 'number' && csv >= 2, 'csvLines=' + csv);
 
+    /* ── 15. 必刷题板块 ── */
+    await goto('#/problems');
+    await waitFor("document.querySelectorAll('.pb-row').length >= 20", 20000, '必刷题题库列表');
+    const pbHub = await evl("(function(){ return { rows: document.querySelectorAll('.pb-row').length, tabs: document.querySelectorAll('.pb-tabs a').length, count: (document.querySelector('.pb-count')||{}).textContent||'' }; })()");
+    check('必刷题：题库列表与页签', !!(pbHub && pbHub.rows >= 20 && pbHub.tabs === 4 && /共 \d+ 题/.test(pbHub.count)), JSON.stringify(pbHub));
+
+    await evl("(function(){ var s=document.querySelector('.pb-f-diff'); s.value='3'; s.dispatchEvent(new Event('change',{bubbles:true})); return true; })()");
+    await sleep(450);
+    const pbDiffCount = await evl("document.querySelector('.pb-count').textContent");
+    const pbDiffN = Number(String(pbDiffCount || '').replace(/[^0-9]/g, ''));
+    check('必刷题：难度筛选联动（冲刺档非空）', pbDiffN > 0, pbDiffCount);
+
+    await evl("(function(){ var s=document.querySelector('.pb-f-diff'); s.value='all'; s.dispatchEvent(new Event('change',{bubbles:true})); var s2=document.querySelector('.pb-f-type'); s2.value='single'; s2.dispatchEvent(new Event('change',{bubbles:true})); return true; })()");
+    await sleep(450);
+    const pbTypeCount = await evl("document.querySelector('.pb-count').textContent");
+    const pbTypeN = Number(String(pbTypeCount || '').replace(/[^0-9]/g, ''));
+    check('必刷题：题型筛选联动（单选）', pbTypeN > 0, pbTypeCount);
+
+    await evl("document.querySelector('.pb-row').click();");
+    await waitFor("document.querySelector('.pb-quiz') && document.querySelectorAll('.pb-opt').length >= 3", 15000, '必刷题单题');
+    await evl("(function(){ document.querySelectorAll('.pb-opt')[0].click(); document.querySelector('.pb-submit').click(); return true; })()");
+    await waitFor("document.querySelector('.pb-verdict')", 8000, '必刷题判分');
+    const pbV = await evl("(function(){ var v=document.querySelector('.pb-verdict'); var t=document.querySelectorAll('.pb-exp-toggle button'); var before=document.querySelector('.pb-exp-body').textContent; t[1].click(); var after=document.querySelector('.pb-exp-body').textContent; return { v: v? v.textContent.slice(0,20):'', toggle: before !== after }; })()");
+    check('必刷题：答题判分 + 双版本解析切换', !!(pbV && /回答|已记录/.test(pbV.v) && pbV.toggle), JSON.stringify(pbV));
+
+    await goto('#/problems/wrong');
+    await sleep(650);
+    const pbWrongRows = await evl("document.querySelectorAll('.pb-row').length");
+    check('必刷题：答错自动进错题本', pbWrongRows >= 1, 'rows=' + pbWrongRows);
+
+    await goto('#/problems/stats');
+    await waitFor("document.querySelector('.pb-statgrid')", 12000, '必刷题统计页');
+    const pbStat = await evl("(function(){ var n=[].slice.call(document.querySelectorAll('.pb-statgrid .st-num')).map(function(x){return x.textContent;}); var s={}; try { s=JSON.parse(localStorage.getItem('cslearn.problems.v1')||'{}'); } catch(e){} return { done: n[1], attempts: Object.keys((s||{}).attempts||{}).length }; })()");
+    check('必刷题：进度统计与本地台账一致', !!(pbStat && Number(pbStat.done) >= 1 && pbStat.attempts >= 1), JSON.stringify(pbStat));
+
+    const critPb = jsErrors.filter((e) => !/favicon|net::ERR|404/i.test(e));
+    check('必刷题流程无 JS 异常', critPb.length === 0, critPb.slice(0, 5).join(' | '));
+
   } catch (e) {
     check('测试执行', false, String(e && e.message || e));
   } finally {

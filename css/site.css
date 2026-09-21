@@ -770,3 +770,10 @@ kbd {
 .institute-links { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
 .institute-cta { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 .institute-cta p { margin: 0; }
+
+/* ── 25. 顶栏密度（v1.3：「必刷题」新增导航项后的窄屏适配） ─────────── */
+@media (max-width: 1180px) {
+  .topnav { gap: 0; margin-left: var(--sp-2); }
+  .topnav a { padding: 8px 9px; font-size: 13.5px; }
+  .searchbox input { width: 180px; }
+}

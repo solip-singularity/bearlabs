@@ -1,0 +1,215 @@
+{
+  "at": 1790013403040,
+  "mode": "all",
+  "ok": true,
+  "stats": {
+    "total": 220,
+    "unique": 220,
+    "dupCount": 0,
+    "subjects": [
+      {
+        "id": "ds",
+        "name": "数据结构",
+        "count": 30,
+        "diff": {
+          "1": 10,
+          "2": 12,
+          "3": 8
+        },
+        "types": {
+          "single": 10,
+          "judge": 5,
+          "fill": 5,
+          "short": 3,
+          "multi": 3,
+          "code": 2,
+          "complexity": 2
+        }
+      },
+      {
+        "id": "co",
+        "name": "计算机组成原理",
+        "count": 30,
+        "diff": {
+          "1": 10,
+          "2": 12,
+          "3": 8
+        },
+        "types": {
+          "single": 12,
+          "judge": 4,
+          "fill": 4,
+          "multi": 4,
+          "short": 3,
+          "complexity": 3
+        }
+      },
+      {
+        "id": "os",
+        "name": "操作系统",
+        "count": 30,
+        "diff": {
+          "1": 10,
+          "2": 12,
+          "3": 8
+        },
+        "types": {
+          "single": 11,
+          "judge": 5,
+          "fill": 4,
+          "multi": 3,
+          "short": 4,
+          "complexity": 3
+        }
+      },
+      {
+        "id": "net",
+        "name": "计算机网络",
+        "count": 30,
+        "diff": {
+          "1": 10,
+          "2": 12,
+          "3": 8
+        },
+        "types": {
+          "single": 13,
+          "judge": 4,
+          "fill": 4,
+          "multi": 4,
+          "complexity": 2,
+          "short": 3
+        }
+      },
+      {
+        "id": "pl",
+        "name": "编程语言基础",
+        "count": 25,
+        "diff": {
+          "1": 9,
+          "2": 10,
+          "3": 6
+        },
+        "types": {
+          "single": 10,
+          "judge": 3,
+          "fill": 3,
+          "multi": 3,
+          "short": 3,
+          "code": 3
+        }
+      },
+      {
+        "id": "algo",
+        "name": "算法与复杂度",
+        "count": 30,
+        "diff": {
+          "1": 9,
+          "2": 12,
+          "3": 9
+        },
+        "types": {
+          "single": 8,
+          "judge": 3,
+          "fill": 2,
+          "multi": 3,
+          "complexity": 5,
+          "code": 7,
+          "short": 2
+        }
+      },
+      {
+        "id": "db",
+        "name": "数据库",
+        "count": 25,
+        "diff": {
+          "1": 9,
+          "2": 10,
+          "3": 6
+        },
+        "types": {
+          "single": 9,
+          "judge": 3,
+          "fill": 3,
+          "multi": 3,
+          "short": 4,
+          "code": 3
+        }
+      },
+      {
+        "id": "brain",
+        "name": "智力·场景面试",
+        "count": 20,
+        "diff": {
+          "1": 7,
+          "2": 7,
+          "3": 6
+        },
+        "types": {
+          "single": 8,
+          "judge": 3,
+          "fill": 2,
+          "short": 5,
+          "multi": 2
+        }
+      }
+    ],
+    "typeTotals": {
+      "single": 81,
+      "judge": 30,
+      "fill": 27,
+      "short": 27,
+      "multi": 25,
+      "code": 15,
+      "complexity": 15
+    },
+    "diffTotals": {
+      "1": 74,
+      "2": 87,
+      "3": 59
+    }
+  },
+  "issues": [],
+  "warnings": [],
+  "files": [
+    {
+      "file": "content/problems/ds.json",
+      "ok": true,
+      "count": 30
+    },
+    {
+      "file": "content/problems/co.json",
+      "ok": true,
+      "count": 30
+    },
+    {
+      "file": "content/problems/os.json",
+      "ok": true,
+      "count": 30
+    },
+    {
+      "file": "content/problems/net.json",
+      "ok": true,
+      "count": 30
+    },
+    {
+      "file": "content/problems/pl.json",
+      "ok": true,
+      "count": 25
+    },
+    {
+      "file": "content/problems/algo.json",
+      "ok": true,
+      "count": 30
+    },
+    {
+      "file": "content/problems/db.json",
+      "ok": true,
+      "count": 25
+    },
+    {
+      "file": "content/problems/brain.json",
+      "ok": true,
+      "count": 20
+    }
+  ]
+}
