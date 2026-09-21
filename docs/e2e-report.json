@@ -1,5 +1,5 @@
 {
-  "at": 1790007175924,
+  "at": 1790008422876,
   "base": "http://127.0.0.1:8642",
   "results": [
     {
@@ -25,7 +25,7 @@
     {
       "name": "答题与章节访问已写入本地存储",
       "ok": true,
-      "detail": "{\"key\":\"cslearn.progress.v1\",\"exCount\":1,\"chCount\":1,\"sample\":{\"attempts\":1,\"correct\":0,\"wrong\":1,\"lastAt\":1790007165616,\"lastAnswer\":\"A\",\"lastCorrect\":false}}"
+      "detail": "{\"key\":\"cslearn.progress.v1\",\"exCount\":1,\"chCount\":1,\"sample\":{\"attempts\":1,\"correct\":0,\"wrong\":1,\"lastAt\":1790008412573,\"lastAnswer\":\"A\",\"lastCorrect\":false}}"
     },
     {
       "name": "标记完成且刷新后数据不丢",
@@ -45,7 +45,7 @@
     {
       "name": "演示：单步前进→旁白显示→重置",
       "ok": true,
-      "detail": "{\"changed\":true,\"restored\":true,\"narrShown\":true,\"s0\":\"比较 1 次|交换 0 次|第 1 / 89 步::步骤 1 / 89比较 48 和 37\",\"s1\":\"比较 1 次|交换 1 次|第 2 / 89 步::步骤 2 / 89交换：48 与 37 换位\"}"
+      "detail": "{\"changed\":true,\"restored\":true,\"narrShown\":true,\"s0\":\"比较 1 次|交换 0 次|第 1 / 94 步::步骤 1 / 94比较 71 和 31\",\"s1\":\"比较 1 次|交换 1 次|第 2 / 94 步::步骤 2 / 94交换：71 与 31 换位\"}"
     },
     {
       "name": "站内搜索返回结果",

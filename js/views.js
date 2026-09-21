@@ -113,11 +113,9 @@ var Views = (function () {
     opts = opts || {};
     const chapterIds = c._loaded ? Data.flatten(c).map((x) => x.chapter.id) : [];
     const prog = chapterIds.length ? Store.courseProgress(chapterIds) : { done: 0, total: 0, pct: 0 };
-    const a = el(opts.step ? 'div' : 'a', { class: 'card card-hover course-card' });
-    if (!opts.step) {
-      if (c._loaded) a.setAttribute('href', '#/course/' + c.id);
-      else a.setAttribute('aria-disabled', 'true');
-    }
+    const a = el(c._loaded ? 'a' : 'div', { class: 'card card-hover course-card' });
+    if (c._loaded) a.setAttribute('href', '#/course/' + c.id);
+    else a.setAttribute('aria-disabled', 'true');
     const top = el('div', { class: 'cc-top' });
     top.appendChild(courseIcon(c));
     top.appendChild(levelChip(c));
@@ -285,7 +283,7 @@ var Views = (function () {
     left.appendChild(el('p', { class: 'eyebrow', text: 'COMPUTER SCIENCE · 交互式学习' }));
     left.appendChild(el('p', { class: 'brand-line', text: '贝尔实验室（Bearlabs）· 计算机知识学习站 · 从入门到入坟' }));
     left.appendChild(el('h1', { text: '从 0 和 1，到会思考的机器。' }));
-    left.appendChild(el('p', { class: 'lead', text: '9 门课程、100 讲计算机知识：每讲都有「专业版 + 宝宝巴士版」双讲解、三档难度习题与完整解答；进程调度、TCP 握手、指针、排序、多态……全都能亲手玩着学。' }));
+    left.appendChild(el('p', { class: 'lead', text: '11 门课程、116 讲计算机知识：每讲都有「专业版 + 宝宝巴士版」双讲解、三档难度习题与完整解答；进程调度、TCP 握手、指针、排序、多态……全都能亲手玩着学。' }));
     const cta = el('div', { class: 'hero-cta' });
     cta.appendChild(el('a', { class: 'btn btn-primary btn-lg', href: '#/paths', text: '选择一条学习路径' }));
     cta.appendChild(el('a', { class: 'btn btn-secondary btn-lg', href: '#/demos', text: '先玩交互演示' }));
@@ -309,12 +307,12 @@ var Views = (function () {
     const bannerWrap = el('div', { class: 'hero-banner-wrap' }, [
       el('span', { class: 'hero-banner-glow', 'aria-hidden': 'true' }),
       el('div', { class: 'hero-banner' }, [
-        el('img', { class: 'hero-banner-img', src: 'assets/brand-hero.png?v=325bcbd8', alt: '贝尔实验室 Bearlabs', loading: 'eager' }),
+        el('img', { class: 'hero-banner-img', src: 'assets/brand-hero.png?v=1f8c93d2', alt: '贝尔实验室 Bearlabs', loading: 'eager' }),
       ]),
     ]);
     right.appendChild(bannerWrap);
     right.appendChild(panel);
-    right.appendChild(el('div', { class: 'hero-float', text: '9 门课程 · 100 讲 · 16 个可动手演示' }));
+    right.appendChild(el('div', { class: 'hero-float', text: '11 门课程 · 116 讲 · 16 个可动手演示' }));
     hc.appendChild(right);
     hero.appendChild(hc);
     elRoot.appendChild(hero);
@@ -327,20 +325,20 @@ var Views = (function () {
     const cont = el('div', { class: 'container' });
     const grid = el('div', { class: 'grid-4' });
     if (statsData) {
-      grid.appendChild(statTile(String(statsData.courses || 9), '门课程'));
-      grid.appendChild(statTile(String(statsData.chapters || '100'), '讲内容'));
-      grid.appendChild(statTile(String(statsData.exercises || '1000') + '+', '道习题'));
+      grid.appendChild(statTile(String(statsData.courses || 11), '门课程'));
+      grid.appendChild(statTile(String(statsData.chapters || '116'), '讲内容'));
+      grid.appendChild(statTile(String(statsData.exercises || '1160') + '+', '道习题'));
       grid.appendChild(statTile(String(statsData.demos || '16'), '个交互演示'));
     } else {
-      grid.appendChild(statTile('9', '门课程'));
-      grid.appendChild(statTile('100', '讲内容'));
-      grid.appendChild(statTile('1000+', '道习题'));
+      grid.appendChild(statTile('11', '门课程'));
+      grid.appendChild(statTile('116', '讲内容'));
+      grid.appendChild(statTile('1160+', '道习题'));
       grid.appendChild(statTile('16', '个交互演示'));
     }
     cont.appendChild(grid);
     if (all) {
       cont.appendChild(el('div', { class: 'row-between mt-12' }, [
-        el('div', {}, [el('p', { class: 'eyebrow', text: '课程目录' }), el('h2', { text: '九门课，从入门到研究生导读' })]),
+        el('div', {}, [el('p', { class: 'eyebrow', text: '课程目录' }), el('h2', { text: '十一门课，从入门到研究生导读' })]),
         el('a', { class: 'btn btn-ghost', href: '#/courses', text: '查看全部 →' }),
       ]));
       const cg = el('div', { class: 'grid-cards mt-6' });
@@ -403,7 +401,7 @@ var Views = (function () {
     const root = el('div', { class: 'view' });
     const c = el('div', { class: 'container', style: undefined });
     c.appendChild(el('h1', { text: '学习路径' }));
-    c.appendChild(el('p', { class: 'lead mt-3', text: '三条路径覆盖不同起点：完全零基础、本科主线、研究生导读。每条路径内按顺序学最省力。' }));
+    c.appendChild(el('p', { class: 'lead mt-3', text: '四条路径覆盖不同起点与目标：完全零基础、本科主线、研究生导读、大厂冲刺。每条路径内按顺序学最省力。' }));
     const all = await Data.allCourses();
     all.manifest.paths.forEach((p) => {
       const sec = el('section', { class: 'path-section' });
@@ -429,7 +427,7 @@ var Views = (function () {
     const root = el('div', { class: 'view' });
     const c = el('div', { class: 'container' });
     c.appendChild(el('h1', { text: '课程目录' }));
-    c.appendChild(el('p', { class: 'lead mt-3', text: '9 门课程，本科核心 + 研究生入门导读。每门课标注难度与预计学时。' }));
+    c.appendChild(el('p', { class: 'lead mt-3', text: '11 门课程：本科核心、研究生导读与大厂面试冲刺。每门课标注难度与预计学时。' }));
     const all = await Data.allCourses();
     const filterWrap = el('div', { class: 'exercise-filters mt-4' });
     const grid = el('div', { class: 'grid-cards mt-4' });
@@ -1154,7 +1152,7 @@ var Views = (function () {
     c.appendChild(el('h1', { text: '关于本站与作者' }));
     /* 作者信息 */
     const author = el('section', { class: 'card author-card' });
-    author.appendChild(el('img', { class: 'author-avatar', src: 'assets/author/avatar.jpg?v=325bcbd8', alt: '作者头像：Solips-Singularitat', width: 96, height: 96, loading: 'lazy' }));
+    author.appendChild(el('img', { class: 'author-avatar', src: 'assets/author/avatar.jpg?v=1f8c93d2', alt: '作者头像：Solips-Singularitat', width: 96, height: 96, loading: 'lazy' }));
     const ab = el('div', { class: 'author-body' });
     ab.appendChild(el('div', { class: 'author-name', text: 'Solips-Singularitat' }));
     ab.appendChild(el('div', { class: 'author-role', text: '本站作者 · 内容与开发' }));
@@ -1165,7 +1163,7 @@ var Views = (function () {
     c.appendChild(author);
     /* 研究所入口 */
     const teaser = el('section', { class: 'card institute-teaser' });
-    teaser.appendChild(el('img', { class: 'institute-icon', src: 'assets/institute/caa-ins-icon.jpg?v=325bcbd8', alt: '中国美术学院网络社会研究所（INS）图标', width: 44, height: 44, loading: 'lazy' }));
+    teaser.appendChild(el('img', { class: 'institute-icon', src: 'assets/institute/caa-ins-icon.jpg?v=1f8c93d2', alt: '中国美术学院网络社会研究所（INS）图标', width: 44, height: 44, loading: 'lazy' }));
     const tb = el('div', { class: 'institute-teaser-body' });
     tb.appendChild(el('div', { class: 'institute-name', text: '中国美术学院 · 网络社会研究所（INS）' }));
     tb.appendChild(el('p', { class: 'small muted', text: '本站作者所在的研究所，关注网络社会的理论、艺术与实践。' }));
@@ -1174,7 +1172,7 @@ var Views = (function () {
     c.appendChild(teaser);
     const sec1 = el('div', { class: 'prose mt-6' });
     sec1.innerHTML = sanitize(
-      '<p>这里是「贝尔实验室 · 计算机知识学习站」：为「从零基础到研究生入门」而设计——9 门课程、100 讲，每讲都提供<strong>专业版</strong>与<strong>宝宝巴士版</strong>两种讲解，配套三级难度习题与完整解答，重点知识点配有可以动手操作的交互演示。</p>' +
+      '<p>这里是「贝尔实验室 · 计算机知识学习站」：为「从零基础到研究生入门」而设计——11 门课程、116 讲，每讲都提供<strong>专业版</strong>与<strong>宝宝巴士版</strong>两种讲解，配套三级难度习题与完整解答，重点知识点配有可以动手操作的交互演示。</p>' +
       '<h4>学习方式</h4><ul>' +
       '<li>从<a href="#/paths">学习路径</a>选一条线，按顺序学；或直接进<a href="#/courses">课程目录</a>挑感兴趣的主题。</li>' +
       '<li>每讲读完做一遍习题：选择题、判断题可即时判分；推导、设计、编程题对照完整解答自评。</li>' +
@@ -1194,7 +1192,7 @@ var Views = (function () {
     const c = el('div', { class: 'container container-narrow' });
     c.appendChild(el('p', { class: 'eyebrow', text: 'INS · 网络社会研究所专栏' }));
     const head = el('div', { class: 'institute-head' });
-    head.appendChild(el('img', { class: 'institute-logo', src: 'assets/institute/caa-ins-icon.jpg?v=325bcbd8', alt: '中国美术学院网络社会研究所（INS）图标：紫底白色 iNs 字母', width: 72, height: 72, loading: 'lazy' }));
+    head.appendChild(el('img', { class: 'institute-logo', src: 'assets/institute/caa-ins-icon.jpg?v=1f8c93d2', alt: '中国美术学院网络社会研究所（INS）图标：紫底白色 iNs 字母', width: 72, height: 72, loading: 'lazy' }));
     const ht = el('div', { class: 'institute-head-body' });
     ht.appendChild(el('h1', { text: '中国美术学院 · 网络社会研究所' }));
     ht.appendChild(el('p', { class: 'institute-en', text: 'Institute of Network Society (INS), School of Intermedia Art, China Academy of Art' }));
