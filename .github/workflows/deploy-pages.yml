@@ -30,7 +30,9 @@ jobs:
         run: |
           set -e
           mkdir -p _site
-          cp -r index.html 404.html favicon.ico css js content assets docs _site/
+          cp -r index.html favicon.ico css js content assets docs _site/
+          # 自定义错误页：从 deploy/ 生成（仓库文件列表保持干净，不出现 404 命名文件）
+          cp deploy/not-found.html _site/404.html
           node tools/stamp-assets.js _site
           touch _site/.nojekyll
           echo "发布体积：" && du -sh _site

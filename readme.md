@@ -1,5 +1,7 @@
 # 贝尔实验室 · 计算机知识学习站（从入门到入坟）
 
+[![Deploy to GitHub Pages](https://github.com/solip-singularity/bearlabs/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/solip-singularity/bearlabs/actions/workflows/deploy-pages.yml)
+
 **Bearlabs** · 从二进制到人工智能：**11 门课程 · 116 讲 · 双讲解 · 三级习题 · 16 个可动手交互动画**的学习网站。
 零第三方依赖：纯 HTML/CSS/JS 前端 + 可选的零依赖 Node 同步服务。
 
@@ -107,9 +109,8 @@ cs-learn-site/
 
 ## 更新记录
 
-- **v1.1（2026-09-16）**：站点更名为「贝尔实验室 · 计算机知识学习站（从入门到入坟）」（英文名 Bearlabs）；新增作者信息模块与网络社会研究所专栏；接入作者头像与网研所图标；页脚与站点元信息更新；新增图片资源台账。涉及文件：`index.html`、`css/site.css`、`js/app.js`、`js/views.js`、`server/server.js`、`package.json`、`assets/`（新增）、`docs/asset-ledger.md`（新增）。
-- **v1.2（2026-09-22）**：新增「**人工智能的数学基础**」课程（8 讲：数据的形状 / 矩阵运算 / 特征值 / 奇异值分解 SVD / 导数与梯度下降 / 概率与熵 / 概率与贝叶斯 / 综合实战；参考菜鸟教程《AI 数学基础》知识脉络改编）；新增「**大厂面试实战题库**」课程（8 讲 80 题：线性结构与哈希 / 操作系统与网络 / AI 与手写代码 / 备考路径与自查清单 / 数据库与缓存 / 系统设计与分布式 / 海量数据 / Linux 与 Git；每题标注来源，口径为 LeetCode / 剑指Offer / 牛客网专题 / 经典教材）；manifest 新增「大厂冲刺线」学习路径；离散数学课程零改动。涉及文件：`content/courses/aimath/`（新增 8 讲）、`content/courses/interview/`（新增 8 讲）、`content/courses/manifest.json`、`docs/OUTLINES.md`、`content/stats.json`（构建产物）、`content/search-index.json`（构建产物）、`docs/screenshots/v12/`（新增 6 张截图）。维护方式见「新增 / 修改内容」一节。
-- **v1.2.1（2026-09-22）**：修复「学习路径」页（#/paths）课程卡片无法点击进入课程的问题（卡片改为链接，支持键盘与中键打开）；首页 / 路径页 / 关于页的课程数与题量文案更新为 11 门课 / 116 讲 / 1160+ 题；静态资源缓存戳更新（`?v=1f8c93d2`）。涉及文件：`js/views.js`、`index.html`、`readme.md`、`docs/screenshots/v12/paths-desktop.png`（新增）。
+- **v1.1**（2026-09-16）：站点更名为「贝尔实验室（Bearlabs）」；新增作者信息与网络社会研究所专栏。
+- **v1.2**（2026-09-22）：新增「人工智能的数学基础」（8 讲）与「大厂面试实战题库」（8 讲 80 题，逐题标注来源）两门课程，并新增「大厂冲刺线」学习路径；全站扩至 11 门课程 / 116 讲 / 1160+ 道习题。
 
 ## 部署
 

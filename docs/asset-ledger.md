@@ -12,7 +12,7 @@
 | 图片1c | `brand-mark.png` | `assets/brand-mark.png` | 120×120 / 18KB | 页眉品牌徽标（`.brand-mark`，40×40 圆角 12px 显示） | 由 1254×1254 源图面积平均缩放生成 |
 | 图片1d | `brand-hero.png` | `assets/brand-hero.png` | 288×288 / 92KB | 首页 hero **右侧拉长横幅**（`.hero-banner`，2.4:1 比例、`object-fit: cover` 居中裁切 + 图片不虚化（保持清晰）+ 重心羽化蒙版柔和边缘；同图另作 `.hero-banner-glow` 虚化光晕） | 由 1254×1254 源图面积平均缩放生成 |
 | 图片2 | `caa-ins-icon.jpg` | `assets/institute/caa-ins-icon.jpg` | 155×155 / 3KB | 研究所专栏页（`#/institute`）、关于页入口卡、页脚 | 用户提供（中国美术学院网络社会研究所图标） |
-| 图片3 | `favicon.ico` | `favicon.ico` | 16×16 / 32×32 / 48×48 多尺寸 ICO | 浏览器标签页图标（全站，`index.html` 与 `404.html`） | 由用户提供的 1254×1254 源图渐进降采样生成 |
+| 图片3 | `favicon.ico` | `favicon.ico` | 16×16 / 32×32 / 48×48 多尺寸 ICO | 浏览器标签页图标（全站） | 由用户提供的 1254×1254 源图渐进降采样生成 |
 | 图片3a | `favicon-32.png` | `assets/favicon-32.png` | 32×32 / 3KB | `<link rel="icon" type="image/png">` 现代浏览器 | 同上 |
 | 图片3b | `apple-touch-icon.png` | `assets/apple-touch-icon.png` | 180×180 / 54KB | iOS「添加到主屏幕」图标 | 同上 |
 | 过程稿 | `avatar-cand-a.jpg`、`avatar-cand-b.jpg`、`avatar-compare.png`、`avatar-round-preview.png` | `assets/author/` | — | 不直接引用 | 由原图派生的裁剪候选与对照稿（制作过程留存，可安全删除） |
