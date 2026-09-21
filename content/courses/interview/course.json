@@ -1,0 +1,49 @@
+{
+  "id": "interview",
+  "title": "大厂面试实战题库",
+  "subtitle": "来源可查的专题题库：从数据结构到系统设计的冲刺路线",
+  "level": "求职冲刺",
+  "levelNote": "面向校招、实习与初级社招；建议先过本站对应学科课程，再进入本题库刷题与自查。",
+  "hours": 10,
+  "keywords": ["面试", "LeetCode", "剑指Offer", "八股文", "手写代码", "系统设计", "海量数据", "备考自查"],
+  "description": "八个专题、八十道标注来源的实战题：线性结构与哈希、操作系统与网络、AI 与手写代码、数据库与缓存、系统设计与分布式入门、海量数据处理、Linux 与 Git 工程实践，另设专章给出知识点—题目映射与大厂备考自查清单。每题含题目、难度、来源标注与完整解析。",
+  "prerequisites": ["对应学科基础（可先学本站同名课程）", "至少熟悉一种编程语言的基本语法"],
+  "units": [
+    {
+      "id": "interview-u1",
+      "title": "单元一 算法与计算机基础",
+      "summary": "手撕代码最高频考区与计算机基础八股主线。",
+      "chapters": [
+        { "id": "interview-01", "title": "第1讲 专题·线性结构与哈希", "objective": "熟练应对数组、链表、栈、队列、哈希表的经典题与变形", "minutes": 45, "difficulty": 2, "prereqs": [] },
+        { "id": "interview-02", "title": "第2讲 专题·操作系统与计算机网络", "objective": "进程线程、调度、内存、死锁与 TCP/HTTP/DNS 的标准答法", "minutes": 40, "difficulty": 2, "prereqs": [] }
+      ]
+    },
+    {
+      "id": "interview-u2",
+      "title": "单元二 AI、手写代码与备考路线",
+      "summary": "机器学习高频问答、手写代码框架与全题库自查清单。",
+      "chapters": [
+        { "id": "interview-03", "title": "第3讲 专题·AI 与手写代码", "objective": "过拟合、梯度、注意力与 LRU/生产者消费者/TopK 的作答套路", "minutes": 45, "difficulty": 2, "prereqs": [] },
+        { "id": "interview-04", "title": "第4讲 备考路径与自查清单", "objective": "用知识点—题目映射规划复习顺序，按两档自查清单定位薄弱点", "minutes": 35, "difficulty": 1, "prereqs": [] }
+      ]
+    },
+    {
+      "id": "interview-u3",
+      "title": "单元三 数据库与系统设计冲刺",
+      "summary": "索引事务日志、缓存三连与限流布隆过滤器等系统设计入门。",
+      "chapters": [
+        { "id": "interview-05", "title": "第5讲 专题·数据库与缓存", "objective": "B+树、ACID、MVCC 与 Redis 缓存问题的标准答法", "minutes": 45, "difficulty": 2, "prereqs": [] },
+        { "id": "interview-06", "title": "第6讲 专题·系统设计与分布式入门", "objective": "限流、短链、布隆过滤器、一致性哈希与秒杀系统的设计思路", "minutes": 50, "difficulty": 3, "prereqs": [] }
+      ]
+    },
+    {
+      "id": "interview-u4",
+      "title": "单元四 海量数据与工程实践",
+      "summary": "海量数据处理三板斧与命令行、版本控制的工程基本功。",
+      "chapters": [
+        { "id": "interview-07", "title": "第7讲 专题·海量数据处理与场景题", "objective": "分治、哈希分片、位图与堆的选型，能设计海量数据方案", "minutes": 45, "difficulty": 3, "prereqs": [] },
+        { "id": "interview-08", "title": "第8讲 专题·Linux 与 Git 工程实践", "objective": "常用排查命令、文本处理管道与 Git 工作流的面试答法", "minutes": 40, "difficulty": 2, "prereqs": [] }
+      ]
+    }
+  ]
+}

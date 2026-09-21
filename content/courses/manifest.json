@@ -83,6 +83,24 @@
       "color": "#C98A5E",
       "order": 9,
       "icon": "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6'><circle cx='5' cy='12' r='2'/><circle cx='12' cy='6' r='2'/><circle cx='12' cy='18' r='2'/><circle cx='19' cy='12' r='2'/><path d='M6.8 10.9 10.2 7.1M6.8 13.1l3.4 3.8M13.8 7.1l3.4 3.8M13.8 16.9l3.4-3.8'/></svg>"
+    },
+    {
+      "id": "aimath",
+      "title": "人工智能的数学基础",
+      "short": "AI Math",
+      "level": "大学基础",
+      "color": "#8F5E9E",
+      "order": 10,
+      "icon": "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6'><path d='M18 5H8l5 7-5 7h10'/></svg>"
+    },
+    {
+      "id": "interview",
+      "title": "大厂面试实战题库",
+      "short": "Interview Bank",
+      "level": "求职冲刺",
+      "color": "#BF7C6A",
+      "order": 11,
+      "icon": "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.6'><rect x='4' y='4' width='16' height='16' rx='2'/><path d='M8 9.5l2 2 4-4.5'/><path d='M8 15h8'/></svg>"
     }
   ],
   "paths": [
@@ -106,6 +124,13 @@
       "subtitle": "研究生入门导读",
       "description": "面向研究生入门与进阶读者：离散数学与计算理论的根基、编译器的构造艺术、机器学习的内在机理。",
       "courses": ["dm", "cmp", "ai"]
+    },
+    {
+      "id": "career",
+      "title": "大厂冲刺线",
+      "subtitle": "数学补强与面试实战",
+      "description": "先把 AI 背后的数学地基补齐，再用来源可查的真题题库冲刺大厂面试：人工智能的数学基础 → 大厂面试实战题库。",
+      "courses": ["aimath", "interview"]
     }
   ]
 }

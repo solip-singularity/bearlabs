@@ -1,11 +1,11 @@
 {
-  "updatedAt": 1789498774045,
-  "courses": 9,
-  "chapters": 100,
-  "chaptersLoaded": 100,
-  "exercises": 1000,
+  "updatedAt": 1790007140557,
+  "courses": 11,
+  "chapters": 116,
+  "chaptersLoaded": 116,
+  "exercises": 1160,
   "demos": 16,
-  "words": 355855,
+  "words": 403149,
   "perCourse": {
     "oop": {
       "title": "面向对象编程",
@@ -87,6 +87,24 @@
       "exercises": 100,
       "words": 31716,
       "minutes": 480
+    },
+    "aimath": {
+      "title": "人工智能的数学基础",
+      "level": "大学基础",
+      "chapters": 8,
+      "loaded": 8,
+      "exercises": 80,
+      "words": 24050,
+      "minutes": 365
+    },
+    "interview": {
+      "title": "大厂面试实战题库",
+      "level": "求职冲刺",
+      "chapters": 8,
+      "loaded": 8,
+      "exercises": 80,
+      "words": 23244,
+      "minutes": 345
     }
   },
   "missing": []

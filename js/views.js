@@ -309,7 +309,7 @@ var Views = (function () {
     const bannerWrap = el('div', { class: 'hero-banner-wrap' }, [
       el('span', { class: 'hero-banner-glow', 'aria-hidden': 'true' }),
       el('div', { class: 'hero-banner' }, [
-        el('img', { class: 'hero-banner-img', src: 'assets/brand-hero.png?v=a5d927cb', alt: '贝尔实验室 Bearlabs', loading: 'eager' }),
+        el('img', { class: 'hero-banner-img', src: 'assets/brand-hero.png?v=325bcbd8', alt: '贝尔实验室 Bearlabs', loading: 'eager' }),
       ]),
     ]);
     right.appendChild(bannerWrap);
@@ -1154,7 +1154,7 @@ var Views = (function () {
     c.appendChild(el('h1', { text: '关于本站与作者' }));
     /* 作者信息 */
     const author = el('section', { class: 'card author-card' });
-    author.appendChild(el('img', { class: 'author-avatar', src: 'assets/author/avatar.jpg?v=a5d927cb', alt: '作者头像：Solips-Singularitat', width: 96, height: 96, loading: 'lazy' }));
+    author.appendChild(el('img', { class: 'author-avatar', src: 'assets/author/avatar.jpg?v=325bcbd8', alt: '作者头像：Solips-Singularitat', width: 96, height: 96, loading: 'lazy' }));
     const ab = el('div', { class: 'author-body' });
     ab.appendChild(el('div', { class: 'author-name', text: 'Solips-Singularitat' }));
     ab.appendChild(el('div', { class: 'author-role', text: '本站作者 · 内容与开发' }));
@@ -1165,7 +1165,7 @@ var Views = (function () {
     c.appendChild(author);
     /* 研究所入口 */
     const teaser = el('section', { class: 'card institute-teaser' });
-    teaser.appendChild(el('img', { class: 'institute-icon', src: 'assets/institute/caa-ins-icon.jpg?v=a5d927cb', alt: '中国美术学院网络社会研究所（INS）图标', width: 44, height: 44, loading: 'lazy' }));
+    teaser.appendChild(el('img', { class: 'institute-icon', src: 'assets/institute/caa-ins-icon.jpg?v=325bcbd8', alt: '中国美术学院网络社会研究所（INS）图标', width: 44, height: 44, loading: 'lazy' }));
     const tb = el('div', { class: 'institute-teaser-body' });
     tb.appendChild(el('div', { class: 'institute-name', text: '中国美术学院 · 网络社会研究所（INS）' }));
     tb.appendChild(el('p', { class: 'small muted', text: '本站作者所在的研究所，关注网络社会的理论、艺术与实践。' }));
@@ -1194,7 +1194,7 @@ var Views = (function () {
     const c = el('div', { class: 'container container-narrow' });
     c.appendChild(el('p', { class: 'eyebrow', text: 'INS · 网络社会研究所专栏' }));
     const head = el('div', { class: 'institute-head' });
-    head.appendChild(el('img', { class: 'institute-logo', src: 'assets/institute/caa-ins-icon.jpg?v=a5d927cb', alt: '中国美术学院网络社会研究所（INS）图标：紫底白色 iNs 字母', width: 72, height: 72, loading: 'lazy' }));
+    head.appendChild(el('img', { class: 'institute-logo', src: 'assets/institute/caa-ins-icon.jpg?v=325bcbd8', alt: '中国美术学院网络社会研究所（INS）图标：紫底白色 iNs 字母', width: 72, height: 72, loading: 'lazy' }));
     const ht = el('div', { class: 'institute-head-body' });
     ht.appendChild(el('h1', { text: '中国美术学院 · 网络社会研究所' }));
     ht.appendChild(el('p', { class: 'institute-en', text: 'Institute of Network Society (INS), School of Intermedia Art, China Academy of Art' }));

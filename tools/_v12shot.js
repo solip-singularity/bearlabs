@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* _aboutshot.js — 关于页专项重拍（desktop/tablet + 移动仿真的 mobile），用于头像落定后的补拍。 */
+/* _v12shot.js — v1.2 新内容截图：课程列表 / 两门新课 / 新章节（桌面 + 移动仿真）。 */
 'use strict';
 const { spawn } = require('child_process');
 const fs = require('fs');
@@ -13,20 +13,21 @@ const CHROME = [
   'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
   'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
 ].find(p => { try { return require('fs').existsSync(p); } catch (e) { return false; } });
-if (!CHROME) throw new Error('未找到 Chrome 或 Edge：请安装浏览器或调整 tools/_aboutshot.js 候选列表');
-const PORT = 9987;
+if (!CHROME) throw new Error('未找到 Chrome 或 Edge：请调整 tools/_v12shot.js 候选列表');
+const PORT = 9253;
 const BASE = 'http://127.0.0.1:8642';
-const OUT = path.resolve(__dirname, '..', 'docs', 'screenshots');
+const OUT = path.resolve(__dirname, '..', 'docs', 'screenshots', 'v12');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
-  const profile = path.join(os.tmpdir(), 'cslearn-abs-' + Date.now());
+  fs.mkdirSync(OUT, { recursive: true });
+  const profile = path.join(os.tmpdir(), 'cslearn-v12-' + Date.now());
   const chrome = spawn(CHROME, ['--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check', '--user-data-dir=' + profile, '--remote-debugging-port=' + PORT, 'about:blank'], { stdio: 'ignore' });
   try {
     let ok = false;
     for (let i = 0; i < 60; i++) { try { const r = await fetch('http://127.0.0.1:' + PORT + '/json/version'); if (r.ok) { ok = true; break; } } catch (e) {} await sleep(250); }
     if (!ok) throw new Error('CDP 未就绪');
-    const tab = (await (await fetch('http://127.0.0.1:' + PORT + '/json/new?' + encodeURIComponent(BASE + '/#/about'), { method: 'PUT' })).json());
+    const tab = (await (await fetch('http://127.0.0.1:' + PORT + '/json/new?' + encodeURIComponent(BASE + '/#/courses'), { method: 'PUT' })).json());
     const ws = new WebSocket(tab.webSocketDebuggerUrl);
     await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
     let id = 0; const pend = new Map();
@@ -37,14 +38,17 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     await send('Page.enable');
 
     const shots = [
-      ['about-desktop.png', 1440, 900, false, 1],
-      ['about-tablet.png', 834, 1112, false, 1],
-      ['about-mobile.png', 390, 844, true, 2],
+      ['courses-list-desktop.png', 1440, 900, false, 1, '#/courses'],
+      ['aimath-course-desktop.png', 1440, 900, false, 1, '#/course/aimath'],
+      ['interview-course-desktop.png', 1440, 900, false, 1, '#/course/interview'],
+      ['aimath-04-chapter-desktop.png', 1440, 900, false, 1, '#/chapter/aimath/aimath-04'],
+      ['interview-04-chapter-desktop.png', 1440, 900, false, 1, '#/chapter/interview/interview-04'],
+      ['interview-course-mobile.png', 390, 844, true, 2, '#/course/interview'],
     ];
-    for (const [name, w, h, mobile, dsf] of shots) {
+    for (const [name, w, h, mobile, dsf, hash] of shots) {
       await send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: dsf, mobile: mobile });
-      await evl(`location.hash = '#/about'`);
-      await sleep(2400);
+      await evl(`location.hash = '${hash}'`);
+      await sleep(2600);
       const shot = await send('Page.captureScreenshot', { format: 'png' });
       fs.writeFileSync(path.join(OUT, name), Buffer.from(shot.data, 'base64'));
       console.log('saved:', name, Math.round(fs.statSync(path.join(OUT, name)).size / 1024) + 'KB');

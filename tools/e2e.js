@@ -12,7 +12,14 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const CHROME = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+const CHROME = [
+  'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+  'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+  process.env.LOCALAPPDATA + '\\Google\\Chrome\\Application\\chrome.exe',
+  'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+  'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+].find(p => { try { return require('fs').existsSync(p); } catch (e) { return false; } });
+if (!CHROME) throw new Error('未找到 Chrome 或 Edge：请安装浏览器或调整 tools/e2e.js 候选列表');
 const PORT = 9333 + Math.floor(Math.random() * 30);
 const BASE = process.env.E2E_BASE || 'http://127.0.0.1:8642';
 const OUT = path.resolve(__dirname, '..', 'docs', 'e2e-report.json');

@@ -1,0 +1,49 @@
+{
+  "id": "aimath",
+  "title": "人工智能的数学基础",
+  "subtitle": "从向量到梯度下降，把 AI 背后的数学讲成能动手算的直觉",
+  "level": "大学基础",
+  "levelNote": "适合学过高中数学、想理解 AI 原理的读者；不需要先修大学线性代数、概率论，课程从定义讲起。",
+  "hours": 11,
+  "keywords": ["线性代数", "SVD", "矩阵分解", "微积分", "梯度下降", "概率", "信息熵", "交叉熵"],
+  "description": "参考菜鸟教程《AI 数学基础》的知识脉络重构：线性代数描述数据，微积分与优化驱动学习，概率统计与信息论刻画不确定性与误差，最后以「从图像到小神经网络」的综合实战收官。每讲配几何直觉、生活类比与十道动手练习。",
+  "prerequisites": ["高中数学：会算斜率、知道集合与函数", "任何一种语言的简单编程经验（看懂循环即可）"],
+  "units": [
+    {
+      "id": "aimath-u1",
+      "title": "单元一 线性代数：描述数据的语言",
+      "summary": "从向量、矩阵到特征分解与 SVD，建立 AI 数据表示的几何直觉。",
+      "chapters": [
+        { "id": "aimath-01", "title": "第1讲 数据的形状：标量、向量、矩阵与张量", "objective": "用形状语言描述数据，会算向量运算、点积、模长与余弦相似度", "minutes": 35, "difficulty": 1, "prereqs": [] },
+        { "id": "aimath-02", "title": "第2讲 矩阵运算与线性方程组", "objective": "掌握矩阵乘法、转置与特殊矩阵，理解 Ax=b 与 Wx+b 的对应", "minutes": 40, "difficulty": 1, "prereqs": ["aimath-01"] },
+        { "id": "aimath-03", "title": "第3讲 特征值与特征向量：矩阵的指纹", "objective": "理解 Av=λv 的几何含义，会手算 2×2 特征对并解释主方向", "minutes": 45, "difficulty": 2, "prereqs": ["aimath-02"] },
+        { "id": "aimath-04", "title": "第4讲 奇异值分解 SVD：任意矩阵的拆解术", "objective": "理解 A=UΣVᵀ 与截断 SVD，会算压缩账并解释 LoRA 与推荐系统", "minutes": 50, "difficulty": 2, "prereqs": ["aimath-03"] }
+      ]
+    },
+    {
+      "id": "aimath-u2",
+      "title": "单元二 变化与学习：微积分与优化",
+      "summary": "用导数与梯度描述变化，把「训练」拆成四步循环。",
+      "chapters": [
+        { "id": "aimath-05", "title": "第5讲 导数、梯度与梯度下降：训练如何发生", "objective": "会算导数与梯度，手推梯度下降迭代，分清 SGD/Momentum/Adam 直觉", "minutes": 50, "difficulty": 2, "prereqs": [] }
+      ]
+    },
+    {
+      "id": "aimath-u3",
+      "title": "单元三 概率统计与信息论",
+      "summary": "贝叶斯更新信念、期望方差刻画数据，熵与交叉熵给模型错误打分。",
+      "chapters": [
+        { "id": "aimath-06", "title": "第6讲 概率、熵与交叉熵：不确定性与损失", "objective": "会做贝叶斯与期望方差计算，会算熵与交叉熵并解释分类损失选择", "minutes": 45, "difficulty": 2, "prereqs": [] },
+        { "id": "aimath-07", "title": "第7讲 概率与贝叶斯：描述不确定性的语言", "objective": "掌握条件概率、随机变量、协方差与最大似然估计，会用模拟验证概率结论", "minutes": 45, "difficulty": 2, "prereqs": ["aimath-06"] }
+      ]
+    },
+    {
+      "id": "aimath-u4",
+      "title": "单元四 综合实战",
+      "summary": "把全课程工具串成一条从图像到小神经网络的完整流水线。",
+      "chapters": [
+        { "id": "aimath-08", "title": "第8讲 综合实战：从图像到小神经网络", "objective": "综合运用全课程工具：图像即矩阵、余弦推荐、PCA 与梯度下降、前向传播", "minutes": 55, "difficulty": 3, "prereqs": ["aimath-04", "aimath-05", "aimath-06"] }
+      ]
+    }
+  ]
+}
